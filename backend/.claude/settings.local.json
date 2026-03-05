@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(if not exist tests mkdir tests)",
+      "Bash(python -m py_compile:*)"
+    ]
+  }
+}
