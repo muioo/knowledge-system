@@ -7,6 +7,36 @@ from bs4 import BeautifulSoup
 from readability import Document
 
 
+# 默认 User-Agent 头，模拟浏览器访问
+DEFAULT_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+}
+
+
+def is_valid_url(url: str) -> bool:
+    """
+    验证 URL 格式是否有效
+
+    Args:
+        url: 要验证的 URL
+
+    Returns:
+        bool: URL 是否有效
+    """
+    if not url or not isinstance(url, str):
+        return False
+
+    url = url.strip()
+    if not url:
+        return False
+
+    # 检查是否以 http:// 或 https:// 开头
+    if not (url.startswith("http://") or url.startswith("https://")):
+        return False
+
+    return True
+
+
 async def fetch_html(url: str) -> str:
     """
     获取网页原始 HTML
@@ -18,10 +48,14 @@ async def fetch_html(url: str) -> str:
         str: 网页的原始 HTML 内容
 
     Raises:
+        ValueError: 当 URL 格式无效时抛出
         httpx.HTTPError: 当请求失败时抛出
     """
+    if not is_valid_url(url):
+        raise ValueError(f"Invalid URL: {url}")
+
     async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-        response = await client.get(url)
+        response = await client.get(url, headers=DEFAULT_HEADERS)
         response.raise_for_status()
         return response.text
 
