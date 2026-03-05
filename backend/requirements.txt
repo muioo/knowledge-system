@@ -28,3 +28,6 @@ markdown==3.5.1
 # 工具
 python-dotenv==1.0.0
 aiofiles==23.2.1
+httpx==0.28.1
+beautifulsoup4==4.10.0
+readability-lxml==0.8.1
