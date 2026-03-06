@@ -46,14 +46,32 @@ async def get_articles(
         items=articles
     ))
 
-@router.get("/{article_id}", response_model=SuccessResponse[ArticleResponse])
+@router.get("/{article_id}", response_model=SuccessResponse[ArticleHtmlResponse])
 async def get_article(
     article_id: int,
     current_user: User = Depends(get_current_user)
 ):
+    """获取文章详情（包含 HTML 内容）"""
     try:
+        # 获取基本信息
         result = await get_article_by_id(article_id)
-        return SuccessResponse(data=result)
+
+        # 如果有 HTML 路径，读取 HTML 内容
+        html_content = None
+        if hasattr(result, 'html_path') and result.html_path:
+            try:
+                html_content = await get_article_html_content(article_id)
+            except Exception:
+                pass  # HTML 读取失败不影响基本信息返回
+
+        # 组合响应
+        response_data = ArticleHtmlResponse(
+            **result.model_dump(),
+            html_content=html_content
+        )
+
+        return SuccessResponse(data=response_data)
+
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
