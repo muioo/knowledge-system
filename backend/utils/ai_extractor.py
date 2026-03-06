@@ -2,11 +2,15 @@
 import asyncio
 import json
 import os
+from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, Optional
 
 from volcenginesdkarkruntime import Ark
 
 from backend.settings.config import settings
+
+# 创建线程池用于执行同步的 AI 调用
+_executor = ThreadPoolExecutor(max_workers=2)
 
 # 初始化客户端
 client = Ark(
@@ -85,9 +89,31 @@ async def extract_article_from_url(url: str, html_content: str) -> Dict:
         raise ValueError(f"AI 提取失败: {str(e)}")
 
 
+def _extract_article_summary_sync(content: str) -> Dict:
+    """同步版本的摘要提取（在线程池中运行）"""
+    prompt = f"""从以下文章内容提取摘要和关键词：
+
+{content}
+
+返回JSON格式：
+{{"summary":"100-200字摘要","keywords":"关键词1,关键词2,关键词3"}}"""
+
+    # 直接调用 SDK
+    response = client.responses.create(
+        model="ep-20260302234602-pz4hc",
+        input=[{"role": "user", "content": prompt}],
+    )
+
+    # 获取返回内容
+    result_text = response.output[1].content[0].text.strip()
+
+    # 解析 JSON
+    return _parse_json_response(result_text)
+
+
 async def extract_article_summary(content: str) -> Dict:
     """
-    从已有内容中提取摘要和关键词
+    从已有内容中提取摘要和关键词（优化版本，使用线程池避免阻塞）
 
     Args:
         content: 文章内容
@@ -95,111 +121,82 @@ async def extract_article_summary(content: str) -> Dict:
     Returns:
         包含 summary, keywords 的字典
     """
-    prompt = f"""请从以下文章内容中提取摘要和关键词，以JSON格式返回：
-
-文章内容:
-{content[:8000]}
-
-请提取以下信息并以JSON格式返回：
-{{
-    "summary": "文章摘要（100-200字）",
-    "keywords": "关键词1,关键词2,关键词3"
-}}
-
-只返回JSON，不要其他内容。"""
-
-    try:
-        # 直接调用 SDK（同步方式，与 12.py 相同）
-        response = client.responses.create(
-            model="ep-20260302234602-pz4hc",
-            input=[{"role": "user", "content": prompt}],
-        )
-
-        # 获取返回内容
-        # output[0] 是推理过程，output[1] 是实际输出
-        result_text = response.output[1].content[0].text.strip()
-
-        # 解析 JSON
-        return _parse_json_response(result_text)
-
-    except Exception as e:
-        raise ValueError(f"AI 提取失败: {str(e)}")
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(_executor, _extract_article_summary_sync, content)
 
 
 async def extract_article_async(article_id: int) -> bool:
     """
     异步提取文章摘要和关键词（用于后台任务）
-
-    Args:
-        article_id: 文章 ID
-
-    Returns:
-        是否提取成功
+    优化版本：只提取摘要和关键词，减少 token 消耗
     """
     import aiofiles
     from backend.models import Article
     from backend.settings.config import settings
 
-    # 重试逻辑
-    for attempt in range(3):
+    try:
+        # 获取文章
+        article = await Article.get(id=article_id)
+
+        # 更新状态为处理中
+        article.processing_status = "processing"
+        await article.save()
+
+        # 读取本地 HTML 文件
+        if not article.html_path:
+            print(f"[AI Extractor] Article {article_id}: No html_path")
+            return False
+
+        # 使用 settings.upload_dir 作为基础目录
+        html_path = os.path.join(settings.upload_dir, article.html_path)
+
+        if not os.path.exists(html_path):
+            print(f"[AI Extractor] Article {article_id}: File not found: {html_path}")
+            return False
+
+        async with aiofiles.open(html_path, 'r', encoding='utf-8') as f:
+            html_content = await f.read()
+
+        print(f"[AI Extractor] Article {article_id}: Read {len(html_content)} chars from HTML")
+
+        # 优化：只截取正文内容（最多 5000 字符），减少 token 消耗
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(html_content, 'html.parser')
+
+        # 移除 script、style 等标签
+        for tag in soup(['script', 'style', 'nav', 'footer', 'header']):
+            tag.decompose()
+
+        # 获取纯文本内容
+        text_content = soup.get_text(separator=' ', strip=True)
+        text_content = ' '.join(text_content.split())[:5000]  # 最多 5000 字符
+
+        print(f"[AI Extractor] Article {article_id}: Using {len(text_content)} chars for AI")
+
+        # 调用 AI 提取（使用专门的摘要提取函数，更高效）
+        result = await extract_article_summary(text_content)
+
+        print(f"[AI Extractor] Article {article_id}: AI result keys: {result.keys()}")
+
+        # 更新文章
+        article.summary = result.get("summary")
+        article.keywords = result.get("keywords")
+        article.processing_status = "completed"
+        await article.save()
+
+        print(f"[AI Extractor] Article {article_id}: Successfully extracted")
+        return True
+
+    except Exception as e:
+        print(f"[AI Extractor] Article {article_id}: Failed with error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+        # 标记为失败
         try:
-            # 获取文章
             article = await Article.get(id=article_id)
-
-            # 更新状态为处理中
-            article.processing_status = "processing"
+            article.processing_status = "failed"
             await article.save()
-
-            # 读取本地 HTML 文件
-            if not article.html_path:
-                print(f"[AI Extractor] Article {article_id}: No html_path")
-                return False
-
-            # 使用 settings.upload_dir 作为基础目录
-            html_path = os.path.join(settings.upload_dir, article.html_path)
-
-            if not os.path.exists(html_path):
-                print(f"[AI Extractor] Article {article_id}: File not found: {html_path}")
-                return False
-
-            async with aiofiles.open(html_path, 'r', encoding='utf-8') as f:
-                html_content = await f.read()
-
-            print(f"[AI Extractor] Article {article_id}: Read {len(html_content)} chars from HTML")
-
-            # 调用 AI 提取
-            result = await extract_article_from_url(
-                article.original_html_url or "",
-                html_content
-            )
-
-            print(f"[AI Extractor] Article {article_id}: AI result keys: {result.keys()}")
-
-            # 更新文章
-            article.summary = result.get("summary")
-            article.keywords = result.get("keywords")
-            article.processing_status = "completed"
-            await article.save()
-
-            print(f"[AI Extractor] Article {article_id}: Successfully extracted")
-            return True
-
-        except Exception as e:
-            print(f"[AI Extractor] Article {article_id}: Attempt {attempt + 1} failed with error: {str(e)}")
-            import traceback
-            traceback.print_exc()
-
-            if attempt < 2:
-                await asyncio.sleep(5)
-                continue
-            else:
-                # 最后一次尝试失败
-                try:
-                    article = await Article.get(id=article_id)
-                    article.processing_status = "failed"
-                    await article.save()
-                except Exception:
-                    pass
-                return False
-
-    return False
+        except Exception:
+            pass
+        return False
