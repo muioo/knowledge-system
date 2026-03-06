@@ -230,7 +230,9 @@ async def import_article_from_html_url(url: str, author_id: int, tag_ids: list =
 
         # 10. 关联标签
         if tag_ids:
-            await article.tags.add(*tag_ids)
+            tags = await Tag.filter(id__in=tag_ids)
+            if tags:
+                await article.tags.add(*tags)
 
         return {
             "article_id": article.id,
