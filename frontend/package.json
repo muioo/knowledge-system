@@ -1,0 +1,40 @@
+{
+  "name": "knowledge-system-frontend",
+  "version": "1.0.0",
+  "description": "Knowledge System Frontend",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "vue": "^3.4.0",
+    "vue-router": "^4.2.5",
+    "pinia": "^2.1.7",
+    "element-plus": "^2.5.0",
+    "@element-plus/icons-vue": "^2.3.1",
+    "axios": "^1.6.0",
+    "dayjs": "^1.11.10",
+    "markdown-it": "^14.0.0",
+    "highlight.js": "^11.9.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.0.0",
+    "vue-tsc": "^1.8.27",
+    "typescript": "^5.3.0",
+    "@types/node": "^20.10.0",
+    "sass": "^1.69.0",
+    "unplugin-vue-components": "^0.26.0",
+    "unplugin-auto-import": "^0.17.0",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "eslint-plugin-vue": "^9.22.0",
+    "prettier": "^3.2.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.0"
+  }
+}
