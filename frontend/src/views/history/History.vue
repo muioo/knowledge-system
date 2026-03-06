@@ -76,7 +76,7 @@ function handleView(articleId: number): void {
 }
 
 function handleDelete(id: number): void {
-  ElMessage.info('删除历史记录功能待实现')
+  ElMessage.info(`删除历史记录 ${id} 功能待实现`)
 }
 
 async function handleClearAll(): Promise<void> {

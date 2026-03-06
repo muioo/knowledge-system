@@ -14,6 +14,7 @@ export interface ArticleQueryParams {
   page?: number
   size?: number  // Backend expects 'size', not 'limit'
   search?: string
+  keyword?: string  // 搜索关键词
   tag_id?: number
   sort_by?: 'created_at' | 'updated_at' | 'title' | 'read_count'
   sort_order?: 'asc' | 'desc'

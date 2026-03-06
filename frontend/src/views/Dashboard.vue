@@ -210,18 +210,18 @@ const todayNewArticles = computed(() => {
 /**
  * 获取标签类型（根据颜色映射到 Element Plus 的 type）
  */
-function getTagType(color?: string): '' | 'success' | 'info' | 'warning' | 'danger' {
-  if (!color) return ''
+function getTagType(color?: string): 'success' | 'info' | 'warning' | 'danger' {
+  if (!color) return 'info'
 
-  const colorMap: Record<string, '' | 'success' | 'info' | 'warning' | 'danger'> = {
-    blue: '',
+  const colorMap: Record<string, 'success' | 'info' | 'warning' | 'danger'> = {
+    blue: 'info',
     green: 'success',
     gray: 'info',
     yellow: 'warning',
     red: 'danger',
   }
 
-  return colorMap[color] || ''
+  return colorMap[color] || 'info'
 }
 
 /**

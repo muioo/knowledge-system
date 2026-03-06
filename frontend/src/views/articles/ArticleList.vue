@@ -322,8 +322,8 @@ function truncateSummary(text: string): string {
 }
 
 // 获取标签类型
-function getTagType(tagId: number): 'success' | 'info' | 'warning' | 'danger' | '' {
-  const types: Array<'success' | 'info' | 'warning' | 'danger' | ''> = ['success', 'info', 'warning', 'danger', '']
+function getTagType(tagId: number): 'success' | 'info' | 'warning' | 'danger' {
+  const types: Array<'success' | 'info' | 'warning' | 'danger'> = ['success', 'info', 'warning', 'danger']
   return types[tagId % types.length]
 }
 
