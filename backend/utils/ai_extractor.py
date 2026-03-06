@@ -1,19 +1,16 @@
 """AI 提取工具 - 使用火山引擎大模型从网页内容提取文章信息"""
 import asyncio
 import json
-import os
 from typing import Dict, Optional
 
 from volcenginesdkarkruntime import Ark
 
-
-# 从环境变量获取 API Key，如果没有则使用默认值
-ARK_API_KEY = os.getenv('ARK_API_KEY', 'e78d20dd-ee6b-48dc-9dab-453b1b0fb77b')
+from backend.settings.config import settings
 
 # 初始化客户端
 client = Ark(
     base_url='https://ark.cn-beijing.volces.com/api/v3',
-    api_key=ARK_API_KEY,
+    api_key=settings.ark_api_key,
 )
 
 

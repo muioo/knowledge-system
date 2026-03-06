@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     # CORS 配置
     cors_origins: str = '["http://localhost:3000", "http://localhost:8000"]'
 
+    # 火山引擎 AI 配置
+    ark_api_key: str
+
     @property
     def cors_origins_list(self) -> List[str]:
         return json.loads(self.cors_origins)
