@@ -1,6 +1,7 @@
 """AI 提取工具 - 使用火山引擎大模型从网页内容提取文章信息"""
 import asyncio
 import json
+import os
 from typing import Dict, Optional
 
 from volcenginesdkarkruntime import Ark
@@ -151,13 +152,20 @@ async def extract_article_async(article_id: int) -> bool:
 
             # 读取本地 HTML 文件
             if not article.html_path:
+                print(f"[AI Extractor] Article {article_id}: No html_path")
                 return False
 
             # 使用 settings.upload_dir 作为基础目录
             html_path = os.path.join(settings.upload_dir, article.html_path)
 
+            if not os.path.exists(html_path):
+                print(f"[AI Extractor] Article {article_id}: File not found: {html_path}")
+                return False
+
             async with aiofiles.open(html_path, 'r', encoding='utf-8') as f:
                 html_content = await f.read()
+
+            print(f"[AI Extractor] Article {article_id}: Read {len(html_content)} chars from HTML")
 
             # 调用 AI 提取
             result = await extract_article_from_url(
@@ -165,15 +173,22 @@ async def extract_article_async(article_id: int) -> bool:
                 html_content
             )
 
+            print(f"[AI Extractor] Article {article_id}: AI result keys: {result.keys()}")
+
             # 更新文章
             article.summary = result.get("summary")
             article.keywords = result.get("keywords")
             article.processing_status = "completed"
             await article.save()
 
+            print(f"[AI Extractor] Article {article_id}: Successfully extracted")
             return True
 
         except Exception as e:
+            print(f"[AI Extractor] Article {article_id}: Attempt {attempt + 1} failed with error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+
             if attempt < 2:
                 await asyncio.sleep(5)
                 continue

@@ -31,7 +31,8 @@ class Settings(BaseSettings):
 
     # 文件上传配置
     max_file_size: int = 10485760  # 10MB
-    upload_dir: str = str(BASE_DIR / "backend" / "uploads")
+    # 使用相对于此文件的路径：backend/settings/config.py -> ../uploads -> backend/uploads
+    upload_dir: str = str(Path(__file__).resolve().parent.parent / "uploads")
 
     # CORS 配置
     cors_origins: str = '["http://localhost:3000", "http://localhost:8000"]'
