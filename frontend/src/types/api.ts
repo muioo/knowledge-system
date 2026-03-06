@@ -62,3 +62,13 @@ export interface TokenResponse {
   token_type: string
   user: User
 }
+
+/**
+ * 认证令牌类型
+ * Authentication tokens type
+ */
+export interface AuthTokens {
+  access_token: string
+  refresh_token: string
+  token_type: string
+}

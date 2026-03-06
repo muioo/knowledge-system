@@ -5,16 +5,14 @@
 import api from './index'
 import type {
   Article,
-  ArticleCreate,
   ArticleUpdate,
-  ArticleListResponse,
   ImportFromUrlRequest,
   PaginatedResponse,
 } from '../types'
 
 export interface ArticleQueryParams {
   page?: number
-  limit?: number
+  size?: number  // Backend expects 'size', not 'limit'
   search?: string
   tag_id?: number
   sort_by?: 'created_at' | 'updated_at' | 'title' | 'read_count'

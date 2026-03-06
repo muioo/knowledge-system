@@ -3,7 +3,7 @@
  * Reading history and statistics API methods
  */
 import api from './index'
-import type { PaginatedResponse, Article, ReadingHistory, ReadingStats, ArticleReadingStats } from '../types'
+import type { PaginatedResponse, ReadingHistory, ReadingStats, ArticleReadingStats } from '../types'
 
 export interface StartReadingRequest {
   article_id: number

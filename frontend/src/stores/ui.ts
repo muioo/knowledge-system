@@ -28,7 +28,7 @@ export const useUiStore = defineStore('ui', () => {
   // Dialog state
   const dialogVisible = ref(false)
   const dialogTitle = ref('')
-  const dialogMessage = ref('')
+  const dialogMessage = ref<string | null>('')
   const dialogOnConfirm = ref<(() => void) | null>(null)
   const dialogOnCancel = ref<(() => void) | null>(null)
 
@@ -233,7 +233,9 @@ export const useUiStore = defineStore('ui', () => {
   function hideDialog(): void {
     dialogVisible.value = false
     dialogTitle.value = ''
-    dialogMessage.value = dialogOnConfirm.value = dialogOnCancel.value = null
+    dialogMessage.value = null
+    dialogOnConfirm.value = null
+    dialogOnCancel.value = null
   }
 
   /**

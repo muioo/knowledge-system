@@ -6,7 +6,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { articleApi, type ArticleQueryParams } from '../api/articles'
-import type { Article, ArticleCreate, ArticleUpdate, PaginatedData } from '../types'
+import type { Article, ArticleCreate, ArticleUpdate } from '../types'
 
 export const useArticleStore = defineStore('article', () => {
   // State
@@ -19,18 +19,18 @@ export const useArticleStore = defineStore('article', () => {
   const pagination = ref({
     total: 0,
     page: 1,
-    limit: 20,
+    size: 20,
   })
 
   // Query params state
   const queryParams = ref<ArticleQueryParams>({
     page: 1,
-    limit: 20,
+    size: 20,
   })
 
   // Getters
   const hasArticles = computed(() => articles.value.length > 0)
-  const totalPages = computed(() => Math.ceil(pagination.value.total / pagination.value.limit))
+  const totalPages = computed(() => Math.ceil(pagination.value.total / pagination.value.size))
   const hasNextPage = computed(() => pagination.value.page < totalPages.value)
   const hasPrevPage = computed(() => pagination.value.page > 1)
 
@@ -73,7 +73,7 @@ export const useArticleStore = defineStore('article', () => {
       pagination.value = {
         total: response.data.total,
         page: response.data.page,
-        limit: response.data.size,
+        size: response.data.size,
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch articles'
@@ -133,7 +133,7 @@ export const useArticleStore = defineStore('article', () => {
    * @param data - Article creation data
    * @returns Promise with created article
    */
-  async function createArticle(data: ArticleCreate): Promise<Article> {
+  async function createArticle(_data: ArticleCreate): Promise<Article> {
     setLoading(true)
     setError(null)
 
@@ -346,11 +346,11 @@ export const useArticleStore = defineStore('article', () => {
     pagination.value = {
       total: 0,
       page: 1,
-      limit: 20,
+      size: 20,
     }
     queryParams.value = {
       page: 1,
-      limit: 20,
+      size: 20,
     }
     error.value = null
   }

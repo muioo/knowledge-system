@@ -23,8 +23,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-app.add_middleware(ErrorHandlingMiddleware)
-app.add_middleware(RequestLoggingMiddleware)
+# CORS 中间件必须最先添加，以便正确处理 OPTIONS 预检请求
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
@@ -32,6 +31,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(ErrorHandlingMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
 
 register_routers(app)
 

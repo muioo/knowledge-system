@@ -140,7 +140,7 @@ const formData = reactive<ArticleCreate & { id?: number }>({
 })
 
 // URL validation function
-const validateUrl = (rule: any, value: string, callback: any) => {
+const validateUrl = (_rule: any, value: string, callback: any) => {
   if (!value) {
     callback()
     return
@@ -221,7 +221,7 @@ async function handleSubmit() {
       title: formData.title,
       content: formData.content,
       summary: formData.summary || undefined,
-      tag_ids: formData.tag_ids.length > 0 ? formData.tag_ids : undefined,
+      tag_ids: formData.tag_ids && formData.tag_ids.length > 0 ? formData.tag_ids : undefined,
       source_url: formData.source_url || undefined,
       keywords: formData.keywords || undefined,
     }

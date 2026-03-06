@@ -175,14 +175,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Document, Collection, View, TrendCharts } from '@element-plus/icons-vue'
 import { useArticleStore } from '../stores/article'
 import { useTagStore } from '../stores/tag'
 import { formatDate, isToday } from '../utils/date'
-import type { Tag } from '../types'
 
 const router = useRouter()
 const articleStore = useArticleStore()
@@ -249,7 +248,7 @@ async function loadData(): Promise<void> {
   try {
     // 并行加载文章和标签数据
     await Promise.all([
-      articleStore.fetchArticles({ page: 1, limit: 20 }),
+      articleStore.fetchArticles({ page: 1, size: 20 }),
       tagStore.fetchTags(),
     ])
   } catch (error) {

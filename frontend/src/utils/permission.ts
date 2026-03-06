@@ -4,7 +4,7 @@
  */
 
 import { storage } from './storage'
-import type { User, Article } from '../types'
+import type { Article } from '../types'
 
 /**
  * Check if user is authenticated

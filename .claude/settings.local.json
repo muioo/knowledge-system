@@ -10,7 +10,9 @@
       "Bash(aerich upgrade:*)",
       "Bash(pip show:*)",
       "Bash(aerich:*)",
-      "Bash(git show:*)"
+      "Bash(git show:*)",
+      "Bash(npx vue-tsc:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }

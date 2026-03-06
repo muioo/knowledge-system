@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-layout">
     <!-- Sidebar -->
-    <Sidebar />
+    <Sidebar :collapsed="uiStore.sidebarCollapsed" />
 
     <!-- Main Container -->
     <div

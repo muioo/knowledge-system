@@ -19,6 +19,12 @@ export interface User {
 }
 
 /**
+ * 用户角色类型
+ * User role type
+ */
+export type UserRole = 'admin' | 'user'
+
+/**
  * 用户响应类型
  * User response type
  */
@@ -68,6 +74,7 @@ export interface Article {
   keywords?: string
   original_filename?: string
   view_count: number
+  views?: number
   created_at: string
   updated_at: string
   tags: TagInfo[]
@@ -128,6 +135,15 @@ export interface ArticleFromHtmlUrlRequest {
 }
 
 /**
+ * 从 URL 导入文章请求类型（别名）
+ * Request type for importing article from URL (alias)
+ */
+export interface ImportFromUrlRequest {
+  url: string
+  tag_ids?: number[]
+}
+
+/**
  * 从 HTML URL 导入文章响应类型
  * Response type for importing article from HTML URL
  */
@@ -181,3 +197,9 @@ export interface ReadingStats {
   total_duration: number
   last_read_at?: string
 }
+
+/**
+ * 文章阅读统计类型（别名）
+ * Article reading statistics type (alias)
+ */
+export interface ArticleReadingStats extends ReadingStats {}

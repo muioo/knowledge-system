@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     upload_dir: str = str(Path(__file__).resolve().parent.parent / "uploads")
 
     # CORS 配置
-    cors_origins: str = '["http://localhost:3000", "http://localhost:8000"]'
+    cors_origins: str = '["http://localhost:3000", "http://localhost:5173", "http://localhost:8000"]'
 
     # 火山引擎 AI 配置
     ark_api_key: str
@@ -61,6 +61,10 @@ class Settings(BaseSettings):
                         "backend.models.tag",
                         "backend.models.reading"
                     ],
+                    "default_connection": "default",
+                },
+                "aerich": {
+                    "models": ["aerich.models"],
                     "default_connection": "default",
                 }
             },

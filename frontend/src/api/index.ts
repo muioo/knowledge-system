@@ -2,7 +2,7 @@
  * Axios 实例配置
  * Axios instance configuration with interceptors
  */
-import axios, { AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios'
+import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 
 // Create axios instance
 const api = axios.create({
@@ -27,30 +27,10 @@ api.interceptors.request.use(
   }
 )
 
-// Flag to prevent multiple token refresh attempts
-let isRefreshing = false
-let failedQueue: Array<{
-  resolve: (value?: unknown) => void
-  reject: (reason?: unknown) => void
-}> = []
-
-const processQueue = (error: AxiosError | null, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error)
-    } else {
-      prom.resolve(token)
-    }
-  })
-  failedQueue = []
-}
-
-// Response interceptor: handle errors and auto token refresh
+// Response interceptor: handle errors
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
-
     // Network errors
     if (!error.response) {
       console.error('Network Error:', error.message)
@@ -59,68 +39,18 @@ api.interceptors.response.use(
 
     const { status } = error.response
 
-    // Handle 401 Unauthorized - try to refresh token
-    if (status === 401 && originalRequest && !originalRequest._retry) {
-      if (isRefreshing) {
-        // If already refreshing, add request to queue
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject })
-        })
-          .then(() => api(originalRequest))
-          .catch((err) => Promise.reject(err))
+    // Handle 401 Unauthorized - clear tokens and redirect to login
+    if (status === 401) {
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
+      localStorage.removeItem('user_info')
+
+      // Redirect to login page if not already there
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
       }
 
-      originalRequest._retry = true
-      isRefreshing = true
-
-      const refreshToken = localStorage.getItem('refresh_token')
-
-      if (refreshToken) {
-        try {
-          // Try to refresh token
-          const response = await axios.post(
-            `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1'}/auth/refresh`,
-            { refresh_token: refreshToken }
-          )
-
-          const { access_token } = response.data
-          localStorage.setItem('access_token', access_token)
-
-          // Set new token in header
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${access_token}`
-          }
-
-          processQueue(null, access_token)
-          isRefreshing = false
-
-          // Retry original request
-          return api(originalRequest)
-        } catch (refreshError) {
-          // Refresh failed, clear tokens and redirect to login
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('refresh_token')
-          processQueue(refreshError as AxiosError, null)
-          isRefreshing = false
-
-          // Redirect to login page if not already there
-          if (window.location.pathname !== '/login') {
-            window.location.href = '/login'
-          }
-
-          return Promise.reject(new Error('Session expired. Please login again.'))
-        }
-      } else {
-        // No refresh token available, redirect to login
-        localStorage.removeItem('access_token')
-        isRefreshing = false
-
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login'
-        }
-
-        return Promise.reject(new Error('No session found. Please login.'))
-      }
+      return Promise.reject(new Error('Session expired. Please login again.'))
     }
 
     // Handle other error status codes
