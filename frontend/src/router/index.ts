@@ -22,7 +22,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/',
-    component: () => import('../layouts/DashboardLayout.vue'),
+    component: () => import('../components/layouts/DashboardLayout.vue'),
     meta: {
       requiresAuth: true,
     },
@@ -30,7 +30,7 @@ const routes: RouteRecordRaw[] = [
       {
         path: '',
         name: 'Dashboard',
-        component: () => import('../views/dashboard/Dashboard.vue'),
+        component: () => import('../views/Dashboard.vue'),
         meta: {
           requiresAuth: true,
           title: 'Dashboard',
@@ -70,6 +70,42 @@ const routes: RouteRecordRaw[] = [
         meta: {
           requiresAuth: true,
           title: 'Edit Article',
+        },
+      },
+      {
+        path: 'tags',
+        name: 'TagList',
+        component: () => import('../views/tags/TagList.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Tags',
+        },
+      },
+      {
+        path: 'search',
+        name: 'Search',
+        component: () => import('../views/search/Search.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Search',
+        },
+      },
+      {
+        path: 'history',
+        name: 'History',
+        component: () => import('../views/history/History.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Reading History',
+        },
+      },
+      {
+        path: 'settings',
+        name: 'Settings',
+        component: () => import('../views/settings/Settings.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Settings',
         },
       },
     ],
