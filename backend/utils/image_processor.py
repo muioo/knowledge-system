@@ -4,8 +4,14 @@ import os
 from typing import Dict, List
 from urllib.parse import urlparse
 
+import aiofiles
 import httpx
 from bs4 import BeautifulSoup
+
+from backend.utils.html_fetcher import DEFAULT_HEADERS, is_valid_url
+
+# 最大文件大小限制（10MB）
+MAX_IMAGE_SIZE = 10 * 1024 * 1024
 
 
 async def extract_images(html: str) -> List[str]:
@@ -44,21 +50,30 @@ async def download_image(url: str, save_path: str) -> bool:
     Returns:
         下载成功返回 True，失败返回 False
     """
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-    }
+    # URL 验证
+    if not is_valid_url(url):
+        return False
 
     try:
         async with httpx.AsyncClient(timeout=15.0, follow_redirects=True) as client:
-            response = await client.get(url, headers=headers)
+            response = await client.get(url, headers=DEFAULT_HEADERS)
             response.raise_for_status()
+
+            # 文件大小限制检查
+            content_length = response.headers.get('content-length')
+            if content_length and int(content_length) > MAX_IMAGE_SIZE:
+                return False
+
+            content = response.content
+            if len(content) > MAX_IMAGE_SIZE:
+                return False
 
             # 确保目录存在
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
-            # 写入文件
-            with open(save_path, 'wb') as f:
-                f.write(response.content)
+            # 异步写入文件
+            async with aiofiles.open(save_path, 'wb') as f:
+                await f.write(content)
 
             return True
     except Exception:
