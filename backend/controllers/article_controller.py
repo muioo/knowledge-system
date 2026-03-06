@@ -192,7 +192,7 @@ async def import_article_from_html_url(url: str, author_id: int, tag_ids: list =
     cleaned_html, title = clean_html(raw_html)
 
     # 3. 重写相对路径为绝对路径
-    full_html = rewrite_base_urls(cleaned_html, url)
+    full_html = await rewrite_base_urls(cleaned_html, url)
 
     # 4. 创建文章记录（获取 ID）
     article = await Article.create(
