@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from tortoise.queryset import Q
 
@@ -10,18 +10,162 @@ from backend.utils.html_fetcher import fetch_html, clean_html, rewrite_base_urls
 from backend.utils.image_processor import extract_images, download_images_batch, rewrite_image_links
 from backend.settings.config import settings
 
-async def create_article(data: ArticleCreate, author_id: int) -> ArticleResponse:
+
+async def create_article_from_file(
+    file_data: Tuple[bytes, str],
+    author_id: int,
+    title: Optional[str] = None,
+    summary: Optional[str] = None,
+    keywords: Optional[str] = None,
+    tag_ids: Optional[List[int]] = None
+) -> ArticleResponse:
+    """
+    通过上传文件创建文章
+
+    Args:
+        file_data: (文件内容, 文件名) 元组
+        author_id: 作者ID
+        title: 可选的标题（不提供则从文件名提取）
+        summary: 可选的摘要
+        keywords: 可选的关键词
+        tag_ids: 标签ID列表
+
+    Returns:
+        创建的文章响应
+    """
+    content_bytes, filename = file_data
+
+    # 创建文章记录（获取ID）
     article = await Article.create(
-        title=data.title,
-        content=data.content,
-        source_url=data.source_url,
-        summary=data.summary,
-        keywords=data.keywords,
-        author_id=author_id
+        title=title or filename,
+        content="",  # 稍后由转换器填充
+        summary=summary,
+        keywords=keywords,
+        author_id=author_id,
+        original_filename=filename
     )
+
+    # 创建存储目录 articles/{article_id}/
+    article_dir = os.path.join(settings.upload_dir, "articles", str(article.id))
+    os.makedirs(article_dir, exist_ok=True)
+
+    # 保存原始文件
+    original_file_path = os.path.join(article_dir, filename)
+    async with aiofiles.open(original_file_path, "wb") as f:
+        await f.write(content_bytes)
+
+    # 转换为 markdown
+    from backend.utils.converters import convert_document
+    try:
+        markdown_content, extracted_title = await convert_document(original_file_path, filename)
+        article.title = title or extracted_title or filename
+        article.content = markdown_content
+        await article.save()
+    except Exception as e:
+        # 转换失败，删除文章和文件
+        await article.delete()
+        import shutil
+        if os.path.exists(article_dir):
+            shutil.rmtree(article_dir)
+        raise ValueError(f"文件转换失败: {str(e)}")
+
+    # 关联标签
+    if tag_ids:
+        tags = await Tag.filter(id__in=tag_ids)
+        if tags:
+            await article.tags.add(*tags)
+
+    await article.fetch_related("tags")
+    return ArticleResponse(
+        id=article.id,
+        title=article.title,
+        content=article.content,
+        source_url=article.source_url,
+        summary=article.summary,
+        keywords=article.keywords,
+        author_id=article.author_id,
+        original_filename=article.original_filename,
+        view_count=article.view_count,
+        created_at=article.created_at,
+        updated_at=article.updated_at,
+        tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags]
+    )
+
+async def create_article(
+    data: ArticleCreate,
+    author_id: int,
+    file_data: Optional[tuple[bytes, str]] = None
+) -> ArticleResponse:
+    """
+    创建文章
+
+    Args:
+        data: 文章数据
+        author_id: 作者ID
+        file_data: (文件内容, 文件名) 元组，仅用于 import_type="file"
+
+    Returns:
+        创建的文章响应
+    """
+    import_type = data.import_type or "direct"
+
+    # 处理文件上传（import_type="file"）
+    if import_type == "file":
+        if not file_data:
+            raise ValueError("文件上传需要提供文件")
+        content_bytes, filename = file_data
+
+        # 创建文章记录（获取ID）
+        article = await Article.create(
+            title=data.title,
+            content=data.content,
+            source_url=data.source_url,
+            summary=data.summary,
+            keywords=data.keywords,
+            author_id=author_id,
+            original_filename=filename
+        )
+
+        # 创建存储目录 articles/{article_id}/
+        article_dir = os.path.join(settings.upload_dir, "articles", str(article.id))
+        os.makedirs(article_dir, exist_ok=True)
+
+        # 保存原始文件
+        original_file_path = os.path.join(article_dir, filename)
+        async with aiofiles.open(original_file_path, "wb") as f:
+            await f.write(content_bytes)
+
+        # 转换为 markdown
+        from backend.utils.converters import convert_document
+        try:
+            markdown_content, _ = await convert_document(original_file_path, filename)
+            article.content = markdown_content
+            await article.save()
+        except Exception as e:
+            # 转换失败，删除文章和文件
+            await article.delete()
+            import shutil
+            if os.path.exists(article_dir):
+                shutil.rmtree(article_dir)
+            raise ValueError(f"文件转换失败: {str(e)}")
+
+    # 默认：直接创建（import_type="direct"）
+    else:
+        article = await Article.create(
+            title=data.title,
+            content=data.content,
+            source_url=data.source_url,
+            summary=data.summary,
+            keywords=data.keywords,
+            author_id=author_id
+        )
+
+    # 关联标签
     if data.tag_ids:
         tags = await Tag.filter(id__in=data.tag_ids)
-        await article.tags.add(*tags)
+        if tags:
+            await article.tags.add(*tags)
+
     await article.fetch_related("tags")
     return ArticleResponse(
         id=article.id,

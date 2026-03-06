@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Literal
 
 class ArticleBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
@@ -11,6 +11,9 @@ class ArticleBase(BaseModel):
 
 class ArticleCreate(ArticleBase):
     tag_ids: Optional[List[int]] = []
+
+    # Import type: "direct" (直接创建), "file" (文件上传转markdown)
+    import_type: Literal["direct", "file"] = "direct"
 
 class ArticleUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=1, max_length=255)
