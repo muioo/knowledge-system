@@ -8,6 +8,7 @@ from backend.models import Article, Tag
 from backend.schemas.article import ArticleCreate, ArticleUpdate, ArticleResponse, SearchQuery, TagInfo
 from backend.utils.html_fetcher import fetch_html, clean_html, rewrite_base_urls
 from backend.utils.image_processor import extract_images, download_images_batch, rewrite_image_links
+from backend.settings.config import settings
 
 async def create_article(data: ArticleCreate, author_id: int) -> ArticleResponse:
     article = await Article.create(
@@ -205,7 +206,7 @@ async def import_article_from_html_url(url: str, author_id: int, tag_ids: list =
 
     try:
         # 5. 创建存储目录
-        article_dir = os.path.join("uploads", "articles", str(article.id))
+        article_dir = os.path.join(settings.upload_dir, "articles", str(article.id))
         images_dir = os.path.join(article_dir, "images")
         os.makedirs(images_dir, exist_ok=True)
 
@@ -224,7 +225,7 @@ async def import_article_from_html_url(url: str, author_id: int, tag_ids: list =
         async with aiofiles.open(html_path, 'w', encoding='utf-8') as f:
             await f.write(final_html)
 
-        # 9. 更新文章记录
+        # 9. 更新文章记录（保存相对路径）
         article.html_path = f"uploads/articles/{article.id}/index.html"
         await article.save()
 
@@ -267,9 +268,8 @@ async def get_article_html_content(article_id: int) -> str:
     if not article.html_path:
         raise ValueError("该文章没有 HTML 内容")
 
-    html_path = article.html_path
-    if not os.path.isabs(html_path):
-        html_path = os.path.join("backend", html_path)
+    # 使用 settings.upload_dir 作为基础目录
+    html_path = os.path.join(settings.upload_dir, article.html_path)
 
     async with aiofiles.open(html_path, 'r', encoding='utf-8') as f:
         return await f.read()

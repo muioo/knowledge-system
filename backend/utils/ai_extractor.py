@@ -137,6 +137,7 @@ async def extract_article_async(article_id: int) -> bool:
     """
     import aiofiles
     from backend.models import Article
+    from backend.settings.config import settings
 
     # 重试逻辑
     for attempt in range(3):
@@ -152,9 +153,8 @@ async def extract_article_async(article_id: int) -> bool:
             if not article.html_path:
                 return False
 
-            html_path = article.html_path
-            if not os.path.isabs(html_path):
-                html_path = os.path.join("backend", html_path)
+            # 使用 settings.upload_dir 作为基础目录
+            html_path = os.path.join(settings.upload_dir, article.html_path)
 
             async with aiofiles.open(html_path, 'r', encoding='utf-8') as f:
                 html_content = await f.read()
