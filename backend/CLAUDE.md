@@ -49,7 +49,7 @@ categories: ["开发技术"]
   ├── main.py                 # 应用入口文件
   └── __init__.py             # 包初始化文件
   ```
-
+- settings目录中的config用于存放数据库连接配置TORTOISE_ORM，其余地方不要存放数据库的内容
 ### Python/FastAPI
 - 使用 `def` 定义纯函数，使用 `async def` 定义异步操作。
 - 为所有函数签名使用类型提示。优先使用 Pydantic 模型而不是原始字典进行输入验证。

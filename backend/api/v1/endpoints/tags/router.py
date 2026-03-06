@@ -10,8 +10,9 @@ from backend.controllers.tag_controller import (
     delete_tag,
     get_articles_by_tag
 )
-from schemas.article import ArticleResponse
-from schemas.response import PaginatedResponse, PaginatedData
+from backend.schemas.article import ArticleResponse
+from backend.schemas.response import PaginatedResponse, PaginatedData
+from backend.schemas.tag import TagResponse, TagCreate, TagUpdate
 
 router = APIRouter(prefix="/tags", tags=["标签"])
 

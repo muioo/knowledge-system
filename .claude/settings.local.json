@@ -1,7 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(aerich migrate:*)",
+      "Bash(aerich init-db:*)",
+      "Bash(aerich history:*)",
+      "Bash(aerich upgrade:*)",
+      "Bash(pip show:*)",
+      "Bash(aerich:*)",
+      "Bash(git show:*)"
     ]
   }
 }

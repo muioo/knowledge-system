@@ -1,12 +1,27 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from tortoise.contrib.fastapi import register_tortoise
-from core.middleware import RequestLoggingMiddleware, ErrorHandlingMiddleware
-from api.v1 import register_routers
-from models import TORTOISE_ORM
-from settings.config import settings
+from tortoise import Tortoise
+from backend.core.middleware import RequestLoggingMiddleware, ErrorHandlingMiddleware
+from backend.api.v1 import register_routers
+from backend.settings.config import settings, TORTOISE_ORM
 
-app = FastAPI(title=settings.app_name, version=settings.app_version, debug=settings.debug)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 启动时初始化数据库连接
+    await Tortoise.init(config=TORTOISE_ORM)
+    yield
+    # 关闭时清理数据库连接
+    await Tortoise.close_connections()
+
+
+app = FastAPI(
+    title=settings.app_name,
+    version=settings.app_version,
+    debug=settings.debug,
+    lifespan=lifespan
+)
 
 app.add_middleware(ErrorHandlingMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
@@ -16,13 +31,6 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)
-
-register_tortoise(
-    app,
-    config=TORTOISE_ORM,
-    generate_schemas=True,
-    add_exception_handlers=True,
 )
 
 register_routers(app)

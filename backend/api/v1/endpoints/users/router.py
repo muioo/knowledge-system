@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends, status
-from core.security import get_current_user, get_current_admin
-from models import User
-from schemas.user import UserResponse, UserUpdate, UpdateRole
-from schemas.response import SuccessResponse, PaginatedResponse, PaginatedData
-from controllers.user_controller import (
+from backend.core.security import get_current_user, get_current_admin
+from backend.models import User
+from backend.schemas.user import UserResponse, UserUpdate, UpdateRole
+from backend.schemas.response import SuccessResponse, PaginatedResponse, PaginatedData
+from backend.controllers.user_controller import (
     get_user_by_id,
     update_user,
     delete_user,

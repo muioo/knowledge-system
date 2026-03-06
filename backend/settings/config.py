@@ -37,9 +37,35 @@ class Settings(BaseSettings):
     def database_url(self) -> str:
         return f"mysql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    @property
+    def tortoise_orm(self) -> dict:
+        """TortoiseORM 配置"""
+        return {
+            "connections": {"default": self.database_url},
+            "apps": {
+                "models": {
+                    "models": [
+                        "backend.models.user",
+                        "backend.models.article",
+                        "backend.models.tag",
+                        "backend.models.reading"
+                    ],
+                    "default_connection": "default",
+                }
+            },
+            "use_tz": False,
+            "timezone": "Asia/Shanghai"
+        }
+
+    model_config = {
+        "env_file": ["backend/.env", ".env"],
+        "env_file_encoding": "utf-8",
+        "case_sensitive": False,
+        "extra": "ignore"
+    }
 
 
 settings = Settings()
+
+# 导出 TORTOISE_ORM 配置供使用
+TORTOISE_ORM = settings.tortoise_orm
