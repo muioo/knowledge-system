@@ -4,6 +4,14 @@
  */
 
 /**
+ * 导入 User 类型以避免循环依赖
+ * Import User type to avoid circular dependency
+ * 这里使用前向声明，实际类型在 models.ts 中定义
+ * Forward declaration - actual type defined in models.ts
+ */
+import type { User } from './models'
+
+/**
  * 成功响应包装器
  * Wrapper for successful API responses
  */
@@ -54,11 +62,3 @@ export interface TokenResponse {
   token_type: string
   user: User
 }
-
-/**
- * 导入 User 类型以避免循环依赖
- * Import User type to avoid circular dependency
- * 这里使用前向声明，实际类型在 models.ts 中定义
- * Forward declaration - actual type defined in models.ts
- */
-import type { User } from './models'
