@@ -225,8 +225,8 @@ async def import_article_from_html_url(url: str, author_id: int, tag_ids: list =
         async with aiofiles.open(html_path, 'w', encoding='utf-8') as f:
             await f.write(final_html)
 
-        # 9. 更新文章记录（保存相对路径）
-        article.html_path = f"uploads/articles/{article.id}/index.html"
+        # 9. 更新文章记录（保存相对路径，不包含 upload_dir 部分）
+        article.html_path = f"articles/{article.id}/index.html"
         await article.save()
 
         # 10. 关联标签
