@@ -14,7 +14,7 @@ from backend.utils.html_fetcher import DEFAULT_HEADERS, is_valid_url
 MAX_IMAGE_SIZE = 10 * 1024 * 1024
 
 
-async def extract_images(html: str) -> List[str]:
+def extract_images(html: str) -> List[str]:
     """
     提取 HTML 中所有图片 URL（去重）
 
@@ -135,7 +135,7 @@ async def download_images_batch(urls: List[str], base_dir: str) -> Dict[str, str
     return dict(results)
 
 
-async def rewrite_image_links(html: str, url_mapping: Dict[str, str]) -> str:
+def rewrite_image_links(html: str, url_mapping: Dict[str, str]) -> str:
     """
     重写 HTML 中的图片链接
 

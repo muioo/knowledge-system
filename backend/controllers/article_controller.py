@@ -210,14 +210,14 @@ async def import_article_from_html_url(url: str, author_id: int, tag_ids: list =
         os.makedirs(images_dir, exist_ok=True)
 
         # 6. 提取并下载图片
-        image_urls = await extract_images(full_html)
+        image_urls = extract_images(full_html)
         url_mapping = {}
 
         if image_urls:
             url_mapping = await download_images_batch(image_urls, article_dir)
 
         # 7. 重写图片链接
-        final_html = await rewrite_image_links(full_html, url_mapping)
+        final_html = rewrite_image_links(full_html, url_mapping)
 
         # 8. 保存 HTML 文件
         html_path = os.path.join(article_dir, "index.html")
