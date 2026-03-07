@@ -1,6 +1,0 @@
-node_modules
-dist
-*.d.ts
-auto-imports.d.ts
-components.d.ts
-package-lock.json
