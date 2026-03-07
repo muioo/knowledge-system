@@ -415,7 +415,6 @@ async def import_article_from_html_url(url: str, author_id: int, tag_ids: list =
     # 4. 创建文章记录（获取 ID）
     article = await Article.create(
         title=title,
-        content="",  # 稍后由 AI 填充
         author_id=author_id,
         original_html_url=url,
         processing_status="pending"
