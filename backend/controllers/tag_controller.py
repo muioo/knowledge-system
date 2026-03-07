@@ -71,13 +71,18 @@ async def get_articles_by_tag(tag_id: int, page: int = 1, size: int = 20) -> tup
             ArticleResponse(
                 id=a.id,
                 title=a.title,
-                content=a.content,
+                source_url=a.source_url,
+                summary=a.summary,
+                keywords=a.keywords,
                 author_id=a.author_id,
                 original_filename=a.original_filename,
                 view_count=a.view_count,
                 created_at=a.created_at,
                 updated_at=a.updated_at,
-                tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in a.tags]
+                tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in a.tags],
+                html_path=a.html_path,
+                processing_status=a.processing_status,
+                original_html_url=a.original_html_url
             ) for a in articles
         ],
         total
