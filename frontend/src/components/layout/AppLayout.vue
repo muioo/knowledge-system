@@ -54,11 +54,12 @@ onUnmounted(() => {
 
 .main-content {
   overflow-y: auto;
+  min-width: 0;
 }
 
 .content-area {
   max-width: 100%;
-  margin: 0 auto;
+  margin: 0;
 }
 
 /* 页面切换动画 */
@@ -74,12 +75,6 @@ onUnmounted(() => {
 
 /* 响应式设计 */
 @media (max-width: 767px) {
-  .content-area {
-    padding: 8px;
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1023px) {
   .content-area {
     padding: 12px;
   }

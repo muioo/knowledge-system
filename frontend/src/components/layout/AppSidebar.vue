@@ -57,7 +57,6 @@
     <!-- 用户信息（底部） -->
     <div v-if="!collapsed" class="sidebar-user">
       <el-avatar :size="40" :src="userAvatar">
-      <el-avatar :size="40" :src="userAvatar">
         <el-icon><User /></el-icon>
       </el-avatar>
       <div class="user-info">
@@ -131,7 +130,10 @@ const userAvatar = computed(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 200px;
+  flex-shrink: 0;
   background: #ffffff;
+  border-right: 1px solid #e5e7eb;
 }
 
 .sidebar-logo {
