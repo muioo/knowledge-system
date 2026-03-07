@@ -60,10 +60,23 @@ async def get_article(
                 logging.warning(f"读取 HTML 内容失败 (article_id={article_id}): {e}")
                 pass
 
-        # 组合响应
+        # 组合响应，避免 html_content 重复传递
         response_data = ArticleHtmlResponse(
-            **result.model_dump(),
-            html_content=html_content
+            id=result.id,
+            title=result.title,
+            source_url=result.source_url,
+            summary=result.summary,
+            keywords=result.keywords,
+            author_id=result.author_id,
+            original_filename=result.original_filename,
+            view_count=result.view_count,
+            created_at=result.created_at,
+            updated_at=result.updated_at,
+            tags=result.tags,
+            html_content=html_content,  # 只传递一次
+            html_path=result.html_path,
+            processing_status=result.processing_status,
+            original_html_url=result.original_html_url
         )
 
         return SuccessResponse(data=response_data)
@@ -175,10 +188,23 @@ async def get_article_html(
         # 获取 HTML 内容
         html_content = await get_article_html_content(article_id)
 
-        # 组合响应
+        # 组合响应，避免 html_content 重复传递
         response_data = ArticleHtmlResponse(
-            **result.model_dump(),
-            html_content=html_content
+            id=result.id,
+            title=result.title,
+            source_url=result.source_url,
+            summary=result.summary,
+            keywords=result.keywords,
+            author_id=result.author_id,
+            original_filename=result.original_filename,
+            view_count=result.view_count,
+            created_at=result.created_at,
+            updated_at=result.updated_at,
+            tags=result.tags,
+            html_content=html_content,  # 只传递一次
+            html_path=result.html_path,
+            processing_status=result.processing_status,
+            original_html_url=result.original_html_url
         )
 
         return SuccessResponse(data=response_data)

@@ -254,7 +254,7 @@ async def get_article_by_id(article_id: int) -> ArticleResponse:
 async def update_article(article_id: int, data: ArticleUpdate, user_id: int, is_admin: bool = False) -> ArticleResponse:
     from backend.utils.article_storage import read_html_content
 
-    article = await Article.get_or_none(id=article_id).prefetch_related("tags")
+    article = await Article.get_or_none(id=article_id)
     if not article:
         raise ValueError("文章不存在")
     if article.author_id != user_id and not is_admin:
