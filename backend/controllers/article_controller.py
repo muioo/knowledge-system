@@ -166,7 +166,10 @@ async def create_article(
                 article.html_path = html_path
                 await article.save()
             except Exception as e:
+                # 回滚：删除文章和文件
                 await article.delete()
+                from backend.utils.article_storage import delete_article_files
+                await delete_article_files(article.id)
                 raise ValueError(f"文件保存失败: {str(e)}")
 
     else:
