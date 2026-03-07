@@ -97,11 +97,31 @@ async function handleLogin() {
     if (!valid) return
 
     try {
-      await authStore.login({ username: form.username, password: form.password })
+      await authStore.login({
+        username: form.username,
+        password: form.password
+      })
+
       ElMessage.success('登录成功')
-      router.push('/dashboard')
-    } catch (error) {
-      ElMessage.error('登录失败，请检查用户名和密码')
+
+      // 使用 nextTick 确保状态更新后再跳转
+      await router.push('/dashboard')
+    } catch (error: any) {
+      console.error('登录失败:', error)
+
+      // 显示更详细的错误信息
+      let errorMsg = '登录失败，请检查用户名和密码'
+      if (error?.response?.data?.detail) {
+        if (typeof error.response.data.detail === 'string') {
+          errorMsg = error.response.data.detail
+        } else if (Array.isArray(error.response.data.detail)) {
+          errorMsg = error.response.data.detail.map((e: any) => e.msg).join(', ')
+        }
+      } else if (error?.message) {
+        errorMsg = error.message
+      }
+
+      ElMessage.error(errorMsg)
     }
   })
 }
