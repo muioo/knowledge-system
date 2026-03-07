@@ -31,8 +31,8 @@ const features = ref(['搜索与筛选', '批量操作', '分类浏览', '状态
 }
 
 .placeholder-card {
-  max-width: 600px;
-  margin: 40px auto;
+  max-width: 100%;
+  margin: 0;
 }
 
 .placeholder-content {

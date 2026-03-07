@@ -31,8 +31,8 @@ const features = ref(['标签创建', '标签编辑', '标签合并', '批量管
 }
 
 .placeholder-card {
-  max-width: 600px;
-  margin: 40px auto;
+  max-width: 100%;
+  margin: 0;
 }
 
 .placeholder-content {
