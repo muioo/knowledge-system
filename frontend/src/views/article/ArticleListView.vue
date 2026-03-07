@@ -21,17 +21,13 @@
 import { ref } from 'vue'
 import { Document } from '@element-plus/icons-vue'
 
-const features = ref([
-  '搜索与筛选',
-  '批量操作',
-  '分类浏览',
-  '状态管理'
-])
+const features = ref(['搜索与筛选', '批量操作', '分类浏览', '状态管理'])
 </script>
 
 <style scoped>
 .article-list-view {
   width: 100%;
+  padding: 16px;
 }
 
 .placeholder-card {

@@ -21,17 +21,13 @@
 import { ref } from 'vue'
 import { PriceTag } from '@element-plus/icons-vue'
 
-const features = ref([
-  '标签创建',
-  '标签编辑',
-  '标签合并',
-  '批量管理'
-])
+const features = ref(['标签创建', '标签编辑', '标签合并', '批量管理'])
 </script>
 
 <style scoped>
 .tag-manage-view {
   width: 100%;
+  padding: 16px;
 }
 
 .placeholder-card {

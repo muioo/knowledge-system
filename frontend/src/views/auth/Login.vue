@@ -45,8 +45,8 @@
             type="primary"
             size="large"
             :loading="authStore.loading"
-            @click="handleLogin"
             class="w-full"
+            @click="handleLogin"
           >
             登录
           </el-button>

@@ -21,17 +21,13 @@
 import { ref } from 'vue'
 import { Reading } from '@element-plus/icons-vue'
 
-const features = ref([
-  'Markdown渲染',
-  '目录导航',
-  '相关推荐',
-  '评论互动'
-])
+const features = ref(['Markdown渲染', '目录导航', '相关推荐', '评论互动'])
 </script>
 
 <style scoped>
 .article-detail-view {
   width: 100%;
+  padding: 16px;
 }
 
 .placeholder-card {

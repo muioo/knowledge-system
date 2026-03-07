@@ -66,8 +66,8 @@
             type="primary"
             size="large"
             :loading="authStore.loading"
-            @click="handleRegister"
             class="w-full"
+            @click="handleRegister"
           >
             注册
           </el-button>

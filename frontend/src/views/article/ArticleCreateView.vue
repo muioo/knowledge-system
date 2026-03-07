@@ -21,17 +21,13 @@
 import { ref } from 'vue'
 import { EditPen } from '@element-plus/icons-vue'
 
-const features = ref([
-  'Markdown编辑',
-  '本地文件上传',
-  'URL导入',
-  'AI自动提取'
-])
+const features = ref(['Markdown编辑', '本地文件上传', 'URL导入', 'AI自动提取'])
 </script>
 
 <style scoped>
 .article-create-view {
   width: 100%;
+  padding: 16px;
 }
 
 .placeholder-card {
