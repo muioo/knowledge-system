@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from typing import Optional
 from backend.core.security import get_current_user, get_current_admin
 from backend.models import User
@@ -71,18 +71,16 @@ async def get_article(
 @router.post("/upload", response_model=SuccessResponse[ArticleResponse])
 async def upload_file_to_create_article(
     file: UploadFile = File(...),
-    title: Optional[str] = Form(None),
-    summary: Optional[str] = Form(None),
-    keywords: Optional[str] = Form(None),
+    title: str = Form(...),
+    summary: str = Form(...),
+    keywords: str = Form(...),
     tag_ids: Optional[str] = Form(None),
     current_user: User = Depends(get_current_user)
 ):
     """
     上传本地文件创建文章
-
-    - 保存原文件到 articles/{article_id}/ 目录
-    - 转换为 markdown 存入 content 字段
-    - 支持手动填写标题、摘要、关键词、标签
+    - 直接保存文件，不转换
+    - title, summary, keywords 为必填项
     """
     try:
         # 验证文件大小
@@ -131,45 +129,28 @@ async def delete_article_by_id(
         raise HTTPException(status_code=403 if "无权" in str(e) else 404, detail=str(e))
 
 
-async def run_ai_extraction(article_id: int):
-    """后台任务：执行 AI 提取"""
-    from backend.utils.ai_extractor import extract_article_async
-    await extract_article_async(article_id)
-
-
-@router.post("/from-url-html", response_model=SuccessResponse[ArticleFromHtmlUrlResponse])
+@router.post("/from-url-html", response_model=SuccessResponse[ArticleResponse])
 async def import_html_article_from_url(
     request: ArticleFromHtmlUrlRequest,
-    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user)
 ):
     """
     从 URL 导入 HTML 文章
-
-    - 下载并清洗 HTML
-    - 下载图片到本地
-    - 异步提取摘要和关键词
+    - 同步 AI 提取，失败则不保存
+    - 保存源 URL 到数据库
     """
     try:
         result = await import_article_from_html_url(
             url=request.url,
             author_id=current_user.id,
-            tag_ids=request.tag_ids
+            tag_ids=request.tag_ids,
+            title=request.title
         )
-
-        # 添加后台 AI 提取任务
-        background_tasks.add_task(run_ai_extraction, result["article_id"])
-
-        return SuccessResponse(data=ArticleFromHtmlUrlResponse(**result))
-
+        return SuccessResponse(data=result)
     except ValueError as e:
         if "已导入" in str(e):
             raise HTTPException(status_code=409, detail=str(e))
         raise HTTPException(status_code=400, detail=str(e))
-    except httpx.HTTPStatusError as e:
-        raise HTTPException(status_code=400, detail=f"无法访问网页: {e.response.status_code}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"导入失败: {str(e)}")
 
 
 @router.get("/{article_id}/html", response_model=SuccessResponse[ArticleHtmlResponse])
