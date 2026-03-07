@@ -54,8 +54,11 @@ async def get_article(
         if hasattr(result, 'html_path') and result.html_path:
             try:
                 html_content = await get_article_html_content(article_id)
-            except Exception:
-                pass  # HTML 读取失败不影响基本信息返回
+            except Exception as e:
+                # HTML 读取失败不影响基本信息返回
+                import logging
+                logging.warning(f"读取 HTML 内容失败 (article_id={article_id}): {e}")
+                pass
 
         # 组合响应
         response_data = ArticleHtmlResponse(
@@ -66,7 +69,13 @@ async def get_article(
         return SuccessResponse(data=response_data)
 
     except ValueError as e:
+        import logging
+        logging.error(f"获取文章详情失败 (article_id={article_id}): {e}")
         raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        import logging
+        logging.error(f"获取文章详情失败 (article_id={article_id}): {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"获取文章详情失败: {str(e)}")
 
 @router.post("/upload", response_model=SuccessResponse[ArticleResponse])
 async def upload_file_to_create_article(
