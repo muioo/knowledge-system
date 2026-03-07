@@ -209,6 +209,8 @@ async def create_article(
 
 async def get_article_by_id(article_id: int) -> ArticleResponse:
     """获取文章详情，从文件读取内容"""
+    from backend.utils.article_storage import get_article_file_content
+
     article = await Article.get_or_none(id=article_id).prefetch_related("tags")
     if not article:
         raise ValueError("文章不存在")
@@ -216,14 +218,17 @@ async def get_article_by_id(article_id: int) -> ArticleResponse:
     article.view_count += 1
     await article.save()
 
-    # 从文件读取 HTML 内容
+    # 从文件读取内容（支持两种来源）
     html_content = None
-    if article.html_path:
-        try:
-            html_content = await read_html_content(article.id)
-        except FileNotFoundError:
-            # 文件不存在，返回 None
-            pass
+    try:
+        html_content = await get_article_file_content(
+            article_id=article_id,
+            html_path=article.html_path,
+            original_filename=article.original_filename
+        )
+    except FileNotFoundError:
+        # 文件不存在，返回 None
+        pass
 
     return ArticleResponse(
         id=article.id,
@@ -504,6 +509,9 @@ async def import_article_from_html_url(
 async def get_article_html_content(article_id: int) -> str:
     """
     获取文章的 HTML 内容
+    支持两种来源：
+    - URL 导入：使用 html_path
+    - 本地上传：使用 original_filename
 
     Args:
         article_id: 文章 ID
@@ -512,15 +520,18 @@ async def get_article_html_content(article_id: int) -> str:
         HTML 内容
 
     Raises:
-        ValueError: 文章不存在或没有 HTML 内容
+        ValueError: 文章不存在或没有文件
     """
+    from backend.utils.article_storage import get_article_file_content
+
     article = await Article.get(id=article_id)
 
-    if not article.html_path:
-        raise ValueError("该文章没有 HTML 内容")
+    if not article:
+        raise ValueError("文章不存在")
 
-    # 使用 settings.upload_dir 作为基础目录
-    html_path = os.path.join(settings.upload_dir, article.html_path)
-
-    async with aiofiles.open(html_path, 'r', encoding='utf-8') as f:
-        return await f.read()
+    # 使用通用文件读取函数
+    return await get_article_file_content(
+        article_id=article_id,
+        html_path=article.html_path,
+        original_filename=article.original_filename
+    )
