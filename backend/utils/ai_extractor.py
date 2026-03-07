@@ -19,9 +19,67 @@ client = Ark(
 )
 
 
+def _clean_text(text: str) -> str:
+    """清理文本中的控制字符"""
+    # 保留换行符和制表符，移除其他控制字符
+    import re
+
+    # 移除 ASCII 控制字符（除了换行、制表符、回车）
+    text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', text)
+
+    # 移除 Unicode 控制字符（零宽字符、不可见字符等）
+    # \u2000-\u200f: 各种空格和零宽字符
+    # \u2028-\u2029: 行分隔符、段落分隔符
+    # \u202a-\u202e: 嵌入 directional markers
+    # \u2060-\u206f: 其他格式控制字符
+    # \ufff9-\ufffb: 插入字符
+    # \ufffe-\uffff: 非字符
+    text = re.sub(r'[\u2000-\u200f\u2028-\u202e\u2060-\u206f\ufff9-\ufffb\ufffe-\uffff]', '', text)
+
+    # 移除控制字符的其他 Unicode 块
+    # \u0000-\u001f: C0 控制字符（已处理，双重保险）
+    # \u007f-\u009f: C1 控制字符
+    text = re.sub(r'[\u007f-\u009f]', '', text)
+
+    return text
+
+
+def _clean_json_strings(obj) -> Dict:
+    """递归清理 JSON 对象中的所有字符串值"""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    if isinstance(obj, str):
+        # 清理字符串中的控制字符
+        cleaned = _clean_text(obj)
+        if len(cleaned) != len(obj):
+            logger.debug(f"[AI Extractor] 清理字符串: {len(obj)} -> {len(cleaned)} 字符")
+        return cleaned
+    elif isinstance(obj, dict):
+        return {k: _clean_json_strings(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_clean_json_strings(item) for item in obj]
+    else:
+        return obj
+
+
 def _parse_json_response(result_text: str) -> Dict:
     """解析 AI 返回的 JSON 结果"""
+    import logging
+    logger = logging.getLogger(__name__)
+
+    # 记录原始内容长度
+    original_length = len(result_text)
+    logger.info(f"[AI Extractor] 原始返回内容长度: {original_length} 字符")
+
+    # 先清理控制字符
+    result_text = _clean_text(result_text)
     result_text = result_text.strip()
+
+    # 记录清理后长度
+    cleaned_length = len(result_text)
+    if cleaned_length != original_length:
+        logger.info(f"[AI Extractor] 清理控制字符后: {cleaned_length} 字符 (移除 {original_length - cleaned_length} 字符)")
 
     # 移除 markdown 代码块标记
     if result_text.startswith("```json"):
@@ -33,14 +91,34 @@ def _parse_json_response(result_text: str) -> Dict:
     result_text = result_text.strip()
 
     try:
-        return json.loads(result_text)
-    except json.JSONDecodeError:
+        parsed = json.loads(result_text)
+        # 递归清理所有字符串值
+        parsed = _clean_json_strings(parsed)
+        return parsed
+    except json.JSONDecodeError as e:
+        logger.error(f"[AI Extractor] JSON 解析失败: {str(e)}")
+        logger.error(f"[AI Extractor] 错误位置: line {e.lineno}, column {e.colno}, pos {e.pos}")
+
         # 如果解析失败，尝试提取 JSON 部分
         start = result_text.find('{')
         end = result_text.rfind('}') + 1
         if start != -1 and end > start:
-            return json.loads(result_text[start:end])
-        raise
+            json_str = result_text[start:end]
+            # 再次清理
+            json_str = _clean_text(json_str)
+            try:
+                parsed = json.loads(json_str)
+                # 递归清理所有字符串值
+                parsed = _clean_json_strings(parsed)
+                return parsed
+            except json.JSONDecodeError as e2:
+                logger.error(f"[AI Extractor] 第二次 JSON 解析也失败: {str(e2)}")
+
+        # 输出部分原始内容用于调试（最多500字符）
+        debug_content = result_text[:500]
+        logger.error(f"[AI Extractor] AI返回内容片段: {debug_content}")
+
+        raise ValueError(f"JSON解析失败: {str(e)}, AI返回内容: {result_text[:200]}")
 
 
 async def extract_article_from_url(url: str, html_content: str) -> Dict:
@@ -54,6 +132,9 @@ async def extract_article_from_url(url: str, html_content: str) -> Dict:
     Returns:
         包含 title, content, summary, keywords 的字典
     """
+    # 清理 HTML 内容中的控制字符
+    html_content = _clean_text(html_content)
+
     prompt = f"""请从以下网页内容中提取文章信息，以JSON格式返回：
 
 网页链接: {url}
@@ -91,6 +172,9 @@ async def extract_article_from_url(url: str, html_content: str) -> Dict:
 
 def _extract_article_summary_sync(content: str) -> Dict:
     """同步版本的摘要提取（在线程池中运行）"""
+    # 清理内容中的控制字符
+    content = _clean_text(content)
+
     prompt = f"""从以下文章内容提取摘要和关键词：
 
 {content}

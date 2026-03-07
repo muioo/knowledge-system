@@ -18,7 +18,8 @@ class Article(Model):
     original_html_url = fields.CharField(max_length=1000, null=True)
 
     tags: fields.ManyToManyRelation["Tag"] = fields.ManyToManyField(
-        "models.Tag", related_name="articles", through="article_tags"
+        "models.Tag", related_name="articles", through="article_tags",
+        forward_key="article_id", backward_key="tag_id"
     )
 
     class Meta:

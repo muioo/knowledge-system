@@ -6,7 +6,8 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from tortoise import Tortoise
-from backend.models import User, TORTOISE_ORM
+from backend.models import User
+from backend.settings.config import TORTOISE_ORM
 from backend.utils.password import hash_password
 
 
