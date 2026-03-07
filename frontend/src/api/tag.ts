@@ -14,6 +14,11 @@ export const tagApi = {
     return apiClient.get('/tags/')
   },
 
+  // 别名方法，保持一致性
+  getList(): Promise<ApiResponse<Tag[]>> {
+    return this.getAll()
+  },
+
   // 获取标签详情
   getDetail(tagId: number): Promise<ApiResponse<Tag>> {
     return apiClient.get(`/tags/${tagId}`)
