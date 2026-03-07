@@ -16,6 +16,15 @@ interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean
 }
 
+// Token刷新锁机制
+let isRefreshing = false
+let failedQueue: Array<(token: string) => void> = []
+
+function processQueue(token: string) {
+  failedQueue.forEach(callback => callback(token))
+  failedQueue = []
+}
+
 // 创建 axios 实例
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -47,7 +56,17 @@ apiClient.interceptors.response.use(
 
     // Token 过期处理
     if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          failedQueue.push((token: string) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`
+            resolve(apiClient(originalRequest))
+          })
+        }).then(() => apiClient(originalRequest))
+      }
+
       originalRequest._retry = true
+      isRefreshing = true
 
       try {
         const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY)
@@ -58,22 +77,26 @@ apiClient.interceptors.response.use(
 
           const { access_token } = response.data.data
           localStorage.setItem(TOKEN_KEY, access_token)
+          processQueue(access_token)
 
-          // 重试原请求
           originalRequest.headers.Authorization = `Bearer ${access_token}`
           return apiClient(originalRequest)
         }
       } catch (refreshError) {
-        // 刷新失败，清除 token 并跳转登录
+        failedQueue.forEach(callback => callback('' as any))
+        failedQueue = []
+
         localStorage.removeItem(TOKEN_KEY)
         localStorage.removeItem(REFRESH_TOKEN_KEY)
         window.location.href = '/login'
         return Promise.reject(refreshError)
+      } finally {
+        isRefreshing = false
       }
     }
 
     // 错误提示
-    const errorData = error.response?.data as { detail?: string | Array<any> }
+    const errorData = error.response?.data as ApiError
     let message = '请求失败，请稍后重试'
     if (errorData?.detail) {
       if (typeof errorData.detail === 'string') {
