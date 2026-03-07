@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="dashboard-container">
     <h1 class="text-2xl font-bold text-gray-900 mb-6">仪表盘</h1>
 
     <!-- 统计卡片 -->
@@ -76,12 +76,19 @@ import { Document, PriceTag, View, Clock, Plus, FolderOpened } from '@element-pl
 </script>
 
 <style scoped>
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+}
+
 .card {
   background: #ffffff;
   border-radius: 0.5rem;
   padding: 1.5rem;
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
 }
 
 .card:hover {

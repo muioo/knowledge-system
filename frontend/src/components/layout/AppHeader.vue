@@ -2,11 +2,7 @@
   <div class="app-header">
     <!-- 左侧：折叠按钮 + 页面标题 -->
     <div class="header-left">
-      <el-button
-        :icon="collapsed ? Expand : Fold"
-        text
-        @click="$emit('toggle-sidebar')"
-      />
+      <el-button :icon="collapsed ? Expand : Fold" text @click="$emit('toggle-sidebar')" />
       <h1 class="page-title">{{ currentPageTitle }}</h1>
     </div>
 
@@ -106,7 +102,7 @@ const collapsed = computed(() => props.sidebarCollapsed)
 
 // 当前页面标题
 const currentPageTitle = computed(() => {
-  return route.meta?.title as string || '知识管理系统'
+  return (route.meta?.title as string) || '知识管理系统'
 })
 
 // 用户名
@@ -158,8 +154,11 @@ function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 100%;
+  height: 64px; /* 固定高度 */
   padding: 0 24px;
+  background: #ffffff; /* 添加背景色 */
+  border-bottom: 1px solid #e5e7eb; /* 添加底边框 */
+  flex-shrink: 0; /* 防止被压缩 */
 }
 
 .header-left {
