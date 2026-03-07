@@ -34,12 +34,13 @@ async def create_article_from_file(
     Returns:
         创建的文章响应
     """
+    from backend.utils.article_storage import save_html_content, read_html_content
+
     content_bytes, filename = file_data
 
     # 创建文章记录（获取ID）
     article = await Article.create(
         title=title or filename,
-        content="",  # 稍后由转换器填充
         summary=summary,
         keywords=keywords,
         author_id=author_id,
@@ -60,14 +61,16 @@ async def create_article_from_file(
     try:
         markdown_content, extracted_title = await convert_document(original_file_path, filename)
         article.title = title or extracted_title or filename
-        article.content = markdown_content
+
+        # 保存 HTML 内容到文件
+        html_path = await save_html_content(article.id, markdown_content)
+        article.html_path = html_path
         await article.save()
     except Exception as e:
         # 转换失败，删除文章和文件
         await article.delete()
-        import shutil
-        if os.path.exists(article_dir):
-            shutil.rmtree(article_dir)
+        from backend.utils.article_storage import delete_article_files
+        await delete_article_files(article.id)
         raise ValueError(f"文件转换失败: {str(e)}")
 
     # 关联标签
@@ -77,10 +80,18 @@ async def create_article_from_file(
             await article.tags.add(*tags)
 
     await article.fetch_related("tags")
+
+    # 从文件读取 HTML 内容
+    html_content = None
+    if article.html_path:
+        try:
+            html_content = await read_html_content(article.id)
+        except FileNotFoundError:
+            pass
+
     return ArticleResponse(
         id=article.id,
         title=article.title,
-        content=article.content,
         source_url=article.source_url,
         summary=article.summary,
         keywords=article.keywords,
@@ -89,7 +100,11 @@ async def create_article_from_file(
         view_count=article.view_count,
         created_at=article.created_at,
         updated_at=article.updated_at,
-        tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags]
+        tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags],
+        html_content=html_content,
+        html_path=article.html_path,
+        processing_status=article.processing_status,
+        original_html_url=article.original_html_url
     )
 
 async def create_article(
@@ -237,6 +252,8 @@ async def get_article_by_id(article_id: int) -> ArticleResponse:
     )
 
 async def update_article(article_id: int, data: ArticleUpdate, user_id: int, is_admin: bool = False) -> ArticleResponse:
+    from backend.utils.article_storage import read_html_content
+
     article = await Article.get_or_none(id=article_id).prefetch_related("tags")
     if not article:
         raise ValueError("文章不存在")
@@ -244,8 +261,6 @@ async def update_article(article_id: int, data: ArticleUpdate, user_id: int, is_
         raise ValueError("无权编辑此文章")
     if data.title:
         article.title = data.title
-    if data.content:
-        article.content = data.content
     if data.source_url is not None:
         article.source_url = data.source_url
     if data.summary is not None:
@@ -258,10 +273,18 @@ async def update_article(article_id: int, data: ArticleUpdate, user_id: int, is_
         tags = await Tag.filter(id__in=data.tag_ids)
         await article.tags.add(*tags)
         await article.fetch_related("tags")
+
+    # 从文件读取 HTML 内容
+    html_content = None
+    if article.html_path:
+        try:
+            html_content = await read_html_content(article.id)
+        except FileNotFoundError:
+            pass
+
     return ArticleResponse(
         id=article.id,
         title=article.title,
-        content=article.content,
         source_url=article.source_url,
         summary=article.summary,
         keywords=article.keywords,
@@ -270,15 +293,26 @@ async def update_article(article_id: int, data: ArticleUpdate, user_id: int, is_
         view_count=article.view_count,
         created_at=article.created_at,
         updated_at=article.updated_at,
-        tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags]
+        tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags],
+        html_content=html_content,
+        html_path=article.html_path,
+        processing_status=article.processing_status,
+        original_html_url=article.original_html_url
     )
 
 async def delete_article(article_id: int, user_id: int, is_admin: bool = False) -> bool:
+    from backend.utils.article_storage import delete_article_files
+
     article = await Article.get_or_none(id=article_id)
     if not article:
         raise ValueError("文章不存在")
     if article.author_id != user_id and not is_admin:
         raise ValueError("无权删除此文章")
+
+    # 删除文件
+    await delete_article_files(article_id)
+
+    # 删除数据库记录
     await article.delete()
     return True
 
@@ -295,7 +329,6 @@ async def list_articles(page: int = 1, size: int = 20, tag_id: Optional[int] = N
             ArticleResponse(
                 id=a.id,
                 title=a.title,
-                content=a.content,
                 source_url=a.source_url,
                 summary=a.summary,
                 keywords=a.keywords,
@@ -304,7 +337,10 @@ async def list_articles(page: int = 1, size: int = 20, tag_id: Optional[int] = N
                 view_count=a.view_count,
                 created_at=a.created_at,
                 updated_at=a.updated_at,
-                tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in a.tags]
+                tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in a.tags],
+                html_path=a.html_path,
+                processing_status=a.processing_status,
+                original_html_url=a.original_html_url
             ) for a in articles
         ],
         total
@@ -314,7 +350,9 @@ async def search_articles(query: SearchQuery) -> tuple[List[ArticleResponse], in
     articles_query = Article.all()
     if query.q:
         articles_query = articles_query.filter(
-            Q(title__icontains=query.q) | Q(content__icontains=query.q)
+            Q(title__icontains=query.q) |
+            Q(summary__icontains=query.q) |
+            Q(keywords__icontains=query.q)
         )
     if query.tags:
         articles_query = articles_query.filter(tags__id__in=query.tags)
@@ -327,7 +365,6 @@ async def search_articles(query: SearchQuery) -> tuple[List[ArticleResponse], in
             ArticleResponse(
                 id=a.id,
                 title=a.title,
-                content=a.content,
                 source_url=a.source_url,
                 summary=a.summary,
                 keywords=a.keywords,
@@ -336,7 +373,10 @@ async def search_articles(query: SearchQuery) -> tuple[List[ArticleResponse], in
                 view_count=a.view_count,
                 created_at=a.created_at,
                 updated_at=a.updated_at,
-                tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in a.tags]
+                tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in a.tags],
+                html_path=a.html_path,
+                processing_status=a.processing_status,
+                original_html_url=a.original_html_url
             ) for a in articles
         ],
         total
