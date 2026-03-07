@@ -5,7 +5,6 @@ from tortoise.models import Model
 class Article(Model):
     id = fields.IntField(pk=True)
     title = fields.CharField(max_length=255)
-    content = fields.TextField()
     original_filename = fields.CharField(max_length=255, null=True)
     source_url = fields.CharField(max_length=1000, null=True)
     summary = fields.TextField(null=True)
