@@ -70,6 +70,20 @@ class ArticleFromHtmlUrlResponse(BaseModel):
     status: str
     message: str
 
-class ArticleHtmlResponse(ArticleResponse):
-    """包含 HTML 内容的文章响应（与 ArticleResponse 合并）"""
-    pass
+class ArticleHtmlResponse(BaseModel):
+    """包含 HTML 内容的文章响应"""
+    id: int
+    title: str
+    source_url: Optional[str] = None
+    summary: Optional[str] = None
+    keywords: Optional[str] = None
+    author_id: int
+    original_filename: Optional[str] = None
+    view_count: int
+    created_at: datetime
+    updated_at: datetime
+    tags: List[TagInfo] = []
+    html_content: Optional[str] = None
+    html_path: Optional[str] = None
+    processing_status: Optional[str] = None
+    original_html_url: Optional[str] = None

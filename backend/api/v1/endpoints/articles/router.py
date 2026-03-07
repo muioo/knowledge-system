@@ -45,6 +45,8 @@ async def get_article(
     current_user: User = Depends(get_current_user)
 ):
     """获取文章详情（包含 HTML 内容）"""
+    import logging
+
     try:
         # 获取基本信息
         result = await get_article_by_id(article_id)
@@ -56,39 +58,37 @@ async def get_article(
                 html_content = await get_article_html_content(article_id)
             except Exception as e:
                 # HTML 读取失败不影响基本信息返回
-                import logging
                 logging.warning(f"读取 HTML 内容失败 (article_id={article_id}): {e}")
                 pass
 
-        # 组合响应，避免 html_content 重复传递
-        response_data = ArticleHtmlResponse(
-            id=result.id,
-            title=result.title,
-            source_url=result.source_url,
-            summary=result.summary,
-            keywords=result.keywords,
-            author_id=result.author_id,
-            original_filename=result.original_filename,
-            view_count=result.view_count,
-            created_at=result.created_at,
-            updated_at=result.updated_at,
-            tags=result.tags,
-            html_content=html_content,  # 只传递一次
-            html_path=result.html_path,
-            processing_status=result.processing_status,
-            original_html_url=result.original_html_url
-        )
+        # 构造响应数据字典
+        response_dict = {
+            "id": result.id,
+            "title": result.title,
+            "source_url": result.source_url,
+            "summary": result.summary,
+            "keywords": result.keywords,
+            "author_id": result.author_id,
+            "original_filename": result.original_filename,
+            "view_count": result.view_count,
+            "created_at": result.created_at,
+            "updated_at": result.updated_at,
+            "tags": result.tags,
+            "html_path": result.html_path,
+            "processing_status": result.processing_status,
+            "original_html_url": result.original_html_url,
+            "html_content": html_content  # 单独设置
+        }
 
+        response_data = ArticleHtmlResponse(**response_dict)
         return SuccessResponse(data=response_data)
 
     except ValueError as e:
-        import logging
         logging.error(f"获取文章详情失败 (article_id={article_id}): {e}")
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        import logging
         logging.error(f"获取文章详情失败 (article_id={article_id}): {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"获取文章详情失败: {str(e)}")
+        raise HTTPException(status_code=500, detail="获取文章详情失败")
 
 @router.post("/upload", response_model=SuccessResponse[ArticleResponse])
 async def upload_file_to_create_article(
@@ -181,6 +181,8 @@ async def get_article_html(
     current_user: User = Depends(get_current_user)
 ):
     """获取文章的 HTML 内容"""
+    import logging
+
     try:
         # 获取基本信息
         result = await get_article_by_id(article_id)
@@ -188,26 +190,31 @@ async def get_article_html(
         # 获取 HTML 内容
         html_content = await get_article_html_content(article_id)
 
-        # 组合响应，避免 html_content 重复传递
-        response_data = ArticleHtmlResponse(
-            id=result.id,
-            title=result.title,
-            source_url=result.source_url,
-            summary=result.summary,
-            keywords=result.keywords,
-            author_id=result.author_id,
-            original_filename=result.original_filename,
-            view_count=result.view_count,
-            created_at=result.created_at,
-            updated_at=result.updated_at,
-            tags=result.tags,
-            html_content=html_content,  # 只传递一次
-            html_path=result.html_path,
-            processing_status=result.processing_status,
-            original_html_url=result.original_html_url
-        )
+        # 构造响应数据字典
+        response_dict = {
+            "id": result.id,
+            "title": result.title,
+            "source_url": result.source_url,
+            "summary": result.summary,
+            "keywords": result.keywords,
+            "author_id": result.author_id,
+            "original_filename": result.original_filename,
+            "view_count": result.view_count,
+            "created_at": result.created_at,
+            "updated_at": result.updated_at,
+            "tags": result.tags,
+            "html_path": result.html_path,
+            "processing_status": result.processing_status,
+            "original_html_url": result.original_html_url,
+            "html_content": html_content
+        }
 
+        response_data = ArticleHtmlResponse(**response_dict)
         return SuccessResponse(data=response_data)
 
     except ValueError as e:
+        logging.error(f"获取文章 HTML 失败 (article_id={article_id}): {e}")
         raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logging.error(f"获取文章 HTML 失败 (article_id={article_id}): {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="获取文章 HTML 失败")
