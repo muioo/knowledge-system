@@ -5,12 +5,19 @@ export interface ApiResponse<T = any> {
   data: T
 }
 
-// 分页响应格式
-export interface ApiPaginationResponse<T> {
+// 分页数据格式
+export interface PaginatedData<T> {
   total: number
   page: number
   size: number
   items: T[]
+}
+
+// 分页响应格式（匹配后端实际响应结构）
+export interface ApiPaginatedResponse<T> {
+  code: number
+  message: string
+  data: PaginatedData<T>
 }
 
 // 分页参数

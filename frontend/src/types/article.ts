@@ -1,8 +1,6 @@
-export interface TagInfo {
-  id: number
-  name: string
-  color: string
-}
+import type { Tag } from './tag'
+
+export type ProcessingStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
 export interface Article {
   id: number
@@ -15,10 +13,10 @@ export interface Article {
   view_count: number
   created_at: string
   updated_at: string
-  tags: TagInfo[]
+  tags: Tag[]
   html_content: string | null
   html_path: string | null
-  processing_status: string | null
+  processing_status: ProcessingStatus | null
   original_html_url: string | null
 }
 
