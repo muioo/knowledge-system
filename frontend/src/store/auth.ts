@@ -17,44 +17,34 @@ export const useAuthStore = defineStore('auth', () => {
   // Actions
   async function login(credentials: LoginRequest) {
     loading.value = true
-    try {
-      const response = await authApi.login(credentials)
-      const { access_token, refresh_token, user: userData } = response.data
+    const response = await authApi.login(credentials)
+    const { access_token, refresh_token, user: userData } = response.data
 
-      token.value = access_token
-      user.value = userData
+    token.value = access_token
+    user.value = userData
 
-      localStorage.setItem(TOKEN_KEY, access_token)
-      localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token)
-      localStorage.setItem(USER_KEY, JSON.stringify(userData))
+    localStorage.setItem(TOKEN_KEY, access_token)
+    localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token)
+    localStorage.setItem(USER_KEY, JSON.stringify(userData))
 
-      return response
-    } catch (error) {
-      throw error
-    } finally {
-      loading.value = false
-    }
+    loading.value = false
+    return response
   }
 
   async function register(data: RegisterRequest) {
     loading.value = true
-    try {
-      const response = await authApi.register(data)
-      const { access_token, refresh_token, user: userData } = response.data
+    const response = await authApi.register(data)
+    const { access_token, refresh_token, user: userData } = response.data
 
-      token.value = access_token
-      user.value = userData
+    token.value = access_token
+    user.value = userData
 
-      localStorage.setItem(TOKEN_KEY, access_token)
-      localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token)
-      localStorage.setItem(USER_KEY, JSON.stringify(userData))
+    localStorage.setItem(TOKEN_KEY, access_token)
+    localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token)
+    localStorage.setItem(USER_KEY, JSON.stringify(userData))
 
-      return response
-    } catch (error) {
-      throw error
-    } finally {
-      loading.value = false
-    }
+    loading.value = false
+    return response
   }
 
   async function fetchUser() {
@@ -74,15 +64,11 @@ export const useAuthStore = defineStore('auth', () => {
     const refreshTokenValue = localStorage.getItem(REFRESH_TOKEN_KEY)
     if (!refreshTokenValue) throw new Error('No refresh token')
 
-    try {
-      const response = await authApi.refreshToken(refreshTokenValue)
-      const { access_token } = response.data
+    const response = await authApi.refreshToken(refreshTokenValue)
+    const { access_token } = response.data
 
-      token.value = access_token
-      localStorage.setItem(TOKEN_KEY, access_token)
-    } catch (error) {
-      throw error
-    }
+    token.value = access_token
+    localStorage.setItem(TOKEN_KEY, access_token)
   }
 
   function logout() {

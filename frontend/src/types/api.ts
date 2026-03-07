@@ -28,9 +28,11 @@ export interface PaginationParams {
 
 // 错误响应
 export interface ApiError {
-  detail: string | Array<{
-    loc: string[]
-    msg: string
-    type: string
-  }>
+  detail:
+    | string
+    | Array<{
+        loc: string[]
+        msg: string
+        type: string
+      }>
 }

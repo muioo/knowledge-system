@@ -12,14 +12,9 @@ export const useTagStore = defineStore('tag', () => {
   // Actions
   async function fetchTags() {
     loading.value = true
-    try {
-      const response = await tagApi.getAll()
-      tags.value = response.data
-    } catch (error) {
-      throw error
-    } finally {
-      loading.value = false
-    }
+    const response = await tagApi.getAll()
+    tags.value = response.data
+    loading.value = false
   }
 
   async function createTag(data: CreateTagRequest) {
@@ -30,7 +25,7 @@ export const useTagStore = defineStore('tag', () => {
 
   async function updateTag(tagId: number, data: UpdateTagRequest) {
     const response = await tagApi.update(tagId, data)
-    const index = tags.value.findIndex(t => t.id === tagId)
+    const index = tags.value.findIndex((t) => t.id === tagId)
     if (index !== -1) {
       tags.value = [...tags.value.slice(0, index), response.data, ...tags.value.slice(index + 1)]
     }
@@ -39,7 +34,7 @@ export const useTagStore = defineStore('tag', () => {
 
   async function deleteTag(tagId: number) {
     await tagApi.delete(tagId)
-    tags.value = tags.value.filter(t => t.id !== tagId)
+    tags.value = tags.value.filter((t) => t.id !== tagId)
   }
 
   function setSelectedTags(tagIds: number[]) {

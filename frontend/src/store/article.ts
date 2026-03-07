@@ -23,38 +23,31 @@ export const useArticleStore = defineStore('article', () => {
   // Actions
   async function fetchArticles(params?: ArticleListParams) {
     loading.value = true
-    try {
-      const response = await articleApi.getList(params || filters.value)
-      articles.value = response.data.items
-      pagination.value = {
-        total: response.data.total,
-        page: response.data.page,
-        size: response.data.size,
-      }
-      if (params) {
-        filters.value = params
-      }
-    } catch (error) {
-      throw error
-    } finally {
-      loading.value = false
+    const response = await articleApi.getList(params || filters.value)
+    articles.value = response.data.items
+    pagination.value = {
+      total: response.data.total,
+      page: response.data.page,
+      size: response.data.size,
     }
+    if (params) {
+      filters.value = params
+    }
+    loading.value = false
   }
 
   async function fetchArticle(articleId: number) {
     loading.value = true
-    try {
-      const response = await articleApi.getDetail(articleId)
-      currentArticle.value = response.data
-      return response.data
-    } catch (error) {
-      throw error
-    } finally {
-      loading.value = false
-    }
+    const response = await articleApi.getDetail(articleId)
+    currentArticle.value = response.data
+    loading.value = false
+    return response.data
   }
 
-  async function uploadArticle(file: File, data: { title: string; summary: string; keywords: string; tag_ids?: string }) {
+  async function uploadArticle(
+    file: File,
+    data: { title: string; summary: string; keywords: string; tag_ids?: string }
+  ) {
     const formData = new FormData()
     formData.append('file', file)
     formData.append('title', data.title)
