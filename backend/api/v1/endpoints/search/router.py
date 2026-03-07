@@ -18,7 +18,7 @@ async def search_articles_endpoint(
 ):
     tag_ids = [int(t) for t in tags.split(",")] if tags else None
 
-    from schemas.article import SearchQuery
+    from backend.schemas.article import SearchQuery
     query = SearchQuery(q=q, tags=tag_ids, page=page, size=size)
 
     articles, total = await search_articles(query)
