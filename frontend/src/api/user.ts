@@ -23,7 +23,7 @@ export const userApi = {
   },
 
   // 获取用户列表（管理员）
-  getList(params?: { page?: number; size?: number }): Promise<ApiResponse<ApiPaginatedResponse<User>>> {
+  getList(params?: { page?: number; size?: number }): Promise<ApiPaginatedResponse<User>> {
     return apiClient.get('/users/', { params })
   },
 

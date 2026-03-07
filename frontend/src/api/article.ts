@@ -10,7 +10,7 @@ import type {
 
 export const articleApi = {
   // 获取文章列表
-  getList(params?: ArticleListParams): Promise<ApiResponse<ApiPaginatedResponse<Article>>> {
+  getList(params?: ArticleListParams): Promise<ApiPaginatedResponse<Article>> {
     return apiClient.get('/articles/', { params })
   },
 

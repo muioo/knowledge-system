@@ -35,7 +35,7 @@ export const tagApi = {
   },
 
   // 获取标签下的文章
-  getArticles(tagId: number, params?: { page?: number; size?: number }): Promise<ApiResponse<ApiPaginatedResponse<Article>>> {
+  getArticles(tagId: number, params?: { page?: number; size?: number }): Promise<ApiPaginatedResponse<Article>> {
     return apiClient.get(`/tags/${tagId}/articles`, { params })
   },
 }
