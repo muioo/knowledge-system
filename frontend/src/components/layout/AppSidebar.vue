@@ -33,24 +33,9 @@
         <template #title>标签管理</template>
       </el-menu-item>
 
-      <el-menu-item index="/search">
-        <el-icon><Search /></el-icon>
-        <template #title>搜索</template>
-      </el-menu-item>
-
       <el-menu-item index="/reading-stats">
         <el-icon><TrendCharts /></el-icon>
         <template #title>阅读统计</template>
-      </el-menu-item>
-
-      <el-menu-item index="/profile">
-        <el-icon><User /></el-icon>
-        <template #title>个人资料</template>
-      </el-menu-item>
-
-      <el-menu-item index="/settings">
-        <el-icon><Setting /></el-icon>
-        <template #title>设置</template>
       </el-menu-item>
     </el-menu>
 
@@ -77,10 +62,8 @@ import {
   DataAnalysis,
   Document,
   PriceTag,
-  Search,
   TrendCharts,
   User,
-  Setting,
 } from '@element-plus/icons-vue'
 
 interface Props {

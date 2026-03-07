@@ -91,11 +91,7 @@
       <div class="progress-list">
         <div v-for="item in readingProgress" :key="item.id" class="progress-item">
           <div class="progress-title">{{ item.title }}</div>
-          <el-progress
-            :percentage="item.progress"
-            :stroke-width="8"
-            :show-text="true"
-          />
+          <el-progress :percentage="item.progress" :stroke-width="8" :show-text="true" />
         </div>
       </div>
     </div>
@@ -187,8 +183,16 @@ async function loadStats() {
     ]
 
     recentArticles.value = [
-      { id: 1, title: 'Vue 3 组合式 API 最佳实践', readAt: new Date(Date.now() - 3600000).toISOString() },
-      { id: 2, title: 'TypeScript 高级类型技巧', readAt: new Date(Date.now() - 7200000).toISOString() },
+      {
+        id: 1,
+        title: 'Vue 3 组合式 API 最佳实践',
+        readAt: new Date(Date.now() - 3600000).toISOString(),
+      },
+      {
+        id: 2,
+        title: 'TypeScript 高级类型技巧',
+        readAt: new Date(Date.now() - 7200000).toISOString(),
+      },
       { id: 3, title: '前端性能优化指南', readAt: new Date(Date.now() - 86400000).toISOString() },
       { id: 4, title: '微前端架构实践', readAt: new Date(Date.now() - 172800000).toISOString() },
     ]

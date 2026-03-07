@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
+import { TOKEN_KEY } from '@/utils/constants'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -53,6 +54,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/tag/TagManageView.vue'),
         meta: { title: '标签管理' },
       },
+      {
+        path: 'reading-stats',
+        name: 'ReadingStats',
+        component: () => import('@/views/reading/ReadingStatsView.vue'),
+        meta: { title: '阅读统计' },
+      },
     ],
   },
 ]
@@ -64,8 +71,8 @@ const router = createRouter({
 
 // 路由守卫
 router.beforeEach((to, _from, next) => {
-  const token = localStorage.getItem('access_token')
-  const requiresAuth = to.matched.some(record => record.meta?.requiresAuth !== false)
+  const token = localStorage.getItem(TOKEN_KEY)
+  const requiresAuth = to.matched.some((record) => record.meta?.requiresAuth !== false)
 
   // 设置页面标题
   if (to.meta?.title) {

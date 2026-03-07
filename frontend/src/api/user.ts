@@ -1,10 +1,5 @@
 import apiClient from './request'
-import type {
-  ApiResponse,
-  User,
-  UpdateUserRequest,
-  ApiPaginatedResponse,
-} from '@/types'
+import type { ApiResponse, User, UpdateUserRequest, ApiPaginatedResponse } from '@/types'
 
 export const userApi = {
   // 获取当前用户信息

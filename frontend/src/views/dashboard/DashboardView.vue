@@ -3,7 +3,7 @@
     <h1 class="text-2xl font-bold text-gray-900 mb-6">仪表盘</h1>
 
     <!-- 统计卡片 -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div class="card">
         <div class="flex items-center">
           <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -11,7 +11,7 @@
           </div>
           <div class="ml-4">
             <p class="text-sm text-gray-600">文章总数</p>
-            <p class="text-2xl font-bold text-gray-900">0</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.totalArticles }}</p>
           </div>
         </div>
       </div>
@@ -23,7 +23,7 @@
           </div>
           <div class="ml-4">
             <p class="text-sm text-gray-600">标签数量</p>
-            <p class="text-2xl font-bold text-gray-900">0</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.totalTags }}</p>
           </div>
         </div>
       </div>
@@ -35,7 +35,7 @@
           </div>
           <div class="ml-4">
             <p class="text-sm text-gray-600">已读文章</p>
-            <p class="text-2xl font-bold text-gray-900">0</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.readArticles }}</p>
           </div>
         </div>
       </div>
@@ -47,7 +47,29 @@
           </div>
           <div class="ml-4">
             <p class="text-sm text-gray-600">阅读时长</p>
-            <p class="text-2xl font-bold text-gray-900">0小时</p>
+            <p class="text-2xl font-bold text-gray-900">{{ stats.readingHours }}小时</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 最近阅读 -->
+    <div class="card" v-if="recentReadings.length > 0">
+      <h2 class="text-lg font-semibold text-gray-900 mb-4">最近阅读</h2>
+      <div class="space-y-2">
+        <div
+          v-for="item in recentReadings"
+          :key="item.article_id"
+          class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer"
+          @click="goToArticle(item.article_id)"
+        >
+          <div class="flex-1">
+            <p class="font-medium text-gray-900">{{ item.article_title }}</p>
+            <p class="text-sm text-gray-500">{{ formatDate(item.last_read_at) }}</p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm text-gray-600">{{ item.total_views }} 次阅读</p>
+            <p class="text-sm text-gray-500">{{ formatDuration(item.total_duration) }}</p>
           </div>
         </div>
       </div>
@@ -56,7 +78,7 @@
     <!-- 快捷操作 -->
     <div class="card">
       <h2 class="text-lg font-semibold text-gray-900 mb-4">快捷操作</h2>
-      <div class="flex gap-4">
+      <div class="flex flex-wrap gap-3">
         <el-button type="primary" :icon="Plus" @click="$router.push('/articles/create')">
           创建文章
         </el-button>
@@ -66,19 +88,97 @@
         <el-button :icon="PriceTag" @click="$router.push('/tags')">
           管理标签
         </el-button>
+        <el-button :icon="TrendCharts" @click="$router.push('/reading-stats')">
+          阅读统计
+        </el-button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Document, PriceTag, View, Clock, Plus, FolderOpened } from '@element-plus/icons-vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { Document, PriceTag, View, Clock, Plus, FolderOpened, TrendCharts } from '@element-plus/icons-vue'
+import { articleApi } from '@/api/article'
+import { tagApi } from '@/api/tag'
+import { getReadingStats } from '@/api/reading'
+import type { ReadingStats } from '@/api/reading'
+import { ElMessage } from 'element-plus'
+
+const router = useRouter()
+
+// 统计数据
+const stats = ref({
+  totalArticles: 0,
+  totalTags: 0,
+  readArticles: 0,
+  readingHours: 0
+})
+
+// 最近阅读
+const recentReadings = ref<ReadingStats[]>([])
+
+// 加载统计数据
+async function loadStats() {
+  try {
+    // 加载文章统计
+    const articlesRes = await articleApi.getList({ page: 1, size: 1 })
+    stats.value.totalArticles = articlesRes.data.total
+
+    // 加载标签统计
+    const tagsRes = await tagApi.getList()
+    stats.value.totalTags = tagsRes.data.length
+
+    // 加载阅读统计
+    const readingRes = await getReadingStats({ page: 1, size: 10 })
+    stats.value.readArticles = readingRes.data.total
+    recentReadings.value = readingRes.data.items
+
+    // 计算总阅读时长
+    const totalDuration = readingRes.data.items.reduce((sum, item) => sum + item.total_duration, 0)
+    stats.value.readingHours = Math.round(totalDuration / 3600)
+  } catch (error) {
+    console.error('加载统计数据失败:', error)
+    ElMessage.warning('部分统计数据加载失败')
+  }
+}
+
+// 格式化日期
+function formatDate(dateStr: string | null) {
+  if (!dateStr) return '未阅读'
+  const date = new Date(dateStr)
+  return date.toLocaleString('zh-CN', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+// 格式化时长
+function formatDuration(seconds: number) {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  if (hours > 0) {
+    return `${hours}小时${minutes}分钟`
+  }
+  return `${minutes}分钟`
+}
+
+// 跳转到文章详情
+function goToArticle(articleId: number) {
+  router.push(`/articles/${articleId}`)
+}
+
+onMounted(() => {
+  loadStats()
+})
 </script>
 
 <style scoped>
 .dashboard-container {
-  max-width: 100%;
-  margin: 0 auto;
+  width: 100%;
   padding: 16px;
 }
 
@@ -93,5 +193,9 @@ import { Document, PriceTag, View, Clock, Plus, FolderOpened } from '@element-pl
 
 .card:hover {
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.space-y-2 > * + * {
+  margin-top: 0.5rem;
 }
 </style>

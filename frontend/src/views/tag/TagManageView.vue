@@ -1,27 +1,225 @@
 <template>
   <div class="tag-manage-view">
-    <el-card class="placeholder-card">
-      <div class="placeholder-content">
-        <el-icon class="placeholder-icon" :size="80">
-          <PriceTag />
-        </el-icon>
-        <h2 class="placeholder-title">标签管理</h2>
-        <p class="placeholder-description">标签组织与管理功能开发中...</p>
-        <div class="placeholder-features">
-          <el-tag v-for="feature in features" :key="feature" class="feature-tag">
-            {{ feature }}
-          </el-tag>
-        </div>
+    <div class="header-section">
+      <h1 class="text-2xl font-bold text-gray-900">标签管理</h1>
+      <el-button type="primary" :icon="Plus" @click="openCreateDialog">
+        创建标签
+      </el-button>
+    </div>
+
+    <!-- 标签网格 -->
+    <div v-loading="loading" class="tag-grid">
+      <div v-if="tags.length === 0 && !loading" class="empty-state">
+        <el-icon :size="64" color="#9CA3AF"><PriceTag /></el-icon>
+        <p class="text-gray-500 mt-4">暂无标签</p>
+        <el-button type="primary" :icon="Plus" @click="openCreateDialog" class="mt-4">
+          创建第一个标签
+        </el-button>
       </div>
-    </el-card>
+
+      <div
+        v-for="tag in tags"
+        :key="tag.id"
+        class="tag-card"
+        :style="{ borderLeftColor: tag.color }"
+      >
+        <div class="tag-header">
+          <div class="tag-name-wrapper">
+            <div class="tag-color" :style="{ backgroundColor: tag.color }"></div>
+            <h3 class="tag-name">{{ tag.name }}</h3>
+          </div>
+          <div class="tag-actions">
+            <el-button text :icon="Edit" @click="openEditDialog(tag)">编辑</el-button>
+            <el-button text :icon="Delete" type="danger" @click="confirmDelete(tag)">删除</el-button>
+          </div>
+        </div>
+        <p class="tag-info">创建于 {{ formatDate(tag.created_at) }}</p>
+      </div>
+    </div>
+
+    <!-- 创建/编辑对话框 -->
+    <el-dialog
+      v-model="dialogVisible"
+      :title="isEditMode ? '编辑标签' : '创建标签'"
+      width="400px"
+    >
+      <el-form :model="formData" :rules="formRules" ref="formRef" label-width="80px">
+        <el-form-item label="标签名" prop="name">
+          <el-input v-model="formData.name" placeholder="请输入标签名" maxlength="50" />
+        </el-form-item>
+        <el-form-item label="颜色" prop="color">
+          <div class="color-picker-wrapper">
+            <el-color-picker v-model="formData.color" show-alpha />
+            <el-input v-model="formData.color" placeholder="#3498db" class="color-input" />
+          </div>
+        </el-form-item>
+        <div class="preset-colors">
+          <span
+            v-for="color in presetColors"
+            :key="color"
+            class="preset-color"
+            :style="{ backgroundColor: color }"
+            :class="{ active: formData.color === color }"
+            @click="formData.color = color"
+          ></span>
+        </div>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitForm" :loading="submitting">
+          {{ isEditMode ? '保存' : '创建' }}
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { PriceTag } from '@element-plus/icons-vue'
+import { ref, onMounted } from 'vue'
+import { PriceTag, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { tagApi } from '@/api/tag'
+import type { Tag } from '@/types/tag'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import type { FormInstance, FormRules } from 'element-plus'
 
-const features = ref(['标签创建', '标签编辑', '标签合并', '批量管理'])
+// 数据
+const loading = ref(false)
+const tags = ref<Tag[]>([])
+const submitting = ref(false)
+
+// 对话框
+const dialogVisible = ref(false)
+const isEditMode = ref(false)
+const editingTag = ref<Tag | null>(null)
+
+// 表单
+const formRef = ref<FormInstance>()
+const formData = ref({
+  name: '',
+  color: '#3498db'
+})
+
+const formRules: FormRules = {
+  name: [
+    { required: true, message: '请输入标签名', trigger: 'blur' },
+    { min: 1, max: 50, message: '标签名长度为1-50字符', trigger: 'blur' }
+  ],
+  color: [
+    { required: true, message: '请选择颜色', trigger: 'blur' }
+  ]
+}
+
+// 预设颜色
+const presetColors = [
+  '#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6',
+  '#1abc9c', '#e67e22', '#34495e', '#7f8c8d', '#16a085'
+]
+
+// 加载标签列表
+async function loadTags() {
+  loading.value = true
+  try {
+    const res = await tagApi.getList()
+    tags.value = res.data
+  } catch (error) {
+    console.error('加载标签列表失败:', error)
+    ElMessage.error('加载标签列表失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 打开创建对话框
+function openCreateDialog() {
+  isEditMode.value = false
+  editingTag.value = null
+  formData.value = {
+    name: '',
+    color: '#3498db'
+  }
+  dialogVisible.value = true
+}
+
+// 打开编辑对话框
+function openEditDialog(tag: Tag) {
+  isEditMode.value = true
+  editingTag.value = tag
+  formData.value = {
+    name: tag.name,
+    color: tag.color
+  }
+  dialogVisible.value = true
+}
+
+// 提交表单
+async function submitForm() {
+  if (!formRef.value) return
+
+  await formRef.value.validate(async (valid) => {
+    if (!valid) return
+
+    submitting.value = true
+    try {
+      if (isEditMode.value && editingTag.value) {
+        await tagApi.update(editingTag.value.id, formData.value)
+        ElMessage.success('标签更新成功')
+      } else {
+        await tagApi.create(formData.value)
+        ElMessage.success('标签创建成功')
+      }
+      dialogVisible.value = false
+      loadTags()
+    } catch (error: any) {
+      console.error('保存标签失败:', error)
+      ElMessage.error(error.response?.data?.detail || '保存失败')
+    } finally {
+      submitting.value = false
+    }
+  })
+}
+
+// 确认删除
+function confirmDelete(tag: Tag) {
+  ElMessageBox.confirm(
+    `确定要删除标签"${tag.name}"吗？此操作不可撤销。`,
+    '确认删除',
+    {
+      confirmButtonText: '删除',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    deleteTag(tag.id)
+  }).catch(() => {
+    // 用户取消
+  })
+}
+
+// 删除标签
+async function deleteTag(id: number) {
+  try {
+    await tagApi.delete(id)
+    ElMessage.success('删除成功')
+    loadTags()
+  } catch (error: any) {
+    console.error('删除标签失败:', error)
+    ElMessage.error(error.response?.data?.detail || '删除失败')
+  }
+}
+
+// 格式化日期
+function formatDate(dateStr: string) {
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
+}
+
+onMounted(() => {
+  loadTags()
+})
 </script>
 
 <style scoped>
@@ -30,42 +228,113 @@ const features = ref(['标签创建', '标签编辑', '标签合并', '批量管
   padding: 16px;
 }
 
-.placeholder-card {
-  max-width: 100%;
-  margin: 0;
-}
-
-.placeholder-content {
-  text-align: center;
-  padding: 40px 20px;
-}
-
-.placeholder-icon {
-  color: #909399;
-  margin-bottom: 24px;
-}
-
-.placeholder-title {
-  font-size: 28px;
-  font-weight: 600;
-  color: #303133;
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 16px;
 }
 
-.placeholder-description {
-  font-size: 16px;
-  color: #606266;
-  margin-bottom: 32px;
+.tag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
 }
 
-.placeholder-features {
+.tag-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-left-width: 4px;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.tag-card:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.tag-header {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
 }
 
-.feature-tag {
-  font-size: 14px;
+.tag-name-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.tag-color {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.tag-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  word-break: break-word;
+}
+
+.tag-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.tag-info {
+  color: #6b7280;
+  font-size: 13px;
+  margin: 0;
+}
+
+.color-picker-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.color-input {
+  flex: 1;
+}
+
+.preset-colors {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.preset-color {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.preset-color:hover {
+  transform: scale(1.1);
+}
+
+.preset-color.active {
+  border-color: #1f2937;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
 }
 </style>

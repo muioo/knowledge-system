@@ -4,11 +4,13 @@ import { API_BASE_URL, TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/utils/constants'
 
 // API 错误响应类型
 interface ApiError {
-  detail: string | Array<{
-    loc: string[]
-    msg: string
-    type: string
-  }>
+  detail:
+    | string
+    | Array<{
+        loc: string[]
+        msg: string
+        type: string
+      }>
 }
 
 // 扩展请求配置类型
@@ -21,7 +23,7 @@ let isRefreshing = false
 let failedQueue: Array<(token: string) => void> = []
 
 function processQueue(token: string) {
-  failedQueue.forEach(callback => callback(token))
+  failedQueue.forEach((callback) => callback(token))
   failedQueue = []
 }
 
@@ -83,7 +85,7 @@ apiClient.interceptors.response.use(
           return apiClient(originalRequest)
         }
       } catch (refreshError) {
-        failedQueue.forEach(callback => callback('' as any))
+        failedQueue.forEach((callback) => callback('' as any))
         failedQueue = []
 
         localStorage.removeItem(TOKEN_KEY)

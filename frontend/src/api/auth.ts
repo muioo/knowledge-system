@@ -1,10 +1,5 @@
 import apiClient from './request'
-import type {
-  ApiResponse,
-  LoginRequest,
-  RegisterRequest,
-  AuthResponse,
-} from '@/types'
+import type { ApiResponse, LoginRequest, RegisterRequest, AuthResponse } from '@/types'
 
 export const authApi = {
   // 用户登录
