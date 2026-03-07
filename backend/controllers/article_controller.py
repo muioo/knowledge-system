@@ -9,15 +9,16 @@ from backend.schemas.article import ArticleCreate, ArticleUpdate, ArticleRespons
 from backend.utils.html_fetcher import fetch_html, clean_html, rewrite_base_urls
 from backend.utils.image_processor import extract_images, download_images_batch, rewrite_image_links
 from backend.utils.article_storage import read_html_content
+from backend.utils.ai_extractor import extract_article_from_url
 from backend.settings.config import settings
 
 
 async def create_article_from_file(
     file_data: Tuple[bytes, str],
+    title: str,
+    summary: str,
+    keywords: str,
     author_id: int,
-    title: Optional[str] = None,
-    summary: Optional[str] = None,
-    keywords: Optional[str] = None,
     tag_ids: Optional[List[int]] = None
 ) -> ArticleResponse:
     """
@@ -25,53 +26,44 @@ async def create_article_from_file(
 
     Args:
         file_data: (文件内容, 文件名) 元组
+        title: 文章标题（必填）
+        summary: 文章摘要（必填）
+        keywords: 文章关键词（必填）
         author_id: 作者ID
-        title: 可选的标题（不提供则从文件名提取）
-        summary: 可选的摘要
-        keywords: 可选的关键词
         tag_ids: 标签ID列表
 
     Returns:
         创建的文章响应
+
+    Raises:
+        ValueError: 必填字段为空时抛出异常
     """
-    from backend.utils.article_storage import save_html_content, read_html_content
+    # 验证必填字段
+    if not title:
+        raise ValueError("标题为必填项")
+    if not summary:
+        raise ValueError("摘要为必填项")
+    if not keywords:
+        raise ValueError("关键词为必填项")
 
     content_bytes, filename = file_data
 
     # 创建文章记录（获取ID）
     article = await Article.create(
-        title=title or filename,
+        title=title,
         summary=summary,
         keywords=keywords,
         author_id=author_id,
         original_filename=filename
     )
 
-    # 创建存储目录 articles/{article_id}/
+    # 创建目录并保存原始文件
     article_dir = os.path.join(settings.upload_dir, "articles", str(article.id))
     os.makedirs(article_dir, exist_ok=True)
 
-    # 保存原始文件
-    original_file_path = os.path.join(article_dir, filename)
-    async with aiofiles.open(original_file_path, "wb") as f:
+    file_path = os.path.join(article_dir, filename)
+    async with aiofiles.open(file_path, "wb") as f:
         await f.write(content_bytes)
-
-    # 转换为 markdown
-    from backend.utils.converters import convert_document
-    try:
-        markdown_content, extracted_title = await convert_document(original_file_path, filename)
-        article.title = title or extracted_title or filename
-
-        # 保存 HTML 内容到文件
-        html_path = await save_html_content(article.id, markdown_content)
-        article.html_path = html_path
-        await article.save()
-    except Exception as e:
-        # 转换失败，删除文章和文件
-        await article.delete()
-        from backend.utils.article_storage import delete_article_files
-        await delete_article_files(article.id)
-        raise ValueError(f"文件转换失败: {str(e)}")
 
     # 关联标签
     if tag_ids:
@@ -383,7 +375,12 @@ async def search_articles(query: SearchQuery) -> tuple[List[ArticleResponse], in
     )
 
 
-async def import_article_from_html_url(url: str, author_id: int, tag_ids: list = None) -> dict:
+async def import_article_from_html_url(
+    url: str,
+    author_id: int,
+    tag_ids: Optional[List[int]] = None,
+    title: Optional[str] = None
+) -> ArticleResponse:
     """
     从 URL 导入 HTML 文章
 
@@ -391,12 +388,13 @@ async def import_article_from_html_url(url: str, author_id: int, tag_ids: list =
         url: 网页链接
         author_id: 作者 ID
         tag_ids: 标签 ID 列表
+        title: 可选标题（不提供则由 AI 提取）
 
     Returns:
-        {article_id, status, message}
+        创建的文章响应
 
     Raises:
-        ValueError: 各种导入错误
+        ValueError: 各种导入错误，AI 提取失败时会抛出异常
     """
     # 检查 URL 是否已存在
     existing = await Article.filter(original_html_url=url).first()
@@ -407,55 +405,92 @@ async def import_article_from_html_url(url: str, author_id: int, tag_ids: list =
     raw_html = await fetch_html(url)
 
     # 2. 清洗 HTML
-    cleaned_html, title = clean_html(raw_html)
+    cleaned_html, extracted_title = clean_html(raw_html)
 
     # 3. 重写相对路径为绝对路径
     full_html = await rewrite_base_urls(cleaned_html, url)
 
-    # 4. 创建文章记录（获取 ID）
+    # 4. 同步调用 AI 提取
+    try:
+        ai_result = await extract_article_from_url(
+            url=url,
+            html_content=cleaned_html
+        )
+    except Exception as e:
+        # AI 提取失败，返回错误，不保存
+        raise ValueError(f"AI 提取失败: {str(e)}")
+
+    # 使用 AI 提取的标题或用户提供的标题
+    final_title = title or ai_result.get("title") or extracted_title
+
+    # 5. 创建文章记录（获取 ID）
     article = await Article.create(
-        title=title,
+        title=final_title,
+        summary=ai_result.get("summary"),
+        keywords=ai_result.get("keywords"),
         author_id=author_id,
         original_html_url=url,
-        processing_status="pending"
+        processing_status="completed"
     )
 
     try:
-        # 5. 创建存储目录
+        # 6. 创建存储目录
         article_dir = os.path.join(settings.upload_dir, "articles", str(article.id))
         images_dir = os.path.join(article_dir, "images")
         os.makedirs(images_dir, exist_ok=True)
 
-        # 6. 提取并下载图片
+        # 7. 提取并下载图片
         image_urls = extract_images(full_html)
         url_mapping = {}
 
         if image_urls:
             url_mapping = await download_images_batch(image_urls, article_dir)
 
-        # 7. 重写图片链接
+        # 8. 重写图片链接
         final_html = rewrite_image_links(full_html, url_mapping)
 
-        # 8. 保存 HTML 文件
+        # 9. 保存 HTML 文件
         html_path = os.path.join(article_dir, "index.html")
         async with aiofiles.open(html_path, 'w', encoding='utf-8') as f:
             await f.write(final_html)
 
-        # 9. 更新文章记录（保存相对路径，不包含 upload_dir 部分）
+        # 10. 更新文章记录（保存相对路径，不包含 upload_dir 部分）
         article.html_path = f"articles/{article.id}/index.html"
         await article.save()
 
-        # 10. 关联标签
+        # 11. 关联标签
         if tag_ids:
             tags = await Tag.filter(id__in=tag_ids)
             if tags:
                 await article.tags.add(*tags)
 
-        return {
-            "article_id": article.id,
-            "status": "pending",
-            "message": "文章导入成功，AI 提取中"
-        }
+        await article.fetch_related("tags")
+
+        # 12. 从文件读取 HTML 内容
+        html_content = None
+        if article.html_path:
+            try:
+                html_content = await read_html_content(article.id)
+            except FileNotFoundError:
+                pass
+
+        return ArticleResponse(
+            id=article.id,
+            title=article.title,
+            source_url=article.source_url,
+            summary=article.summary,
+            keywords=article.keywords,
+            author_id=article.author_id,
+            original_filename=article.original_filename,
+            view_count=article.view_count,
+            created_at=article.created_at,
+            updated_at=article.updated_at,
+            tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags],
+            html_content=html_content,
+            html_path=article.html_path,
+            processing_status=article.processing_status,
+            original_html_url=article.original_html_url
+        )
 
     except Exception as e:
         # 回滚：删除文章记录和文件
