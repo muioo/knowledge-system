@@ -99,7 +99,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   Loading,
@@ -112,6 +112,7 @@ import {
   TopRight,
 } from '@element-plus/icons-vue'
 import { articleApi } from '@/api/article'
+import { startReading, endReading } from '@/api/reading'
 import type { Article } from '@/types'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -121,11 +122,47 @@ const route = useRoute()
 const loading = ref(true)
 const article = ref<Article | null>(null)
 
+// 阅读追踪
+let readingStartTime: number | null = null
+let readingSessionId: number | null = null
+
 // 关键词列表
 const keywordList = computed(() => {
   if (!article.value?.keywords) return []
   return article.value.keywords.split(',').map(k => k.trim()).filter(k => k)
 })
+
+// 开始阅读追踪
+async function startReadingTracking() {
+  if (!article.value) return
+
+  readingStartTime = Date.now()
+  try {
+    const res = await startReading(article.value.id)
+    readingSessionId = res.data.id
+    console.log('开始阅读追踪:', readingSessionId)
+  } catch (error) {
+    console.error('开始阅读追踪失败:', error)
+  }
+}
+
+// 结束阅读追踪
+async function endReadingTracking() {
+  if (!article.value || !readingStartTime) return
+
+  const readingDuration = Math.floor((Date.now() - readingStartTime) / 1000) // 秒
+  const readingProgress = 100 // 假设阅读完成
+
+  try {
+    await endReading(article.value.id, { reading_progress: readingProgress })
+    console.log('结束阅读追踪:', { duration: readingDuration, progress: readingProgress })
+  } catch (error) {
+    console.error('结束阅读追踪失败:', error)
+  }
+
+  readingStartTime = null
+  readingSessionId = null
+}
 
 // 加载文章详情
 async function loadArticle() {
@@ -140,6 +177,9 @@ async function loadArticle() {
   try {
     const res = await articleApi.getDetail(articleId)
     article.value = res.data
+
+    // 文章加载完成后开始阅读追踪
+    await startReadingTracking()
   } catch (error) {
     console.error('加载文章失败:', error)
     ElMessage.error('加载文章失败')
@@ -202,6 +242,31 @@ function formatDate(dateStr: string) {
 
 onMounted(() => {
   loadArticle()
+})
+
+// 页面卸载时结束阅读追踪
+onUnmounted(() => {
+  endReadingTracking()
+})
+
+// 监听页面可见性变化（用户切换标签页等）
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && readingStartTime) {
+    // 页面隐藏时，可以考虑是否结束阅读追踪
+    // 这里暂不处理，让用户离开页面时才结束
+  }
+})
+
+// 监听用户离开页面
+window.addEventListener('beforeunload', () => {
+  if (readingStartTime) {
+    // 使用sendBeacon确保数据发送
+    const data = JSON.stringify({ reading_progress: 100 })
+    navigator.sendBeacon(
+      `/api/v1/reading/articles/${article.value?.id}/end`,
+      new Blob([data], { type: 'application/json' })
+    )
+  }
 })
 </script>
 
@@ -313,19 +378,8 @@ onMounted(() => {
 .html-content {
   color: #374151;
   line-height: 1.8;
-}
-
-.html-content :deep(h1),
-.html-content :deep(h2),
-.html-content :deep(h3) {
-  font-weight: 600;
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
-  color: #1f2937;
-}
-
-.html-content :deep(p) {
-  margin-bottom: 1rem;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .html-content :deep(img) {
@@ -333,6 +387,34 @@ onMounted(() => {
   height: auto;
   border-radius: 0.5rem;
   margin: 1rem 0;
+  display: block;
+}
+
+.html-content :deep(h1),
+.html-content :deep(h2),
+.html-content :deep(h3),
+.html-content :deep(h4),
+.html-content :deep(h5),
+.html-content :deep(h6) {
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: #1f2937;
+  line-height: 1.4;
+}
+
+.html-content :deep(p) {
+  margin-bottom: 1rem;
+}
+
+.html-content :deep(ul),
+.html-content :deep(ol) {
+  margin-left: 2rem;
+  margin-bottom: 1rem;
+}
+
+.html-content :deep(li) {
+  margin-bottom: 0.5rem;
 }
 
 .html-content :deep(pre) {

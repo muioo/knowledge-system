@@ -5,6 +5,7 @@ from backend.api.v1.endpoints.articles import router as articles_router
 from backend.api.v1.endpoints.tags import router as tags_router
 from backend.api.v1.endpoints.search import router as search_router
 from backend.api.v1.endpoints.reading import router as reading_router
+from backend.api.v1.endpoints.media import router as media_router
 
 def register_routers(app: FastAPI):
     app.include_router(auth_router, prefix="/api/v1")
@@ -13,5 +14,6 @@ def register_routers(app: FastAPI):
     app.include_router(tags_router, prefix="/api/v1")
     app.include_router(search_router, prefix="/api/v1")
     app.include_router(reading_router, prefix="/api/v1")
+    app.include_router(media_router, prefix="/api/v1")
 
 __all__ = ["register_routers"]

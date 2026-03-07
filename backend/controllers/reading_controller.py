@@ -1,7 +1,11 @@
 from backend.models import ReadingHistory, ReadingStats, Article
 from backend.schemas.reading import ReadingEnd, ReadingHistoryResponse, ReadingStatsResponse
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
+
+# 获取当前时间（带时区）
+def get_now():
+    return datetime.now(timezone.utc).astimezone()
 
 async def start_reading(user_id: int, article_id: int) -> ReadingHistoryResponse:
     article = await Article.get_or_none(id=article_id)
@@ -10,7 +14,7 @@ async def start_reading(user_id: int, article_id: int) -> ReadingHistoryResponse
     history = await ReadingHistory.create(
         user_id=user_id,
         article_id=article_id,
-        started_at=datetime.now()
+        started_at=get_now()
     )
     return ReadingHistoryResponse(
         id=history.id,
@@ -29,7 +33,7 @@ async def end_reading(user_id: int, article_id: int, data: ReadingEnd) -> Readin
     ).order_by("-started_at").first()
     if not history:
         raise ValueError("没有找到阅读记录")
-    history.ended_at = datetime.now()
+    history.ended_at = get_now()
     history.reading_progress = data.reading_progress
     history.reading_duration = int((history.ended_at - history.started_at).total_seconds())
     await history.save()

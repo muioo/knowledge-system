@@ -8,7 +8,6 @@ from backend.models import Article, Tag
 from backend.schemas.article import ArticleCreate, ArticleUpdate, ArticleResponse, SearchQuery, TagInfo
 from backend.utils.html_fetcher import fetch_html, clean_html, rewrite_base_urls
 from backend.utils.image_processor import extract_images, download_images_batch, rewrite_image_links
-from backend.utils.article_storage import read_html_content
 from backend.utils.ai_extractor import extract_article_from_url
 from backend.settings.config import settings
 
@@ -73,14 +72,6 @@ async def create_article_from_file(
 
     await article.fetch_related("tags")
 
-    # 从文件读取 HTML 内容
-    html_content = None
-    if article.html_path:
-        try:
-            html_content = await read_html_content(article.id)
-        except FileNotFoundError:
-            pass
-
     return ArticleResponse(
         id=article.id,
         title=article.title,
@@ -93,7 +84,6 @@ async def create_article_from_file(
         created_at=article.created_at,
         updated_at=article.updated_at,
         tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags],
-        html_content=html_content,
         html_path=article.html_path,
         processing_status=article.processing_status,
         original_html_url=article.original_html_url
@@ -209,8 +199,6 @@ async def create_article(
 
 async def get_article_by_id(article_id: int) -> ArticleResponse:
     """获取文章详情，从文件读取内容"""
-    from backend.utils.article_storage import get_article_file_content
-
     article = await Article.get_or_none(id=article_id)
     if not article:
         raise ValueError("文章不存在")
@@ -220,18 +208,6 @@ async def get_article_by_id(article_id: int) -> ArticleResponse:
 
     article.view_count += 1
     await article.save()
-
-    # 从文件读取内容（支持两种来源）
-    html_content = None
-    try:
-        html_content = await get_article_file_content(
-            article_id=article_id,
-            html_path=article.html_path,
-            original_filename=article.original_filename
-        )
-    except FileNotFoundError:
-        # 文件不存在，返回 None
-        pass
 
     return ArticleResponse(
         id=article.id,
@@ -245,15 +221,13 @@ async def get_article_by_id(article_id: int) -> ArticleResponse:
         created_at=article.created_at,
         updated_at=article.updated_at,
         tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags],
-        html_content=html_content,
         html_path=article.html_path,
         processing_status=article.processing_status,
         original_html_url=article.original_html_url
     )
 
 async def update_article(article_id: int, data: ArticleUpdate, user_id: int, is_admin: bool = False) -> ArticleResponse:
-    from backend.utils.article_storage import read_html_content
-
+    
     article = await Article.get_or_none(id=article_id)
     if not article:
         raise ValueError("文章不存在")
@@ -274,14 +248,6 @@ async def update_article(article_id: int, data: ArticleUpdate, user_id: int, is_
         await article.tags.add(*tags)
         await article.fetch_related("tags")
 
-    # 从文件读取 HTML 内容
-    html_content = None
-    if article.html_path:
-        try:
-            html_content = await read_html_content(article.id)
-        except FileNotFoundError:
-            pass
-
     return ArticleResponse(
         id=article.id,
         title=article.title,
@@ -294,7 +260,6 @@ async def update_article(article_id: int, data: ArticleUpdate, user_id: int, is_
         created_at=article.created_at,
         updated_at=article.updated_at,
         tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags],
-        html_content=html_content,
         html_path=article.html_path,
         processing_status=article.processing_status,
         original_html_url=article.original_html_url
@@ -474,14 +439,6 @@ async def import_article_from_html_url(
 
         await article.fetch_related("tags")
 
-        # 12. 从文件读取 HTML 内容
-        html_content = None
-        if article.html_path:
-            try:
-                html_content = await read_html_content(article.id)
-            except FileNotFoundError:
-                pass
-
         return ArticleResponse(
             id=article.id,
             title=article.title,
@@ -494,7 +451,6 @@ async def import_article_from_html_url(
             created_at=article.created_at,
             updated_at=article.updated_at,
             tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags],
-            html_content=html_content,
             html_path=article.html_path,
             processing_status=article.processing_status,
             original_html_url=article.original_html_url
@@ -520,12 +476,13 @@ async def get_article_html_content(article_id: int) -> str:
         article_id: 文章 ID
 
     Returns:
-        HTML 内容
+        处理后的 HTML 内容（图片路径已替换为 API URL）
 
     Raises:
         ValueError: 文章不存在或没有文件
     """
     from backend.utils.article_storage import get_article_file_content
+    from bs4 import BeautifulSoup
 
     article = await Article.get(id=article_id)
 
@@ -533,8 +490,21 @@ async def get_article_html_content(article_id: int) -> str:
         raise ValueError("文章不存在")
 
     # 使用通用文件读取函数
-    return await get_article_file_content(
+    html_content = await get_article_file_content(
         article_id=article_id,
         html_path=article.html_path,
         original_filename=article.original_filename
     )
+
+    # 替换相对路径的图片链接为 API URL
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    for img in soup.find_all('img'):
+        src = img.get('src')
+        if src and not src.startswith('http') and not src.startswith('//'):
+            # 相对路径，替换为 API URL
+            # 移除开头的 ./ 或 /
+            clean_src = src.lstrip('./').lstrip('/')
+            img['src'] = f"/api/v1/media/articles/{article_id}/{clean_src}"
+
+    return str(soup)

@@ -43,8 +43,7 @@ class ArticleResponse(ArticleBase):
     updated_at: datetime
     tags: List[TagInfo] = []
 
-    # 新增字段
-    html_content: Optional[str] = None
+    # 新增字段（html_content 仅在 ArticleHtmlResponse 中包含）
     html_path: Optional[str] = None
     processing_status: Optional[str] = None
     original_html_url: Optional[str] = None
