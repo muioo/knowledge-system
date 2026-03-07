@@ -107,18 +107,22 @@ async def create_article(
     Returns:
         创建的文章响应
     """
+    from backend.utils.article_storage import save_html_content
+
     import_type = data.import_type or "direct"
 
     # 处理文件上传（import_type="file"）
     if import_type == "file":
         if not file_data:
             raise ValueError("文件上传需要提供文件")
+        if not data.html_content:
+            raise ValueError("文件上传需要提供 HTML 内容")
+
         content_bytes, filename = file_data
 
         # 创建文章记录（获取ID）
         article = await Article.create(
             title=data.title,
-            content=data.content,
             source_url=data.source_url,
             summary=data.summary,
             keywords=data.keywords,
@@ -126,39 +130,47 @@ async def create_article(
             original_filename=filename
         )
 
-        # 创建存储目录 articles/{article_id}/
-        article_dir = os.path.join(settings.upload_dir, "articles", str(article.id))
-        os.makedirs(article_dir, exist_ok=True)
-
-        # 保存原始文件
-        original_file_path = os.path.join(article_dir, filename)
-        async with aiofiles.open(original_file_path, "wb") as f:
-            await f.write(content_bytes)
-
-        # 转换为 markdown
-        from backend.utils.converters import convert_document
         try:
-            markdown_content, _ = await convert_document(original_file_path, filename)
-            article.content = markdown_content
+            # 保存 HTML 内容到文件
+            html_path = await save_html_content(article.id, data.html_content)
+            article.html_path = html_path
             await article.save()
-        except Exception as e:
-            # 转换失败，删除文章和文件
-            await article.delete()
-            import shutil
-            if os.path.exists(article_dir):
-                shutil.rmtree(article_dir)
-            raise ValueError(f"文件转换失败: {str(e)}")
 
-    # 默认：直接创建（import_type="direct"）
-    else:
+            # 保存原始文件
+            article_dir = os.path.join(settings.upload_dir, "articles", str(article.id))
+            original_file_path = os.path.join(article_dir, filename)
+            async with aiofiles.open(original_file_path, "wb") as f:
+                await f.write(content_bytes)
+
+        except Exception as e:
+            # 回滚：删除文章和文件
+            await article.delete()
+            from backend.utils.article_storage import delete_article_files
+            await delete_article_files(article.id)
+            raise ValueError(f"文件保存失败: {str(e)}")
+
+    # 处理直接创建（import_type="direct"）
+    elif import_type == "direct":
         article = await Article.create(
             title=data.title,
-            content=data.content,
             source_url=data.source_url,
             summary=data.summary,
             keywords=data.keywords,
             author_id=author_id
         )
+
+        # 如果提供了 HTML 内容，保存到文件
+        if data.html_content:
+            try:
+                html_path = await save_html_content(article.id, data.html_content)
+                article.html_path = html_path
+                await article.save()
+            except Exception as e:
+                await article.delete()
+                raise ValueError(f"文件保存失败: {str(e)}")
+
+    else:
+        raise ValueError(f"不支持的导入类型: {import_type}")
 
     # 关联标签
     if data.tag_ids:
@@ -170,7 +182,6 @@ async def create_article(
     return ArticleResponse(
         id=article.id,
         title=article.title,
-        content=article.content,
         source_url=article.source_url,
         summary=article.summary,
         keywords=article.keywords,
@@ -179,7 +190,10 @@ async def create_article(
         view_count=article.view_count,
         created_at=article.created_at,
         updated_at=article.updated_at,
-        tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags]
+        tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags],
+        html_path=article.html_path,
+        processing_status=article.processing_status,
+        original_html_url=article.original_html_url
     )
 
 async def get_article_by_id(article_id: int) -> ArticleResponse:
