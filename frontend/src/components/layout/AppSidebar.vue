@@ -15,7 +15,7 @@
       :default-active="activeMenu"
       :collapse="collapsed"
       :unique-opened="true"
-      router
+      @select="handleMenuSelect"
       class="sidebar-menu"
     >
       <el-menu-item index="/dashboard">
@@ -54,7 +54,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { storeToRefs } from 'pinia'
 import {
@@ -76,10 +76,16 @@ const { collapsed } = withDefaults(defineProps<Props>(), {
 
 // 路由
 const route = useRoute()
+const router = useRouter()
 
 // 用户状态
 const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
+
+// 菜单选择处理
+function handleMenuSelect(index: string) {
+  router.push(index)
+}
 
 // 当前激活的菜单
 const activeMenu = computed(() => {
