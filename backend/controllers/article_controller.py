@@ -8,6 +8,7 @@ from backend.models import Article, Tag
 from backend.schemas.article import ArticleCreate, ArticleUpdate, ArticleResponse, SearchQuery, TagInfo
 from backend.utils.html_fetcher import fetch_html, clean_html, rewrite_base_urls
 from backend.utils.image_processor import extract_images, download_images_batch, rewrite_image_links
+from backend.utils.article_storage import read_html_content
 from backend.settings.config import settings
 
 
@@ -200,15 +201,26 @@ async def create_article(
     )
 
 async def get_article_by_id(article_id: int) -> ArticleResponse:
+    """获取文章详情，从文件读取内容"""
     article = await Article.get_or_none(id=article_id).prefetch_related("tags")
     if not article:
         raise ValueError("文章不存在")
+
     article.view_count += 1
     await article.save()
+
+    # 从文件读取 HTML 内容
+    html_content = None
+    if article.html_path:
+        try:
+            html_content = await read_html_content(article.id)
+        except FileNotFoundError:
+            # 文件不存在，返回 None
+            pass
+
     return ArticleResponse(
         id=article.id,
         title=article.title,
-        content=article.content,
         source_url=article.source_url,
         summary=article.summary,
         keywords=article.keywords,
@@ -217,7 +229,11 @@ async def get_article_by_id(article_id: int) -> ArticleResponse:
         view_count=article.view_count,
         created_at=article.created_at,
         updated_at=article.updated_at,
-        tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags]
+        tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags],
+        html_content=html_content,
+        html_path=article.html_path,
+        processing_status=article.processing_status,
+        original_html_url=article.original_html_url
     )
 
 async def update_article(article_id: int, data: ArticleUpdate, user_id: int, is_admin: bool = False) -> ArticleResponse:
