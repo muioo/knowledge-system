@@ -62,7 +62,7 @@ class ArticleFromHtmlUrlRequest(BaseModel):
     """从 HTML URL 导入文章请求"""
     url: str = Field(..., min_length=1, max_length=1000)
     tag_ids: Optional[List[int]] = []
-    title: Optional[str] = None  # 新增：可选的自定义标题
+    title: Optional[str] = Field(None, min_length=1, max_length=255, description="可选的自定义标题")
 
 class ArticleFromHtmlUrlResponse(BaseModel):
     """从 HTML URL 导入文章响应"""
