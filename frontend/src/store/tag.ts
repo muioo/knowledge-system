@@ -15,6 +15,8 @@ export const useTagStore = defineStore('tag', () => {
     try {
       const response = await tagApi.getAll()
       tags.value = response.data
+    } catch (error) {
+      throw error
     } finally {
       loading.value = false
     }
@@ -22,7 +24,7 @@ export const useTagStore = defineStore('tag', () => {
 
   async function createTag(data: CreateTagRequest) {
     const response = await tagApi.create(data)
-    tags.value.push(response.data)
+    tags.value = [...tags.value, response.data]
     return response.data
   }
 
@@ -30,7 +32,7 @@ export const useTagStore = defineStore('tag', () => {
     const response = await tagApi.update(tagId, data)
     const index = tags.value.findIndex(t => t.id === tagId)
     if (index !== -1) {
-      tags.value[index] = response.data
+      tags.value = [...tags.value.slice(0, index), response.data, ...tags.value.slice(index + 1)]
     }
     return response.data
   }

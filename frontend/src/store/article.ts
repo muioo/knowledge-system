@@ -34,6 +34,8 @@ export const useArticleStore = defineStore('article', () => {
       if (params) {
         filters.value = params
       }
+    } catch (error) {
+      throw error
     } finally {
       loading.value = false
     }
@@ -45,6 +47,8 @@ export const useArticleStore = defineStore('article', () => {
       const response = await articleApi.getDetail(articleId)
       currentArticle.value = response.data
       return response.data
+    } catch (error) {
+      throw error
     } finally {
       loading.value = false
     }

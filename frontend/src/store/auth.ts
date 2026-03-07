@@ -29,6 +29,8 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem(USER_KEY, JSON.stringify(userData))
 
       return response
+    } catch (error) {
+      throw error
     } finally {
       loading.value = false
     }
@@ -48,6 +50,8 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem(USER_KEY, JSON.stringify(userData))
 
       return response
+    } catch (error) {
+      throw error
     } finally {
       loading.value = false
     }
@@ -62,6 +66,7 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem(USER_KEY, JSON.stringify(response.data))
     } catch (error) {
       logout()
+      throw error
     }
   }
 
@@ -69,11 +74,15 @@ export const useAuthStore = defineStore('auth', () => {
     const refreshTokenValue = localStorage.getItem(REFRESH_TOKEN_KEY)
     if (!refreshTokenValue) throw new Error('No refresh token')
 
-    const response = await authApi.refreshToken(refreshTokenValue)
-    const { access_token } = response.data
+    try {
+      const response = await authApi.refreshToken(refreshTokenValue)
+      const { access_token } = response.data
 
-    token.value = access_token
-    localStorage.setItem(TOKEN_KEY, access_token)
+      token.value = access_token
+      localStorage.setItem(TOKEN_KEY, access_token)
+    } catch (error) {
+      throw error
+    }
   }
 
   function logout() {
@@ -90,8 +99,13 @@ export const useAuthStore = defineStore('auth', () => {
     const savedUser = localStorage.getItem(USER_KEY)
 
     if (savedToken && savedUser) {
-      token.value = savedToken
-      user.value = JSON.parse(savedUser)
+      try {
+        token.value = savedToken
+        user.value = JSON.parse(savedUser)
+      } catch {
+        localStorage.removeItem(TOKEN_KEY)
+        localStorage.removeItem(USER_KEY)
+      }
     }
   }
 
