@@ -211,9 +211,12 @@ async def get_article_by_id(article_id: int) -> ArticleResponse:
     """获取文章详情，从文件读取内容"""
     from backend.utils.article_storage import get_article_file_content
 
-    article = await Article.get_or_none(id=article_id).prefetch_related("tags")
+    article = await Article.get_or_none(id=article_id)
     if not article:
         raise ValueError("文章不存在")
+
+    # 预加载标签关系
+    await article.fetch_related("tags")
 
     article.view_count += 1
     await article.save()
