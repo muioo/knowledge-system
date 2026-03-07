@@ -2,6 +2,15 @@ import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestCo
 import { ElMessage } from 'element-plus'
 import { API_BASE_URL, TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/utils/constants'
 
+// API 错误响应类型
+interface ApiError {
+  detail: string | Array<{
+    loc: string[]
+    msg: string
+    type: string
+  }>
+}
+
 // 扩展请求配置类型
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean
@@ -33,7 +42,7 @@ apiClient.interceptors.response.use(
   (response) => {
     return response.data
   },
-  async (error: AxiosError) => {
+  async (error: AxiosError<ApiError>) => {
     const originalRequest = error.config as CustomAxiosRequestConfig
 
     // Token 过期处理
