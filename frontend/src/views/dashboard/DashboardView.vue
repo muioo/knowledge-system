@@ -77,9 +77,9 @@ import { Document, PriceTag, View, Clock, Plus, FolderOpened } from '@element-pl
 
 <style scoped>
 .dashboard-container {
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 0;
+  padding: 16px;
 }
 
 .card {

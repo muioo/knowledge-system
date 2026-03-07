@@ -3,7 +3,7 @@
     <AppSidebar :collapsed="isSidebarCollapsed" />
     <main class="main-content flex-1 flex flex-col">
       <AppHeader :sidebar-collapsed="isSidebarCollapsed" @toggle-sidebar="toggleSidebar" />
-      <div class="content-area flex-1 p-6">
+      <div class="content-area flex-1 p-0">
         <router-view v-slot="{ Component, route }">
           <transition name="fade" mode="out-in">
             <component :is="Component" :key="route.path" />
@@ -57,7 +57,7 @@ onUnmounted(() => {
 }
 
 .content-area {
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
 }
 
@@ -75,7 +75,13 @@ onUnmounted(() => {
 /* 响应式设计 */
 @media (max-width: 767px) {
   .content-area {
-    padding: 16px;
+    padding: 8px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .content-area {
+    padding: 12px;
   }
 }
 </style>
