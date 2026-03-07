@@ -1,4 +1,4 @@
-import { apiClient } from './request'
+import apiClient from './request'
 import type { ApiPaginatedResponse } from '@/types/api'
 
 // 阅读历史响应
