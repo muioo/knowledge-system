@@ -35,6 +35,10 @@
     --color-yellow: #FFE812;
     --color-pink: #FA4778;
 
+    /* 按钮状态颜色 */
+    --color-indigo-hover: rgba(116, 89, 217, 0.9);
+    --color-red-hover: rgba(255, 121, 119, 0.9);
+
     /* 阴影 */
     --shadow-card: 0px 40px 48px 0px rgba(50, 50, 71, 0.25), 0px 24px 24px 0px rgba(50, 50, 71, 0.1);
     --shadow-prompt: 0px 8px 16px 0px rgba(50, 50, 71, 0.06), 0px 8px 8px 0px rgba(50, 50, 71, 0.08);
@@ -150,7 +154,7 @@ body {
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   border: none;
   text-decoration: none;
 }
@@ -165,8 +169,8 @@ body {
 
 .btn-primary:hover,
 .el-button.btn-primary:hover {
-  background: rgba(116, 89, 217, 0.9);
-  border-color: rgba(116, 89, 217, 0.9);
+  background: var(--color-indigo-hover);
+  border-color: var(--color-indigo-hover);
 }
 
 /* --- 次要按钮 (outline) --- */
@@ -209,7 +213,7 @@ body {
 
 .btn-danger:hover,
 .el-button.btn-danger:hover {
-  background: rgba(255, 121, 119, 0.9);
+  background: var(--color-red-hover);
 }
 
 /* 危险按钮 outline 样式 */
@@ -235,4 +239,24 @@ body {
 .btn-lg {
   padding: 12px 24px;
   font-size: 16px;
+}
+
+/* --- 按钮状态 --- */
+.btn:focus-visible,
+.el-button.btn:focus-visible {
+  outline: 2px solid var(--color-indigo);
+  outline-offset: 2px;
+}
+
+.btn:disabled,
+.el-button.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn:disabled:hover,
+.el-button.btn:disabled:hover {
+  background: inherit;
+  border-color: inherit;
+  color: inherit;
 }
