@@ -34,3 +34,6 @@ class TokenResponse(BaseModel):
 
 class UpdateRole(BaseModel):
     role: str = Field(..., pattern="^(admin|user)$")
+
+class UpdateUserStatus(BaseModel):
+    is_active: bool

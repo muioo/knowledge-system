@@ -1,14 +1,15 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from backend.core.security import get_current_user, get_current_admin
 from backend.models import User
-from backend.schemas.user import UserResponse, UserUpdate, UpdateRole
+from backend.schemas.user import UserResponse, UserUpdate, UpdateRole, UpdateUserStatus
 from backend.schemas.response import SuccessResponse, PaginatedResponse, PaginatedData
 from backend.controllers.user_controller import (
     get_user_by_id,
     update_user,
     delete_user,
     list_users,
-    update_user_role
+    update_user_role,
+    toggle_user_status
 )
 
 router = APIRouter(prefix="/users", tags=["用户"])
@@ -97,6 +98,18 @@ async def update_user_role_by_id(
 ):
     try:
         result = await update_user_role(user_id, data)
+        return SuccessResponse(data=result)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.patch("/{user_id}/status", response_model=SuccessResponse[UserResponse])
+async def update_user_status_by_id(
+    user_id: int,
+    data: UpdateUserStatus,
+    current_admin: User = Depends(get_current_admin)
+):
+    try:
+        result = await toggle_user_status(user_id, data)
         return SuccessResponse(data=result)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

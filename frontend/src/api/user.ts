@@ -41,4 +41,9 @@ export const userApi = {
   updateUserRole(userId: number, role: 'admin' | 'user'): Promise<ApiResponse<User>> {
     return apiClient.patch(`/users/${userId}/role`, { role })
   },
+
+  // 更新用户状态（管理员）
+  updateUserStatus(userId: number, is_active: boolean): Promise<ApiResponse<User>> {
+    return apiClient.patch(`/users/${userId}/status`, { is_active })
+  },
 }

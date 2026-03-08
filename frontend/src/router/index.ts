@@ -55,6 +55,12 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '标签管理' },
       },
       {
+        path: 'users',
+        name: 'UserManage',
+        component: () => import('@/views/user/UserManageView.vue'),
+        meta: { title: '用户管理', requiresAdmin: true },
+      },
+      {
         path: 'reading-stats',
         name: 'ReadingStats',
         component: () => import('@/views/reading/ReadingStatsView.vue'),
@@ -73,6 +79,7 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem(TOKEN_KEY)
   const requiresAuth = to.matched.some((record) => record.meta?.requiresAuth !== false)
+  const requiresAdmin = to.matched.some((record) => record.meta?.requiresAdmin === true)
 
   // 设置页面标题
   if (to.meta?.title) {
@@ -83,6 +90,25 @@ router.beforeEach((to, _from, next) => {
     next('/login')
   } else if ((to.path === '/login' || to.path === '/register') && token) {
     next('/dashboard')
+  } else if (requiresAdmin && token) {
+    // 检查用户是否是管理员
+    // 从 localStorage 获取用户信息
+    const userStr = localStorage.getItem('user')
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr)
+        if (user.role === 'admin') {
+          next()
+        } else {
+          // 非管理员跳转到仪表盘
+          next('/dashboard')
+        }
+      } catch {
+        next('/dashboard')
+      }
+    } else {
+      next('/dashboard')
+    }
   } else {
     next()
   }

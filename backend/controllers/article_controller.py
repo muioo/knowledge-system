@@ -352,7 +352,10 @@ async def import_article_from_html_url(
     url: str,
     author_id: int,
     tag_ids: Optional[List[int]] = None,
-    title: Optional[str] = None
+    title: Optional[str] = None,
+    use_ai: bool = True,
+    summary: Optional[str] = None,
+    keywords: Optional[str] = None
 ) -> ArticleResponse:
     """
     从 URL 导入 HTML 文章
@@ -361,13 +364,16 @@ async def import_article_from_html_url(
         url: 网页链接
         author_id: 作者 ID
         tag_ids: 标签 ID 列表
-        title: 可选标题（不提供则由 AI 提取）
+        title: 可选标题（不提供则由 AI 提取或从HTML提取）
+        use_ai: 是否使用AI提取关键词和摘要，默认为True
+        summary: 手动输入的摘要（use_ai=False时使用）
+        keywords: 手动输入的关键词（use_ai=False时使用）
 
     Returns:
         创建的文章响应
 
     Raises:
-        ValueError: 各种导入错误，AI 提取失败时会抛出异常
+        ValueError: 各种导入错误
     """
     # 检查 URL 是否已存在
     existing = await Article.filter(original_html_url=url).first()
@@ -383,55 +389,66 @@ async def import_article_from_html_url(
     # 3. 重写相对路径为绝对路径
     full_html = await rewrite_base_urls(cleaned_html, url)
 
-    # 4. 同步调用 AI 提取
-    try:
-        ai_result = await extract_article_from_url(
-            url=url,
-            html_content=cleaned_html
-        )
-    except Exception as e:
-        # AI 提取失败，返回错误，不保存
-        raise ValueError(f"AI 提取失败: {str(e)}")
+    # 4. 根据参数决定是否使用AI提取
+    ai_summary = None
+    ai_keywords = None
+    ai_title = None
 
-    # 使用 AI 提取的标题或用户提供的标题
-    final_title = title or ai_result.get("title") or extracted_title
+    if use_ai:
+        try:
+            ai_result = await extract_article_from_url(
+                url=url,
+                html_content=cleaned_html
+            )
+            ai_summary = ai_result.get("summary")
+            ai_keywords = ai_result.get("keywords")
+            ai_title = ai_result.get("title")
+        except Exception as e:
+            # AI 提取失败，使用默认值或手动输入的值
+            import logging
+            logging.warning(f"AI 提取失败 (url={url}): {str(e)}")
 
-    # 5. 创建文章记录（获取 ID）
+    # 5. 确定最终的标题、摘要和关键词
+    final_title = title or ai_title or extracted_title
+    final_summary = summary or ai_summary or "暂无摘要"
+    final_keywords = keywords or ai_keywords or ""
+
+    # 6. 创建文章记录（获取 ID）
     article = await Article.create(
         title=final_title,
-        summary=ai_result.get("summary"),
-        keywords=ai_result.get("keywords"),
+        summary=final_summary,
+        keywords=final_keywords,
         author_id=author_id,
         original_html_url=url,
         processing_status="completed"
     )
 
     try:
-        # 6. 创建存储目录
+        # 7. 创建存储目录
         article_dir = os.path.join(settings.upload_dir, "articles", str(article.id))
         images_dir = os.path.join(article_dir, "images")
         os.makedirs(images_dir, exist_ok=True)
 
-        # 7. 提取并下载图片
+        # 8. 提取并下载图片
         image_urls = extract_images(full_html)
         url_mapping = {}
 
         if image_urls:
             url_mapping = await download_images_batch(image_urls, article_dir)
 
-        # 8. 重写图片链接
+        # 9. 重写图片链接
         final_html = rewrite_image_links(full_html, url_mapping)
 
-        # 9. 保存 HTML 文件
+        # 10. 保存 HTML 文件
         html_path = os.path.join(article_dir, "index.html")
         async with aiofiles.open(html_path, 'w', encoding='utf-8') as f:
             await f.write(final_html)
 
-        # 10. 更新文章记录（保存相对路径，不包含 upload_dir 部分）
+        # 11. 更新文章记录（保存相对路径，不包含 upload_dir 部分）
         article.html_path = f"articles/{article.id}/index.html"
         await article.save()
 
-        # 11. 关联标签
+        # 12. 关联标签
         if tag_ids:
             tags = await Tag.filter(id__in=tag_ids)
             if tags:

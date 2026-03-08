@@ -158,7 +158,7 @@ async def import_html_article_from_url(
 ):
     """
     从 URL 导入 HTML 文章
-    - 同步 AI 提取，失败则不保存
+    - 可选是否使用 AI 提取关键词和摘要
     - 保存源 URL 到数据库
     """
     try:
@@ -166,7 +166,10 @@ async def import_html_article_from_url(
             url=request.url,
             author_id=current_user.id,
             tag_ids=request.tag_ids,
-            title=request.title
+            title=request.title,
+            use_ai=request.use_ai,
+            summary=request.summary,
+            keywords=request.keywords
         )
         return SuccessResponse(data=result)
     except ValueError as e:

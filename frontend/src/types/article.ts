@@ -43,6 +43,9 @@ export interface UrlImportRequest {
   url: string
   tag_ids?: number[]
   title?: string
+  use_ai?: boolean
+  summary?: string
+  keywords?: string
 }
 
 export interface ArticleListParams {

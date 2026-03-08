@@ -1,5 +1,5 @@
 from backend.models import User
-from backend.schemas.user import UserResponse, UserUpdate, UpdateRole
+from backend.schemas.user import UserResponse, UserUpdate, UpdateRole, UpdateUserStatus
 from typing import List
 
 async def get_user_by_id(user_id: int) -> UserResponse:
@@ -63,6 +63,21 @@ async def update_user_role(user_id: int, data: UpdateRole) -> UserResponse:
     if not user:
         raise ValueError("用户不存在")
     user.role = data.role
+    await user.save()
+    return UserResponse(
+        id=user.id,
+        username=user.username,
+        email=user.email,
+        role=user.role,
+        is_active=user.is_active,
+        created_at=user.created_at
+    )
+
+async def toggle_user_status(user_id: int, data: UpdateUserStatus) -> UserResponse:
+    user = await User.get_or_none(id=user_id)
+    if not user:
+        raise ValueError("用户不存在")
+    user.is_active = data.is_active
     await user.save()
     return UserResponse(
         id=user.id,

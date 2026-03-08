@@ -62,6 +62,9 @@ class ArticleFromHtmlUrlRequest(BaseModel):
     url: str = Field(..., min_length=1, max_length=1000)
     tag_ids: Optional[List[int]] = []
     title: Optional[str] = Field(None, min_length=1, max_length=255, description="可选的自定义标题")
+    use_ai: bool = Field(True, description="是否使用AI提取关键词和摘要，默认为True")
+    summary: Optional[str] = Field(None, description="手动输入的摘要（不使用AI时）")
+    keywords: Optional[str] = Field(None, description="手动输入的关键词（不使用AI时）")
 
 class ArticleFromHtmlUrlResponse(BaseModel):
     """从 HTML URL 导入文章响应"""

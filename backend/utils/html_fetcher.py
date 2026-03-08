@@ -7,9 +7,9 @@ from bs4 import BeautifulSoup
 from readability import Document
 
 
-# 默认 User-Agent 头，模拟浏览器访问
+# 默认 User-Agent 头，模拟浏览器访问（简化版，更像真实浏览器）
 DEFAULT_HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
 }
 
 
@@ -54,10 +54,24 @@ async def fetch_html(url: str) -> str:
     if not is_valid_url(url):
         raise ValueError(f"Invalid URL: {url}")
 
-    async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-        response = await client.get(url, headers=DEFAULT_HEADERS)
-        response.raise_for_status()
-        return response.text
+    # 配置请求参数
+    timeout = httpx.Timeout(30.0, connect=10.0)
+    limits = httpx.Limits(max_keepalive_connections=5, max_connections=10)
+
+    async with httpx.AsyncClient(timeout=timeout, limits=limits, follow_redirects=True) as client:
+        try:
+            response = await client.get(url, headers=DEFAULT_HEADERS)
+            response.raise_for_status()
+            return response.text
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 403:
+                raise ValueError(f"访问被拒绝 (403)，该网站禁止程序访问。建议：1) 使用其他网站 2) 手动复制网页内容后使用文件上传功能")
+            elif e.response.status_code == 404:
+                raise ValueError(f"页面不存在: {url}")
+            else:
+                raise ValueError(f"获取页面失败 (HTTP {e.response.status_code}): {str(e)}")
+        except httpx.RequestError as e:
+            raise ValueError(f"网络请求失败: {str(e)}")
 
 
 def clean_html(html: str) -> Tuple[str, str]:

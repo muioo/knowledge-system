@@ -28,9 +28,19 @@
         <template #title>文章管理</template>
       </el-menu-item>
 
+      <el-menu-item index="/articles/create">
+        <el-icon><Plus /></el-icon>
+        <template #title>创建文章</template>
+      </el-menu-item>
+
       <el-menu-item index="/tags">
         <el-icon><PriceTag /></el-icon>
         <template #title>标签管理</template>
+      </el-menu-item>
+
+      <el-menu-item v-if="isAdmin" index="/users">
+        <el-icon><UserFilled /></el-icon>
+        <template #title>用户管理</template>
       </el-menu-item>
 
       <el-menu-item index="/reading-stats">
@@ -64,6 +74,8 @@ import {
   PriceTag,
   TrendCharts,
   User,
+  UserFilled,
+  Plus,
 } from '@element-plus/icons-vue'
 
 interface Props {
@@ -91,7 +103,11 @@ function handleMenuSelect(index: string) {
 const activeMenu = computed(() => {
   const path = route.path
   // 文章详情页高亮文章列表
-  if (path.startsWith('/articles/') && path !== '/articles/create') {
+  if (path.startsWith('/articles/') && path !== '/articles/create' && !path.match(/^\/articles\/\d+$/)) {
+    return '/articles'
+  }
+  // 文章详情页也高亮文章列表
+  if (path.match(/^\/articles\/\d+$/)) {
     return '/articles'
   }
   return path
@@ -104,6 +120,11 @@ const userName = computed(() => user.value?.username || '未登录')
 const userRole = computed(() => {
   if (!user.value) return ''
   return user.value.role === 'admin' ? '管理员' : '普通用户'
+})
+
+// 是否是管理员
+const isAdmin = computed(() => {
+  return user.value?.role === 'admin'
 })
 
 // 用户头像

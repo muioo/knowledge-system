@@ -2,9 +2,6 @@
   <div class="article-list-view">
     <div class="header-section">
       <h1 class="text-2xl font-bold text-gray-900">文章管理</h1>
-      <el-button type="primary" :icon="Plus" @click="$router.push('/articles/create')">
-        创建文章
-      </el-button>
     </div>
 
     <!-- 搜索和筛选 -->
@@ -43,9 +40,6 @@
       <div v-if="articles.length === 0 && !loading" class="empty-state">
         <el-icon :size="64" color="#9CA3AF"><Document /></el-icon>
         <p class="text-gray-500 mt-4">暂无文章</p>
-        <el-button type="primary" :icon="Plus" @click="$router.push('/articles/create')" class="mt-4">
-          创建第一篇文章
-        </el-button>
       </div>
 
       <div v-for="article in articles" :key="article.id" class="article-card" @click="goToArticle(article.id)">
@@ -104,7 +98,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Document, Plus, Search, Edit, Delete, View, PriceTag } from '@element-plus/icons-vue'
+import { Document, Search, Edit, Delete, View, PriceTag } from '@element-plus/icons-vue'
 import { articleApi } from '@/api/article'
 import { tagApi } from '@/api/tag'
 import type { Article } from '@/types'
