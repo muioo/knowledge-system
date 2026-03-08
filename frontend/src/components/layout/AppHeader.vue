@@ -2,12 +2,15 @@
   <div class="app-header">
     <!-- 左侧：折叠按钮 + 页面标题 -->
     <div class="header-left">
-      <el-button :icon="collapsed ? Expand : Fold" text @click="$emit('toggle-sidebar')" />
+      <el-button :icon="Reading" text class="toggle-btn" :class="{ 'is-collapsed': collapsed }" @click="$emit('toggle-sidebar')" />
       <h1 class="page-title">{{ currentPageTitle }}</h1>
     </div>
 
-    <!-- 右侧：搜索 + 通知 + 用户菜单 -->
+    <!-- 右侧：面包屑 + 搜索 + 通知 + 用户菜单 -->
     <div class="header-right">
+      <!-- 面包屑导航 -->
+      <AppBreadcrumb />
+
       <!-- 搜索框 -->
       <div class="header-search">
         <el-input
@@ -61,8 +64,7 @@ import { useAuthStore } from '@/store/auth'
 import { storeToRefs } from 'pinia'
 import { ElMessage } from 'element-plus'
 import {
-  Fold,
-  Expand,
+  Reading,
   Search,
   Bell,
   User,
@@ -70,6 +72,7 @@ import {
   Setting,
   SwitchButton,
 } from '@element-plus/icons-vue'
+import AppBreadcrumb from './AppBreadcrumb.vue'
 
 interface Props {
   sidebarCollapsed?: boolean
@@ -154,11 +157,22 @@ function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px; /* 固定高度 */
-  padding: 0 24px;
-  background: #ffffff; /* 添加背景色 */
-  border-bottom: 1px solid #e5e7eb; /* 添加底边框 */
-  flex-shrink: 0; /* 防止被压缩 */
+  height: 82px;
+  padding: 0 35px;
+  background: var(--bg-white);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.app-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--text-black);
+  border-radius: 2px;
 }
 
 .header-left {
@@ -168,16 +182,17 @@ function handleLogout() {
 }
 
 .page-title {
+  font-family: var(--font-dinpro);
   font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: 700;
+  color: var(--text-black);
   margin: 0;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
 }
 
 .header-search {
@@ -185,7 +200,7 @@ function handleLogout() {
 }
 
 .header-badge {
-  margin-right: 8px;
+  margin-right: 0;
 }
 
 .user-dropdown {
@@ -193,18 +208,20 @@ function handleLogout() {
   align-items: center;
   gap: 8px;
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .user-dropdown:hover {
-  background: #f3f4f6;
+  background: var(--bg-tertiary);
 }
 
 .username {
-  font-size: 14px;
-  color: #1f2937;
+  font-family: var(--font-dinpro);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-black);
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -213,13 +230,22 @@ function handleLogout() {
 
 .dropdown-icon {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-grey-40);
+}
+
+/* 折叠按钮样式 */
+.toggle-btn {
+  transition: transform 0.3s ease;
+}
+
+.toggle-btn.is-collapsed {
+  transform: rotate(180deg);
 }
 
 /* 响应式设计 */
 @media (max-width: 1023px) {
   .app-header {
-    padding: 0 16px;
+    padding: 0 24px;
   }
 
   .header-search {
@@ -227,17 +253,26 @@ function handleLogout() {
   }
 
   .username {
-    display: none;
+    max-width: 80px;
   }
 }
 
 @media (max-width: 767px) {
+  .app-header {
+    height: 64px;
+    padding: 0 16px;
+  }
+
   .page-title {
     font-size: 16px;
   }
 
   .header-search {
     width: 140px;
+  }
+
+  .username {
+    display: none;
   }
 
   .header-badge {
