@@ -1,19 +1,19 @@
 <template>
   <div class="app-breadcrumb" v-if="items.length > 0">
-    <router-link
-      v-for="(item, index) in items"
-      :key="index"
-      :to="item.path"
-      class="breadcrumb-item"
-      :class="{ 'is-current': index === items.length - 1 }"
-    >
-      {{ item.title }}
-    </router-link>
-    <span v-if="index < items.length - 1" class="breadcrumb-separator">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="9 18 15 12 9 6"/>
-      </svg>
-    </span>
+    <template v-for="(item, index) in items" :key="index">
+      <router-link
+        :to="item.path"
+        class="breadcrumb-item"
+        :class="{ 'is-current': index === items.length - 1 }"
+      >
+        {{ item.title }}
+      </router-link>
+      <span v-if="index < items.length - 1" class="breadcrumb-separator">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </span>
+    </template>
   </div>
 </template>
 
