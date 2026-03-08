@@ -1,8 +1,8 @@
 <template>
-  <div class="tag-manage-view">
+  <div class="tag-manage-view content-wrapper">
     <div class="header-section">
       <h1 class="text-2xl font-bold text-gray-900">标签管理</h1>
-      <el-button type="primary" :icon="Plus" @click="openCreateDialog">
+      <el-button type="primary" :icon="Plus" @click="openCreateDialog" class="btn-primary">
         创建标签
       </el-button>
     </div>
@@ -12,7 +12,7 @@
       <div v-if="tags.length === 0 && !loading" class="empty-state">
         <el-icon :size="64" color="#9CA3AF"><PriceTag /></el-icon>
         <p class="text-gray-500 mt-4">暂无标签</p>
-        <el-button type="primary" :icon="Plus" @click="openCreateDialog" class="mt-4">
+        <el-button type="primary" :icon="Plus" @click="openCreateDialog" class="mt-4 btn-primary">
           创建第一个标签
         </el-button>
       </div>
@@ -29,8 +29,8 @@
             <h3 class="tag-name">{{ tag.name }}</h3>
           </div>
           <div class="tag-actions">
-            <el-button text :icon="Edit" @click="openEditDialog(tag)">编辑</el-button>
-            <el-button text :icon="Delete" type="danger" @click="confirmDelete(tag)">删除</el-button>
+            <el-button text :icon="Edit" @click="openEditDialog(tag)" class="btn-ghost">编辑</el-button>
+            <el-button text :icon="Delete" type="danger" @click="confirmDelete(tag)" class="btn-ghost btn-danger">删除</el-button>
           </div>
         </div>
         <p class="tag-info">创建于 {{ formatDate(tag.created_at) }}</p>
@@ -65,8 +65,8 @@
         </div>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitForm" :loading="submitting">
+        <el-button @click="dialogVisible = false" class="btn-ghost">取消</el-button>
+        <el-button type="primary" @click="submitForm" :loading="submitting" class="btn-primary">
           {{ isEditMode ? '保存' : '创建' }}
         </el-button>
       </template>
@@ -225,40 +225,40 @@ onMounted(() => {
 <style scoped>
 .tag-manage-view {
   width: 100%;
-  padding: 16px;
+  padding: 20px;
 }
 
 .header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .tag-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+  gap: 20px;
 }
 
 .tag-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-white);
+  border: 1px solid var(--border-default);
   border-left-width: 4px;
-  border-radius: 0.5rem;
-  padding: 1rem;
+  border-radius: var(--radius-lg);
+  padding: 20px;
   transition: all 0.2s ease;
 }
 
 .tag-card:hover {
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  box-shadow: 0px 12px 24px 0px rgba(50, 50, 71, 0.1);
 }
 
 .tag-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .tag-name-wrapper {
@@ -271,14 +271,15 @@ onMounted(() => {
 .tag-color {
   width: 24px;
   height: 24px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
 }
 
 .tag-name {
+  font-family: var(--font-dinpro);
   font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: 700;
+  color: var(--text-black);
   margin: 0;
   word-break: break-word;
 }
@@ -289,7 +290,7 @@ onMounted(() => {
 }
 
 .tag-info {
-  color: #6b7280;
+  color: var(--text-grey-40);
   font-size: 13px;
   margin: 0;
 }
@@ -315,7 +316,7 @@ onMounted(() => {
 .preset-color {
   width: 32px;
   height: 32px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   border: 2px solid transparent;
   transition: all 0.2s ease;
@@ -326,7 +327,7 @@ onMounted(() => {
 }
 
 .preset-color.active {
-  border-color: #1f2937;
+  border-color: var(--text-black);
 }
 
 .empty-state {
@@ -336,5 +337,9 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
+}
+
+.empty-state p {
+  color: var(--text-grey-40);
 }
 </style>

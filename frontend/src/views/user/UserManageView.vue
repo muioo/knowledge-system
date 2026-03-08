@@ -1,5 +1,5 @@
 <template>
-  <div class="user-manage-view">
+  <div class="user-manage-view content-wrapper">
     <!-- 头部区域 -->
     <div class="header-section">
       <h1 class="text-2xl font-bold text-gray-900">用户管理</h1>
@@ -126,14 +126,14 @@ onMounted(() => {
 <style scoped>
 .user-manage-view {
   width: 100%;
-  padding: 16px;
+  padding: 20px;
 }
 
 .header-section {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .search-section {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 </style>

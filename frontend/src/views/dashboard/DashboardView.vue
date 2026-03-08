@@ -1,5 +1,5 @@
 <template>
-  <div class="dashboard-container">
+  <div class="dashboard-container content-wrapper">
     <h1 class="text-2xl font-bold text-gray-900 mb-6">仪表盘</h1>
 
     <!-- 加载状态 -->
@@ -87,16 +87,16 @@
       <div class="card">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">快捷操作</h2>
         <div class="flex flex-wrap gap-3">
-          <el-button type="primary" :icon="Plus" @click="$router.push('/articles/create')">
+          <el-button type="primary" :icon="Plus" @click="$router.push('/articles/create')" class="btn-primary">
             创建文章
           </el-button>
-          <el-button :icon="FolderOpened" @click="$router.push('/articles')">
+          <el-button :icon="FolderOpened" @click="$router.push('/articles')" class="btn-outline">
             浏览文章
           </el-button>
-          <el-button :icon="PriceTag" @click="$router.push('/tags')">
+          <el-button :icon="PriceTag" @click="$router.push('/tags')" class="btn-outline">
             管理标签
           </el-button>
-          <el-button :icon="TrendCharts" @click="$router.push('/reading-stats')">
+          <el-button :icon="TrendCharts" @click="$router.push('/reading-stats')" class="btn-outline">
             阅读统计
           </el-button>
         </div>
@@ -205,7 +205,7 @@ onMounted(() => {
 <style scoped>
 .dashboard-container {
   width: 100%;
-  padding: 16px;
+  padding: 20px;
 }
 
 .loading-container {
@@ -217,21 +217,21 @@ onMounted(() => {
 }
 
 .card {
-  background: #ffffff;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  border: 1px solid #e5e7eb;
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-prompt);
+  border: 1px solid var(--border-default);
   transition: all 0.2s ease;
 }
 
 .card:hover {
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  box-shadow: 0px 12px 24px 0px rgba(50, 50, 71, 0.1);
 }
 
 .grid {
   display: grid;
-  gap: 1rem;
+  gap: 20px;
 }
 
 .grid-cols-1 {

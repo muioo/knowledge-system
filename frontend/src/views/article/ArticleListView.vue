@@ -1,5 +1,5 @@
 <template>
-  <div class="article-list-view">
+  <div class="article-list-view content-wrapper">
     <div class="header-section">
       <h1 class="text-2xl font-bold text-gray-900">文章管理</h1>
     </div>
@@ -29,7 +29,7 @@
             :value="tag.id"
           />
         </el-select>
-        <el-button type="primary" :icon="Search" @click="handleSearch">
+        <el-button type="primary" :icon="Search" @click="handleSearch" class="btn-primary">
           搜索
         </el-button>
       </div>
@@ -46,8 +46,8 @@
         <div class="article-header">
           <h3 class="article-title">{{ article.title }}</h3>
           <div class="article-actions" @click.stop>
-            <el-button text :icon="Edit" @click="editArticle(article.id)">编辑</el-button>
-            <el-button text :icon="Delete" type="danger" @click="confirmDelete(article)">删除</el-button>
+            <el-button text :icon="Edit" @click="editArticle(article.id)" class="btn-ghost">编辑</el-button>
+            <el-button text :icon="Delete" type="danger" @click="confirmDelete(article)" class="btn-ghost btn-danger">删除</el-button>
           </div>
         </div>
         <p class="article-summary">{{ article.summary || '暂无摘要' }}</p>
@@ -239,23 +239,23 @@ onMounted(() => {
 <style scoped>
 .article-list-view {
   width: 100%;
-  padding: 16px;
+  padding: 20px;
 }
 
 .header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .card {
-  background: #ffffff;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  border: 1px solid #e5e7eb;
-  margin-bottom: 16px;
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-prompt);
+  border: 1px solid var(--border-default);
+  margin-bottom: 20px;
 }
 
 .filter-row {
@@ -276,34 +276,35 @@ onMounted(() => {
 .article-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
 }
 
 .article-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  padding: 1rem;
+  background: var(--bg-white);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .article-card:hover {
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  border-color: #3B82F6;
+  box-shadow: 0px 12px 24px 0px rgba(50, 50, 71, 0.1);
+  border-color: var(--color-indigo);
 }
 
 .article-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .article-title {
+  font-family: var(--font-dinpro);
   font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: 700;
+  color: var(--text-black);
   margin: 0;
 }
 
@@ -313,20 +314,21 @@ onMounted(() => {
 }
 
 .article-summary {
-  color: #6b7280;
+  color: var(--text-grey-40);
   font-size: 14px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  line-height: 1.6;
 }
 
 .article-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .tags {
@@ -345,13 +347,15 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 4px;
+  color: var(--text-grey-40);
+  font-size: 14px;
 }
 
 .article-keywords {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #6b7280;
+  color: var(--text-grey-40);
   font-size: 13px;
 }
 
@@ -361,6 +365,10 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
+}
+
+.empty-state p {
+  color: var(--text-grey-40);
 }
 
 .pagination-container {

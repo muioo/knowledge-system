@@ -66,7 +66,7 @@
             type="primary"
             size="large"
             :loading="authStore.loading"
-            class="w-full"
+            class="w-full btn-primary"
             @click="handleRegister"
           >
             注册

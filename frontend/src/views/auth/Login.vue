@@ -45,7 +45,7 @@
             type="primary"
             size="large"
             :loading="authStore.loading"
-            class="w-full"
+            class="w-full btn-primary"
             @click="handleLogin"
           >
             登录

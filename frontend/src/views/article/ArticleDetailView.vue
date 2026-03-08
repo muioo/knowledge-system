@@ -1,5 +1,5 @@
 <template>
-  <div class="article-detail-view">
+  <div class="article-detail-view content-wrapper">
     <div v-if="loading" class="loading-container">
       <el-icon class="is-loading" :size="40"><Loading /></el-icon>
       <p class="mt-4">加载中...</p>
@@ -8,10 +8,10 @@
     <div v-else-if="article" class="article-container">
       <!-- 返回按钮 -->
       <div class="header-actions">
-        <el-button :icon="ArrowLeft" @click="$router.back()">返回</el-button>
+        <el-button :icon="ArrowLeft" @click="$router.back()" class="btn-outline">返回</el-button>
         <div class="action-buttons">
-          <el-button :icon="Edit" @click="handleEdit">编辑</el-button>
-          <el-button :icon="Delete" type="danger" @click="confirmDelete">删除</el-button>
+          <el-button :icon="Edit" @click="handleEdit" class="btn-primary">编辑</el-button>
+          <el-button :icon="Delete" type="danger" @click="confirmDelete" class="btn-danger">删除</el-button>
         </div>
       </div>
 
@@ -68,7 +68,7 @@
         <div v-else class="no-content">
           <el-icon :size="48" color="#9CA3AF"><Document /></el-icon>
           <p class="text-gray-500 mt-2">暂无内容</p>
-          <el-button type="primary" :icon="Edit" @click="handleEdit" class="mt-4">
+          <el-button type="primary" :icon="Edit" @click="handleEdit" class="mt-4 btn-primary">
             编辑文章
           </el-button>
         </div>
@@ -91,7 +91,7 @@
     <div v-else class="error-container">
       <el-icon :size="64" color="#EF4444"><Warning /></el-icon>
       <h2 class="text-xl font-semibold mt-4">文章不存在</h2>
-      <el-button type="primary" @click="$router.push('/articles')" class="mt-4">
+      <el-button type="primary" @click="$router.push('/articles')" class="mt-4 btn-primary">
         返回文章列表
       </el-button>
     </div>
@@ -273,7 +273,7 @@ window.addEventListener('beforeunload', () => {
 <style scoped>
 .article-detail-view {
   width: 100%;
-  padding: 16px;
+  padding: 20px;
   max-width: 900px;
   margin: 0 auto;
 }
@@ -288,18 +288,18 @@ window.addEventListener('beforeunload', () => {
 }
 
 .article-container {
-  background: #ffffff;
-  border-radius: 0.5rem;
-  padding: 2rem;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  border: 1px solid #e5e7eb;
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  padding: 34px;
+  box-shadow: var(--shadow-prompt);
+  border: 1px solid var(--border-default);
 }
 
 .header-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 24px;
 }
 
 .action-buttons {
@@ -308,10 +308,11 @@ window.addEventListener('beforeunload', () => {
 }
 
 .article-title {
-  font-size: 2rem;
+  font-family: var(--font-yuanti);
+  font-size: 26px;
   font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 1rem 0;
+  color: var(--text-black);
+  margin: 0 0 20px 0;
   line-height: 1.3;
 }
 
@@ -319,9 +320,9 @@ window.addEventListener('beforeunload', () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e5e7eb;
-  margin-bottom: 1.5rem;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-default);
+  margin-bottom: 24px;
 }
 
 .tags {
@@ -340,25 +341,28 @@ window.addEventListener('beforeunload', () => {
   display: flex;
   align-items: center;
   gap: 4px;
+  color: var(--text-grey-40);
+  font-size: 14px;
 }
 
 .article-summary,
 .article-keywords,
 .source-info {
-  margin-bottom: 1.5rem;
+  margin-bottom: 24px;
 }
 
 .article-summary h3,
 .article-keywords h3,
 .source-info h4 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 0.75rem 0;
+  font-family: var(--font-dinpro);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-black);
+  margin: 0 0 12px 0;
 }
 
 .article-summary p {
-  color: #4b5563;
+  color: var(--text-grey-40);
   line-height: 1.6;
   margin: 0;
 }
@@ -370,13 +374,13 @@ window.addEventListener('beforeunload', () => {
 }
 
 .article-content {
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid #e5e7eb;
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border-default);
 }
 
 .html-content {
-  color: #374151;
+  color: var(--text-black);
   line-height: 1.8;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -385,8 +389,8 @@ window.addEventListener('beforeunload', () => {
 .html-content :deep(img) {
   max-width: 100%;
   height: auto;
-  border-radius: 0.5rem;
-  margin: 1rem 0;
+  border-radius: var(--radius-md);
+  margin: 16px 0;
   display: block;
 }
 
@@ -396,46 +400,52 @@ window.addEventListener('beforeunload', () => {
 .html-content :deep(h4),
 .html-content :deep(h5),
 .html-content :deep(h6) {
-  font-weight: 600;
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
-  color: #1f2937;
+  font-family: var(--font-dinpro);
+  font-weight: 700;
+  margin-top: 24px;
+  margin-bottom: 12px;
+  color: var(--text-black);
   line-height: 1.4;
 }
 
 .html-content :deep(p) {
-  margin-bottom: 1rem;
+  margin-bottom: 16px;
+  color: var(--text-black);
 }
 
 .html-content :deep(ul),
 .html-content :deep(ol) {
-  margin-left: 2rem;
-  margin-bottom: 1rem;
+  margin-left: 32px;
+  margin-bottom: 16px;
 }
 
 .html-content :deep(li) {
-  margin-bottom: 0.5rem;
+  margin-bottom: 8px;
 }
 
 .html-content :deep(pre) {
   background: #1f2937;
   color: #f3f4f6;
-  padding: 1rem;
-  border-radius: 0.5rem;
+  padding: 16px;
+  border-radius: var(--radius-md);
   overflow-x: auto;
-  margin: 1rem 0;
+  margin: 16px 0;
 }
 
 .html-content :deep(code) {
-  background: #f3f4f6;
+  background: var(--bg-tertiary);
   color: #ef4444;
-  padding: 0.125rem 0.25rem;
-  border-radius: 0.25rem;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.875em;
 }
 
 .html-content :deep(a) {
-  color: #3b82f6;
+  color: var(--color-indigo);
+  text-decoration: none;
+}
+
+.html-content :deep(a:hover) {
   text-decoration: underline;
 }
 
@@ -444,21 +454,25 @@ window.addEventListener('beforeunload', () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem 1rem;
+  padding: 48px 16px;
   text-align: center;
 }
 
+.no-content p {
+  color: var(--text-grey-40);
+}
+
 .source-info {
-  margin-top: 2rem;
-  padding-top: 1rem;
-  border-top: 1px dashed #e5e7eb;
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border-default);
 }
 
 .source-link {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #3b82f6;
+  color: var(--color-indigo);
   text-decoration: none;
   word-break: break-all;
 }

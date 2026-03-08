@@ -1,5 +1,5 @@
 <template>
-  <div class="article-create-view">
+  <div class="article-create-view content-wrapper">
     <div class="header-section">
       <h1 class="text-2xl font-bold text-gray-900">创建文章</h1>
     </div>
@@ -75,7 +75,7 @@
             </template>
 
             <el-form-item>
-              <el-button type="primary" @click="handleUrlImport" :loading="urlImporting">
+              <el-button type="primary" @click="handleUrlImport" :loading="urlImporting" class="btn-primary">
                 导入文章
               </el-button>
             </el-form-item>
@@ -99,7 +99,7 @@
                 :on-exceed="handleExceed"
                 accept=".html,.htm"
               >
-                <el-button type="primary">选择文件</el-button>
+                <el-button type="primary" class="btn-primary">选择文件</el-button>
                 <template #tip>
                   <div class="el-upload__tip">仅支持 HTML 文件</div>
                 </template>
@@ -148,7 +148,7 @@
             </el-form-item>
 
             <el-form-item>
-              <el-button type="primary" @click="handleFileUpload" :loading="fileUploading">
+              <el-button type="primary" @click="handleFileUpload" :loading="fileUploading" class="btn-primary">
                 上传文章
               </el-button>
             </el-form-item>
@@ -312,10 +312,10 @@ onMounted(() => {
 <style scoped>
 .article-create-view {
   width: 100%;
-  padding: 16px;
+  padding: 20px;
 }
 
 .header-section {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 </style>

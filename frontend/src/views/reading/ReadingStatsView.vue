@@ -1,5 +1,5 @@
 <template>
-  <div class="reading-stats-view">
+  <div class="reading-stats-view content-wrapper">
     <h1 class="text-2xl font-bold text-gray-900 mb-6">阅读统计</h1>
 
     <!-- 统计卡片 -->
@@ -262,20 +262,20 @@ onMounted(() => {
 <style scoped>
 .reading-stats-view {
   width: 100%;
-  padding: 16px;
+  padding: 20px;
 }
 
 .card {
-  background: #ffffff;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  border: 1px solid #e5e7eb;
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-prompt);
+  border: 1px solid var(--border-default);
 }
 
 .grid {
   display: grid;
-  gap: 1rem;
+  gap: 20px;
 }
 
 .grid-cols-1 {
@@ -289,11 +289,11 @@ onMounted(() => {
 }
 
 .stats-tabs {
-  background: #ffffff;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  border: 1px solid #e5e7eb;
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-prompt);
+  border: 1px solid var(--border-default);
 }
 
 .content-area {
@@ -304,7 +304,7 @@ onMounted(() => {
 .stats-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
 }
 
 .history-item,
@@ -312,24 +312,25 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  padding: 1rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 20px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .history-item:hover,
 .stat-item:hover {
-  background: #f3f4f6;
-  border-color: #3B82F6;
+  background: var(--bg-secondary);
+  border-color: var(--color-indigo);
 }
 
 .article-title {
+  font-family: var(--font-dinpro);
   font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: 700;
+  color: var(--text-black);
   margin: 0 0 4px 0;
 }
 
@@ -337,6 +338,11 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.history-meta span {
+  color: var(--text-grey-40);
+  font-size: 14px;
 }
 
 .history-stats,
@@ -351,7 +357,7 @@ onMounted(() => {
   align-items: center;
   gap: 4px;
   font-size: 14px;
-  color: #6b7280;
+  color: var(--text-grey-40);
 }
 
 .stat-value {
@@ -363,13 +369,14 @@ onMounted(() => {
 
 .stat-value .label {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--text-grey-40);
 }
 
 .stat-value .value {
+  font-family: var(--font-dinpro);
   font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: 700;
+  color: var(--text-black);
 }
 
 .empty-state {
@@ -378,6 +385,10 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
+}
+
+.empty-state p {
+  color: var(--text-grey-40);
 }
 
 .pagination-container {
