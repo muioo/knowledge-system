@@ -260,3 +260,51 @@ body {
   border-color: inherit;
   color: inherit;
 }
+
+/* ============================================
+   容器布局样式
+   ============================================ */
+
+/* --- 内容包裹器 --- */
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  width: 100%;
+}
+
+/* --- 内容区块 --- */
+.content-section {
+  margin-bottom: 24px;
+}
+
+.content-section:last-child {
+  margin-bottom: 0;
+}
+
+/* --- 卡片容器 --- */
+.card-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* --- 表单容器 --- */
+.form-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* --- 响应式 --- */
+@media (max-width: 1200px) {
+  .content-wrapper {
+    max-width: 100%;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-wrapper {
+    padding: 12px;
+  }
+}
