@@ -19,7 +19,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import AppSidebar from './AppSidebar.vue'
 import AppHeader from './AppHeader.vue'
 
-// 侧边栏状态
+// 侧边栏状态（默认展开显示文字）
 const isSidebarCollapsed = ref(false)
 
 // 切换侧边栏
@@ -50,6 +50,7 @@ onUnmounted(() => {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  background: var(--bg-secondary);
 }
 
 .main-content {
@@ -60,6 +61,7 @@ onUnmounted(() => {
 .content-area {
   max-width: 100%;
   margin: 0;
+  background: var(--bg-secondary);
 }
 
 /* 页面切换动画 */
