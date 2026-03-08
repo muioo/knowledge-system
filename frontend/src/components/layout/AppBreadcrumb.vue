@@ -65,7 +65,7 @@ const items = computed<BreadcrumbItem[]>(() => {
   align-items: center;
   gap: 8px;
   font-family: var(--font-poppins);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .breadcrumb-item {
@@ -99,7 +99,7 @@ const items = computed<BreadcrumbItem[]>(() => {
 /* 响应式 */
 @media (max-width: 767px) {
   .app-breadcrumb {
-    font-size: 11px;
+    font-size: 12px;
   }
 }
 </style>
