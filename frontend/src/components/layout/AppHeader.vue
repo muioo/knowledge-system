@@ -1,16 +1,13 @@
 <template>
   <div class="app-header">
-    <!-- 左侧：折叠按钮 + 页面标题 -->
+    <!-- 左侧：折叠按钮 + 面包屑导航 -->
     <div class="header-left">
       <el-button :icon="Reading" text class="toggle-btn" :class="{ 'is-collapsed': collapsed }" @click="$emit('toggle-sidebar')" />
-      <h1 class="page-title">{{ currentPageTitle }}</h1>
+      <AppBreadcrumb />
     </div>
 
-    <!-- 右侧：面包屑 + 搜索 + 通知 + 用户菜单 -->
+    <!-- 右侧：搜索 + 通知 + 用户菜单 -->
     <div class="header-right">
-      <!-- 面包屑导航 -->
-      <AppBreadcrumb />
-
       <!-- 搜索框 -->
       <div class="header-search">
         <el-input
@@ -103,11 +100,6 @@ const unreadCount = ref(0)
 // 侧边栏是否折叠
 const collapsed = computed(() => props.sidebarCollapsed)
 
-// 当前页面标题
-const currentPageTitle = computed(() => {
-  return (route.meta?.title as string) || '知识管理系统'
-})
-
 // 用户名
 const userName = computed(() => user.value?.username || '用户')
 
@@ -179,14 +171,6 @@ function handleLogout() {
   display: flex;
   align-items: center;
   gap: 16px;
-}
-
-.page-title {
-  font-family: var(--font-dinpro);
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-black);
-  margin: 0;
 }
 
 .header-right {
@@ -261,10 +245,6 @@ function handleLogout() {
   .app-header {
     height: 64px;
     padding: 0 16px;
-  }
-
-  .page-title {
-    font-size: 16px;
   }
 
   .header-search {
