@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - 社交平台列表</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 社交平台列表特定样式 */
+        .social-platforms-wrapper {
+            padding: 34px;
+            padding-top: 20px;
+        }
+
+        .platforms-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .platforms-title {
+            font-family: 'DINPro', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-black);
+        }
+
+        .platforms-info-icon {
+            width: 18px;
+            height: 18px;
+            cursor: help;
+        }
+
+        .platforms-info-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--text-black);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        /* 平台列表 */
+        .platforms-list {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-prompt);
+            overflow: hidden;
+        }
+
+        .platform-item {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            padding: 16px 10px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .platform-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .platform-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .platform-icon.google {
+            background: linear-gradient(135deg, #4285F4 0%, #34A853 100%);
+        }
+
+        .platform-icon.foursquare {
+            background: var(--color-pink);
+        }
+
+        .platform-icon.kickstarter {
+            background: var(--color-green);
+        }
+
+        .platform-icon.kakao {
+            background: var(--color-yellow);
+        }
+
+        .platform-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        .platform-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 150px;
+        }
+
+        .platform-type {
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-grey-50);
+        }
+
+        .platform-name {
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-black);
+        }
+
+        /* 分隔线 */
+        .platform-divider {
+            height: 1px;
+            background: var(--border-default);
+            margin: 0;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .social-platforms-wrapper {
+                padding: 16px;
+            }
+
+            .platform-item {
+                gap: 16px;
+                padding: 12px 8px;
+            }
+
+            .platform-icon {
+                width: 40px;
+                height: 40px;
+            }
+
+            .platform-info {
+                min-width: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="social-platforms-wrapper">
+        <!-- 标题区域 -->
+        <div class="platforms-header">
+            <h2 class="platforms-title">社交平台</h2>
+            <div class="platforms-info-icon" title="已连接的社交平台">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- 平台列表 -->
+        <div class="platforms-list">
+            <!-- Google -->
+            <div class="platform-item" data-platform="google">
+                <div class="platform-icon google">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                </div>
+                <div class="platform-info">
+                    <span class="platform-type">Stock trading</span>
+                    <span class="platform-name">Google</span>
+                </div>
+            </div>
+
+            <div class="platform-divider"></div>
+
+            <!-- Foursquare -->
+            <div class="platform-item" data-platform="foursquare">
+                <div class="platform-icon foursquare">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M13.8 15.6l-2.6-2.6c-.3-.3-.3-.8 0-1.1l2.6-2.6c.3-.3.8-.3 1.1 0l2.6 2.6c.3.3.3.8 0 1.1l-2.6 2.6c-.3.3-.8.3-1.1 0z"/>
+                        <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+                    </svg>
+                </div>
+                <div class="platform-info">
+                    <span class="platform-type">Stock trading</span>
+                    <span class="platform-name">Foursquare</span>
+                </div>
+            </div>
+
+            <div class="platform-divider"></div>
+
+            <!-- Kickstarter -->
+            <div class="platform-item" data-platform="kickstarter">
+                <div class="platform-icon kickstarter">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </div>
+                <div class="platform-info">
+                    <span class="platform-type">Stock trading</span>
+                    <span class="platform-name">Kickstarter</span>
+                </div>
+            </div>
+
+            <div class="platform-divider"></div>
+
+            <!-- KakaoTalk -->
+            <div class="platform-item" data-platform="kakao">
+                <div class="platform-icon kakao">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 3c-5.52 0-10 3.59-10 8 0 2.84 1.89 5.35 4.77 6.86-.21.78-.76 2.83-.87 3.27-.14.56.21.55.45.4.19-.12 2.97-2.02 4.18-2.84.49.07.99.11 1.51.11 5.52 0 10-3.59 10-8s-4.48-8-10-8zm-.91 5.4h1.62v4.8h-1.62V8.4zm-3.24 0h1.62v4.8H7.85V8.4zm6.48 0h1.62v4.8h-1.62V8.4z"/>
+                    </svg>
+                </div>
+                <div class="platform-info">
+                    <span class="platform-type">Stock trading</span>
+                    <span class="platform-name">Google</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 平台项点击交互
+        document.querySelectorAll('.platform-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const platform = this.dataset.platform;
+                const name = this.querySelector('.platform-name').textContent;
+                const type = this.querySelector('.platform-type').textContent;
+
+                console.log('点击平台:', platform, name, type);
+                alert(`${type} - ${name}\n\n功能：查看${name}平台的交易数据和统计分析`);
+            });
+
+            // 悬停效果（CSS已有，这里添加额外的交互）
+            item.addEventListener('mouseenter', function() {
+                const name = this.querySelector('.platform-name');
+                name.style.color = 'var(--color-indigo)';
+            });
+
+            item.addEventListener('mouseleave', function() {
+                const name = this.querySelector('.platform-name');
+                name.style.color = 'var(--text-black)';
+            });
+        });
+
+        // 右键菜单
+        document.querySelectorAll('.platform-item').forEach(item => {
+            item.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                const name = this.querySelector('.platform-name').textContent;
+                const options = [
+                    `查看${name}详情`,
+                    `编辑${name}配置`,
+                    `断开${name}连接`,
+                    '取消'
+                ];
+
+                const choice = prompt(`选择操作:\n1. ${options[0]}\n2. ${options[1]}\n3. ${options[2]}\n4. ${options[3]}\n\n输入数字 (1-4):`);
+
+                if (choice === '1') {
+                    alert(`查看${name}详情`);
+                } else if (choice === '2') {
+                    alert(`编辑${name}配置`);
+                } else if (choice === '3') {
+                    if (confirm(`确定要断开${name}连接吗？`)) {
+                        alert(`${name}已断开连接`);
+                    }
+                }
+            });
+        });
+
+        // 键盘导航
+        let currentIndex = -1;
+        const platformItems = document.querySelectorAll('.platform-item');
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault();
+
+                if (e.key === 'ArrowDown') {
+                    currentIndex = Math.min(currentIndex + 1, platformItems.length - 1);
+                } else {
+                    currentIndex = Math.max(currentIndex - 1, 0);
+                }
+
+                platformItems.forEach((item, index) => {
+                    if (index === currentIndex) {
+                        item.style.background = 'var(--bg-tertiary)';
+                        item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    } else {
+                        item.style.background = '';
+                    }
+                });
+            } else if (e.key === 'Enter' && currentIndex >= 0) {
+                platformItems[currentIndex].click();
+            }
+        });
+
+        // 拖拽排序功能
+        let draggedItem = null;
+
+        platformItems.forEach(item => {
+            item.draggable = true;
+
+            item.addEventListener('dragstart', function() {
+                draggedItem = this;
+                this.style.opacity = '0.5';
+            });
+
+            item.addEventListener('dragend', function() {
+                this.style.opacity = '1';
+                draggedItem = null;
+            });
+
+            item.addEventListener('dragover', function(e) {
+                e.preventDefault();
+            });
+
+            item.addEventListener('drop', function() {
+                if (draggedItem !== this) {
+                    const list = this.parentNode;
+                    const items = [...list.querySelectorAll('.platform-item')];
+                    const draggedIndex = items.indexOf(draggedItem);
+                    const targetIndex = items.indexOf(this);
+
+                    if (draggedIndex < targetIndex) {
+                        list.insertBefore(draggedItem, this.nextSibling);
+                    } else {
+                        list.insertBefore(draggedItem, this);
+                    }
+
+                    console.log('平台排序已更新');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - 顶部导航栏</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* 顶部导航栏特定样式 */
+        .top-navbar {
+            width: 100%;
+            height: 82px;
+            background: var(--bg-white);
+            display: flex;
+            align-items: center;
+            padding: 0 35px;
+            position: relative;
+        }
+
+        .navbar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        /* 导航菜单 */
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .nav-item {
+            font-family: 'Poppins', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-grey-50);
+            cursor: pointer;
+            transition: color 0.2s ease;
+            position: relative;
+            padding: 10px 0;
+        }
+
+        .nav-item:hover {
+            color: var(--text-black);
+        }
+
+        .nav-item.active {
+            color: var(--text-black);
+        }
+
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 2px;
+            height: 40px;
+            background: var(--color-indigo);
+            border-radius: 1px;
+        }
+
+        /* 搜索框 */
+        .search-box {
+            position: relative;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+
+        .search-box svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--text-black);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .search-input-wrapper {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--bg-white);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-small);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+
+        .search-box:hover .search-input-wrapper,
+        .search-input-wrapper:focus-within {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .search-input {
+            width: 200px;
+            padding: 8px 16px;
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-sm);
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--color-indigo);
+        }
+
+        /* 右侧用户信息 */
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name-display {
+            font-family: 'DINPro', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-black);
+            line-height: 1.4;
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--bg-tertiary);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--color-indigo-light);
+        }
+
+        .theme-toggle svg {
+            width: 16px;
+            height: 16px;
+            stroke: var(--text-white-4);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        /* 分隔线 */
+        .navbar-divider {
+            width: 100%;
+            height: 2px;
+            background: var(--text-black);
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            border-radius: 2px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .top-navbar {
+                padding: 0 16px;
+                height: 60px;
+            }
+
+            .nav-menu {
+                gap: 20px;
+            }
+
+            .nav-item {
+                font-size: 14px;
+            }
+
+            .user-name-display {
+                font-size: 14px;
+            }
+
+            .hide-mobile {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="top-navbar">
+        <div class="navbar-content">
+            <!-- 左侧导航菜单 -->
+            <nav class="nav-menu">
+                <a class="nav-item active">Dashboard</a>
+                <a class="nav-item">Advanced Quarry</a>
+                <a class="nav-item hide-mobile">Events</a>
+            </nav>
+
+            <!-- 中间搜索框 -->
+            <div class="search-box">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8"/>
+                    <path d="m21 21-4.35-4.35"/>
+                </svg>
+                <div class="search-input-wrapper">
+                    <input type="text" class="search-input" placeholder="搜索...">
+                </div>
+            </div>
+
+            <!-- 右侧用户信息 -->
+            <div class="user-section">
+                <div class="user-info">
+                    <div class="user-name-display">Bessie Cooper</div>
+                </div>
+                <div class="user-actions">
+                    <div class="theme-toggle" title="切换主题">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部分隔线 -->
+        <div class="navbar-divider"></div>
+    </header>
+
+    <script>
+        // 导航菜单交互
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 搜索框交互
+        const searchInput = document.querySelector('.search-input');
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                alert('搜索: ' + this.value);
+            }
+        });
+
+        // 主题切换交互
+        const themeToggle = document.querySelector('.theme-toggle');
+        themeToggle.addEventListener('click', function() {
+            document.body.classList.toggle('dark-theme');
+            alert('主题切换功能');
+        });
+    </script>
+</body>
+</html>

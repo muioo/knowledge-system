@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Total Visits 折线图</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        /* Total visits 图表特定样式 */
+        .chart-total-visits-wrapper {
+            padding: 34px;
+            padding-top: 0;
+        }
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .chart-title-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-title {
+            font-family: 'DINPro', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-black);
+        }
+
+        .chart-info-icon {
+            width: 18px;
+            height: 18px;
+            cursor: help;
+        }
+
+        .chart-info-icon svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--text-black);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .chart-controls {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .date-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 10px;
+            background: var(--bg-white);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .date-selector:hover {
+            border-color: var(--color-indigo);
+        }
+
+        .date-selector-text {
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-black);
+        }
+
+        .date-selector-icon {
+            width: 14px;
+            height: 14px;
+        }
+
+        .date-selector-icon svg {
+            width: 14px;
+            height: 14px;
+            stroke: var(--text-black);
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .export-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-white);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            color: var(--text-black);
+            transition: all 0.2s ease;
+        }
+
+        .export-btn:hover {
+            border-color: var(--color-indigo);
+            color: var(--color-indigo);
+        }
+
+        .export-btn svg {
+            width: 14px;
+            height: 14px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        /* 图表容器 */
+        .chart-container {
+            width: 972px;
+            height: 327px;
+            position: relative;
+        }
+
+        #totalVisitsChart {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 响应式 */
+        @media (max-width: 1024px) {
+            .chart-container {
+                width: 100%;
+                height: 280px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .chart-total-visits-wrapper {
+                padding: 16px;
+            }
+
+            .chart-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .chart-controls {
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chart-total-visits-wrapper">
+        <!-- 图表标题 -->
+        <div class="chart-header">
+            <div class="chart-title-section">
+                <h2 class="chart-title">Total visits</h2>
+                <div class="chart-info-icon" title="显示总访问量趋势">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="16" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="chart-controls">
+                <!-- 日期选择器 -->
+                <div class="date-selector" id="dateSelector">
+                    <span class="date-selector-text">March 2020</span>
+                    <div class="date-selector-icon">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8" y1="2" x2="8" y2="6"/>
+                            <line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 导出按钮 -->
+                <button class="export-btn" id="exportBtn">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span>导出</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 图表容器 -->
+        <div class="chart-container">
+            <div id="totalVisitsChart"></div>
+        </div>
+    </div>
+
+    <script>
+        // ECharts 初始化
+        const chartDom = document.getElementById('totalVisitsChart');
+        const myChart = echarts.init(chartDom);
+
+        // 静态数据（来自设计稿）
+        const chartData = {
+            xData: ['1', '5', '10', '15', '20', '25', '30'],
+            yData: [140, 180, 220, 260, 230, 190, 170],
+            maxValue: 220342123,
+            currentMonth: 'May'
+        };
+
+        // 图表配置
+        const option = {
+            grid: {
+                left: 67,
+                right: 48,
+                top: 50,
+                bottom: 22
+            },
+            xAxis: {
+                type: 'category',
+                data: chartData.xData,
+                axisLine: {
+                    lineStyle: {
+                        color: '#ECE9F1',
+                        width: 4
+                    }
+                },
+                axisTick: {
+                    show: false
+                },
+                axisLabel: {
+                    color: '#A2A3A5',
+                    fontSize: 14,
+                    fontFamily: 'Poppins'
+                }
+            },
+            yAxis: {
+                type: 'value',
+                data: ['140M', '180M', '220M', '260M'],
+                axisLine: {
+                    show: false
+                },
+                axisTick: {
+                    show: false
+                },
+                axisLabel: {
+                    color: '#A2A3A5',
+                    fontSize: 14,
+                    fontFamily: 'Poppins'
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: '#ECE9F1',
+                        width: 1,
+                        type: 'dashed',
+                        dashSegment: [4.4, 4.4]
+                    }
+                }
+            },
+            series: [{
+                type: 'line',
+                data: chartData.yData,
+                smooth: true,
+                showSymbol: false,
+                lineStyle: {
+                    color: '#7459D9',
+                    width: 4
+                },
+                areaStyle: {
+                    color: {
+                        type: 'linear',
+                        x: 0,
+                        y: 0,
+                        x2: 0,
+                        y2: 1,
+                        colorStops: [{
+                            offset: 0,
+                            color: 'rgba(116, 89, 217, 0.1)'
+                        }, {
+                            offset: 1,
+                            color: 'rgba(255, 255, 255, 0)'
+                        }]
+                    }
+                }
+            }]
+        };
+
+        myChart.setOption(option);
+
+        // 响应式
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+
+        // 日期选择器交互
+        const dateSelector = document.getElementById('dateSelector');
+        dateSelector.addEventListener('click', function() {
+            console.log('打开日期选择器');
+            // 这里可以添加日期选择器的逻辑
+        });
+
+        // 导出按钮交互
+        const exportBtn = document.getElementById('exportBtn');
+        exportBtn.addEventListener('click', function() {
+            // 导出图表为图片
+            const url = myChart.getDataURL({
+                type: 'png',
+                pixelRatio: 2,
+                backgroundColor: '#fff'
+            });
+
+            // 创建下载链接
+            const link = document.createElement('a');
+            link.download = 'total-visits-chart.png';
+            link.href = url;
+            link.click();
+
+            console.log('图表已导出');
+        });
+
+        // 图表交互
+        myChart.on('click', function(params) {
+            console.log('点击数据点:', params);
+            // 这里可以添加点击数据点的逻辑
+        });
+
+        // 显示提示框（模拟设计稿中的tooltip）
+        myChart.on('mouseover', function(params) {
+            if (params.componentType === 'series') {
+                const value = params.value * 1000000;
+                const formattedValue = (220342123).toLocaleString();
+                console.log(`${chartData.currentMonth}: ${formattedValue}`);
+            }
+        });
+    </script>
+</body>
+</html>
