@@ -28,43 +28,92 @@ const routes: RouteRecordRaw[] = [
         path: 'dashboard',
         name: 'Dashboard',
         component: () => import('@/views/dashboard/DashboardView.vue'),
-        meta: { title: '仪表盘' },
+        meta: {
+          title: '仪表盘',
+          breadcrumb: {
+            title: '仪表盘',
+            path: '/dashboard',
+          },
+        },
       },
       {
         path: 'articles',
         name: 'ArticleList',
         component: () => import('@/views/article/ArticleListView.vue'),
-        meta: { title: '文章列表' },
+        meta: {
+          title: '文章列表',
+          breadcrumb: {
+            title: '文章管理',
+            path: '/articles',
+            parent: '/dashboard',
+          },
+        },
       },
       {
         path: 'articles/:id',
         name: 'ArticleDetail',
         component: () => import('@/views/article/ArticleDetailView.vue'),
-        meta: { title: '文章详情' },
+        meta: {
+          title: '文章详情',
+          breadcrumb: {
+            title: '文章详情',
+            path: '',
+            parent: '/articles',
+          },
+        },
       },
       {
         path: 'articles/create',
         name: 'ArticleCreate',
         component: () => import('@/views/article/ArticleCreateView.vue'),
-        meta: { title: '创建文章' },
+        meta: {
+          title: '创建文章',
+          breadcrumb: {
+            title: '创建文章',
+            path: '/articles/create',
+            parent: '/articles',
+          },
+        },
       },
       {
         path: 'tags',
         name: 'TagManage',
         component: () => import('@/views/tag/TagManageView.vue'),
-        meta: { title: '标签管理' },
+        meta: {
+          title: '标签管理',
+          breadcrumb: {
+            title: '标签管理',
+            path: '/tags',
+            parent: '/dashboard',
+          },
+        },
       },
       {
         path: 'users',
         name: 'UserManage',
         component: () => import('@/views/user/UserManageView.vue'),
-        meta: { title: '用户管理', requiresAdmin: true },
+        meta: {
+          title: '用户管理',
+          requiresAdmin: true,
+          breadcrumb: {
+            title: '用户管理',
+            path: '/users',
+            parent: '/dashboard',
+          },
+        },
       },
       {
         path: 'reading-stats',
         name: 'ReadingStats',
         component: () => import('@/views/reading/ReadingStatsView.vue'),
-        meta: { title: '阅读统计' },
+        meta: {
+          title: '阅读统计',
+          breadcrumb: {
+            title: '阅读统计',
+            path: '/reading-stats',
+            parent: '/dashboard',
+          },
+        },
       },
     ],
   },
