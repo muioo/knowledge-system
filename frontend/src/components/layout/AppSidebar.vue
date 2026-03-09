@@ -436,14 +436,14 @@ onMounted(() => {
   flex-direction: column;
   gap: 2px;
   margin-top: 4px;
-  padding-left: 52px;
 }
 
 .submenu-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px;
+  padding-left: 60px;
   cursor: pointer;
   border-radius: var(--radius-md);
   transition: background 0.2s ease;
