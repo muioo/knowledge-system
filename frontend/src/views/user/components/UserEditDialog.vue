@@ -229,4 +229,15 @@ async function handleSubmit() {
 
 <style scoped>
 /* 组件特定样式已移至 dialog.css 统一管理 */
+
+/* 编辑对话框按钮间距 */
+:deep(.el-dialog__footer) {
+  gap: 16px !important;
+}
+
+:deep(.el-dialog__footer button) {
+  font-size: 15px !important;
+  padding: 12px 24px !important;
+  min-width: 100px !important;
+}
 </style>
