@@ -193,7 +193,7 @@ function formatDate(dateStr: string) {
 <style scoped>
 .user-table-container {
   background: #ffffff;
-  border-radius: 28px;
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: var(--shadow-prompt);
   border: 1px solid var(--border-default);

@@ -250,8 +250,8 @@ onMounted(() => {
   background: var(--bg-white);
   border: 1px solid var(--border-default);
   border-left-width: 4px;
-  border-radius: 28px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 16px;
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;

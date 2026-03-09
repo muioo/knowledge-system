@@ -330,14 +330,14 @@ onMounted(() => {
 /* 卡片容器 */
 .article-create-view :deep(.el-card) {
   background: var(--bg-white);
-  border-radius: 28px;
+  border-radius: 12px;
   box-shadow: var(--shadow-prompt);
   border: 1px solid var(--border-default);
   overflow: hidden;
 }
 
 .article-create-view :deep(.el-card__body) {
-  padding: 32px;
+  padding: 24px;
 }
 
 /* 选项卡样式 */

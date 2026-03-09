@@ -226,8 +226,8 @@ onMounted(() => {
 
 .card {
   background: var(--bg-white);
-  border-radius: 28px;
-  padding: 32px;
+  border-radius: 12px;
+  padding: 24px;
   box-shadow: var(--shadow-prompt);
   border: 1px solid var(--border-default);
   transition: all 0.2s ease;
