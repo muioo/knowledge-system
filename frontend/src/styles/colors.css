@@ -267,8 +267,8 @@ body {
 
 /* --- 内容包裹器 --- */
 .content-wrapper {
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
   padding: 12px;
   width: 100%;
 }
@@ -296,13 +296,6 @@ body {
 }
 
 /* --- 响应式 --- */
-@media (max-width: 1200px) {
-  .content-wrapper {
-    max-width: 100%;
-    padding: 12px;
-  }
-}
-
 @media (max-width: 768px) {
   .content-wrapper {
     padding: 10px;
