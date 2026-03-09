@@ -312,10 +312,261 @@ onMounted(() => {
 <style scoped>
 .article-create-view {
   width: 100%;
-  padding: 20px;
+  padding: 12px;
 }
 
 .header-section {
+  margin-bottom: 16px;
+}
+
+.header-section h1 {
+  font-family: var(--font-dinpro);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-black);
+  margin: 0;
+}
+
+/* 卡片容器 */
+.article-create-view :deep(.el-card) {
+  background: var(--bg-white);
+  border-radius: 28px;
+  box-shadow: var(--shadow-prompt);
+  border: 1px solid var(--border-default);
+  overflow: hidden;
+}
+
+.article-create-view :deep(.el-card__body) {
+  padding: 32px;
+}
+
+/* 选项卡样式 */
+.article-create-view :deep(.el-tabs__header) {
+  margin: 0 0 24px 0;
+  border-bottom: 2px solid var(--border-default);
+}
+
+.article-create-view :deep(.el-tabs__nav-wrap::after) {
+  display: none;
+}
+
+.article-create-view :deep(.el-tabs__item) {
+  font-family: var(--font-dinpro);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-grey-50);
+  padding: 0 20px;
+  height: 44px;
+  line-height: 44px;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.article-create-view :deep(.el-tabs__item:hover) {
+  color: var(--text-black);
+}
+
+.article-create-view :deep(.el-tabs__item.is-active) {
+  color: var(--color-indigo);
+}
+
+.article-create-view :deep(.el-tabs__active-bar) {
+  height: 3px;
+  background: var(--color-indigo);
+  border-radius: 2px;
+}
+
+/* 表单样式 */
+.article-create-view :deep(.el-form-item__label) {
+  font-family: var(--font-dinpro);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-black);
+  padding-right: 16px;
+}
+
+.article-create-view :deep(.el-input__wrapper) {
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  border: 1px solid var(--border-default);
+  padding: 8px 16px;
+  transition: all 0.2s ease;
+}
+
+.article-create-view :deep(.el-input__wrapper:hover) {
+  border-color: var(--color-indigo);
+}
+
+.article-create-view :deep(.el-input__wrapper.is-focus) {
+  border-color: var(--color-indigo);
+  box-shadow: 0 0 0 2px rgba(116, 89, 217, 0.1);
+}
+
+.article-create-view :deep(.el-input__inner) {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: var(--text-black);
+}
+
+.article-create-view :deep(.el-textarea__inner) {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  padding: 12px 16px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: var(--text-black);
+  transition: all 0.2s ease;
+}
+
+.article-create-view :deep(.el-textarea__inner:hover) {
+  border-color: var(--color-indigo);
+}
+
+.article-create-view :deep(.el-textarea__inner:focus) {
+  border-color: var(--color-indigo);
+  box-shadow: 0 0 0 2px rgba(116, 89, 217, 0.1);
+}
+
+/* 选择器样式 */
+.article-create-view :deep(.el-select .el-input__wrapper) {
+  border-radius: var(--radius-md);
+}
+
+.article-create-view :deep(.el-select__placeholder) {
+  color: var(--text-grey-40);
+}
+
+.article-create-view :deep(.el-select-dropdown__item) {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+}
+
+.article-create-view :deep(.el-tag) {
+  border-radius: var(--radius-md);
+  font-family: var(--font-dinpro);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border: none;
+  color: white !important;
+}
+
+.article-create-view :deep(.el-tag.el-tag--light) {
+  border: none !important;
+}
+
+/* 开关样式 */
+.article-create-view :deep(.el-switch) {
+  height: 24px;
+}
+
+.article-create-view :deep(.el-switch__core) {
+  border-radius: 12px;
+  height: 24px;
+  min-width: 48px;
+  border: 2px solid var(--border-default);
+}
+
+.article-create-view :deep(.el-switch.is-checked .el-switch__core) {
+  background: var(--color-indigo);
+  border-color: var(--color-indigo);
+}
+
+.article-create-view :deep(.el-switch__action) {
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  top: 1px;
+  left: 1px;
+}
+
+.article-create-view :deep(.el-switch.is-checked .el-switch__action) {
+  left: calc(100% - 19px);
+}
+
+.article-create-view :deep(.el-switch__label) {
+  font-family: var(--font-dinpro);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-black);
+}
+
+.article-create-view :deep(.el-switch__label.is-active) {
+  color: var(--color-indigo);
+}
+
+/* 按钮样式 */
+.article-create-view :deep(.el-button) {
+  border-radius: var(--radius-md);
+  font-family: var(--font-dinpro);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.article-create-view :deep(.el-button--primary) {
+  background: var(--color-indigo);
+  color: white;
+}
+
+.article-create-view :deep(.el-button--primary:hover) {
+  background: var(--color-indigo-50);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(116, 89, 217, 0.3);
+}
+
+.article-create-view :deep(.el-button--primary:active) {
+  transform: translateY(0);
+}
+
+/* 上传组件样式 */
+.article-create-view :deep(.el-upload) {
+  width: 100%;
+}
+
+.article-create-view :deep(.el-upload-dragger) {
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--border-default);
+  background: var(--bg-tertiary);
+  padding: 32px;
+  transition: all 0.2s ease;
+}
+
+.article-create-view :deep(.el-upload-dragger:hover) {
+  border-color: var(--color-indigo);
+  background: rgba(116, 89, 217, 0.05);
+}
+
+.article-create-view :deep(.el-upload__tip) {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: var(--text-grey-40);
+  margin-top: 8px;
+}
+
+/* 表单项间距 */
+.article-create-view :deep(.el-form-item) {
   margin-bottom: 20px;
+}
+
+.article-create-view :deep(.el-form-item:last-child) {
+  margin-bottom: 0;
+  margin-top: 8px;
+}
+
+/* 必填星号 */
+.article-create-view :deep(.el-form-item.is-required:not(.is-no-asterisk) > .el-form-item__label::before) {
+  color: var(--color-red);
+  margin-right: 4px;
+}
+
+/* 错误提示 */
+.article-create-view :deep(.el-form-item__error) {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: var(--color-red);
+  margin-top: 4px;
 }
 </style>
