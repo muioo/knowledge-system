@@ -233,11 +233,11 @@ async function handleSubmit() {
   margin-top: 8px;
 }
 
-.edit-form .el-form-item {
-  margin-bottom: 20px;
+.edit-form :deep(.el-form-item) {
+  margin-bottom: 28px;
 }
 
-.edit-form .el-form-item:last-child {
+.edit-form :deep(.el-form-item:last-child) {
   margin-bottom: 0;
 }
 </style>
