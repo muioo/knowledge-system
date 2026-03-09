@@ -21,23 +21,68 @@
 
     <!-- 导航菜单 -->
     <nav class="menu-items">
-      <router-link
-        v-for="item in menuItems"
-        :key="item.index"
-        :to="item.index"
-        class="menu-item"
-        :class="{ active: activeMenu === item.index }"
-        :title="collapsed ? item.title : ''"
-      >
-        <div class="menu-content">
-          <div class="menu-icon-wrapper" :class="item.colorClass">
-            <component :is="item.icon" />
+      <template v-for="item in menuItems" :key="item.index">
+        <!-- 普通菜单项 -->
+        <router-link
+          v-if="!item.children"
+          :to="item.index"
+          class="menu-item"
+          :class="{ active: activeMenu === item.index }"
+          :title="collapsed ? item.title : ''"
+        >
+          <div class="menu-content">
+            <div class="menu-icon-wrapper" :class="item.colorClass">
+              <component :is="item.icon" />
+            </div>
+            <transition name="fade">
+              <span v-if="!collapsed" class="menu-title">{{ item.title }}</span>
+            </transition>
           </div>
-          <transition name="fade">
-            <span v-if="!collapsed" class="menu-title">{{ item.title }}</span>
+        </router-link>
+
+        <!-- 有子菜单的项（文章管理） -->
+        <div v-else class="menu-item-group">
+          <div
+            class="menu-item menu-item-parent"
+            :class="{ active: isArticleMenuActive }"
+            @click="handleArticleMenuClick"
+          >
+            <div class="menu-content">
+              <div class="menu-icon-wrapper" :class="item.colorClass">
+                <component :is="item.icon" />
+              </div>
+              <transition name="fade">
+                <span v-if="!collapsed" class="menu-title">{{ item.title }}</span>
+              </transition>
+            </div>
+            <transition name="fade">
+              <el-icon v-if="!collapsed" class="submenu-arrow" :class="{ expanded: articleSubmenuExpanded }">
+                <ArrowDown />
+              </el-icon>
+            </transition>
+          </div>
+
+          <!-- 子菜单：标签列表 -->
+          <transition name="submenu">
+            <div v-if="articleSubmenuExpanded && !collapsed" class="submenu">
+              <div
+                v-for="tag in tags"
+                :key="tag.id"
+                class="submenu-item"
+                :class="{ active: activeTagId === tag.id }"
+                @click="goToTagArticles(tag)"
+              >
+                <div class="tag-color-dot" :style="{ backgroundColor: tag.color }"></div>
+                <span class="submenu-title">{{ tag.name }}</span>
+                <span class="article-count">({{ tag.article_count || 0 }})</span>
+              </div>
+              <div v-if="tags.length === 0" class="submenu-empty">
+                暂无标签
+              </div>
+            </div>
           </transition>
         </div>
-      </router-link>
+      </template>
     </nav>
 
     <!-- 用户信息（底部） -->
@@ -58,10 +103,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, ref, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { storeToRefs } from 'pinia'
+import { ArrowDown } from '@element-plus/icons-vue'
 import {
   DataAnalysis,
   Document,
@@ -70,6 +116,9 @@ import {
   TrendCharts,
   UserFilled,
 } from '@element-plus/icons-vue'
+import { tagApi } from '@/api/tag'
+import type { Tag } from '@/types/tag'
+import { ElMessage } from 'element-plus'
 
 interface Props {
   collapsed?: boolean
@@ -79,10 +128,36 @@ const { collapsed = false } = defineProps<Props>()
 
 // 路由
 const route = useRoute()
+const router = useRouter()
 
 // 用户状态
 const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
+
+// 标签列表
+const tags = ref<Tag[]>([])
+
+// 文章子菜单展开状态
+const articleSubmenuExpanded = ref(false)
+
+// 当前激活的标签ID
+const activeTagId = computed(() => {
+  const tagId = route.query.tag_id as string
+  return tagId ? parseInt(tagId) : null
+})
+
+// 判断文章菜单是否激活
+const isArticleMenuActive = computed(() => {
+  const path = route.path
+  return path === '/articles'
+})
+
+// 当有标签被选中时，自动展开子菜单
+watch(activeTagId, (newTagId) => {
+  if (newTagId) {
+    articleSubmenuExpanded.value = true
+  }
+}, { immediate: true })
 
 // 菜单项配置
 const menuItems = computed(() => {
@@ -98,6 +173,8 @@ const menuItems = computed(() => {
       title: '文章管理',
       icon: Document,
       colorClass: 'blue',
+      hasChildren: true,
+      children: 'articles', // 标记这个菜单项有子菜单
     },
     {
       index: '/articles/create',
@@ -160,6 +237,40 @@ const userName = computed(() => {
 // 用户角色
 const userRole = computed(() => {
   return user.value?.role === 'admin' ? '管理员' : '普通用户'
+})
+
+// 处理文章菜单点击
+function handleArticleMenuClick() {
+  if (activeTagId.value) {
+    // 如果有选中的标签，清除标签筛选并跳转到文章列表
+    router.push('/articles')
+  } else {
+    // 否则切换子菜单展开状态
+    articleSubmenuExpanded.value = !articleSubmenuExpanded.value
+  }
+}
+
+// 跳转到标签文章列表
+function goToTagArticles(tag: Tag) {
+  router.push({
+    path: '/articles',
+    query: { tag_id: tag.id.toString() }
+  })
+}
+
+// 加载标签列表
+async function loadTags() {
+  try {
+    const res = await tagApi.getList()
+    tags.value = res.data
+  } catch (error) {
+    console.error('加载标签列表失败:', error)
+  }
+}
+
+// 初始化
+onMounted(() => {
+  loadTags()
 })
 </script>
 
@@ -246,6 +357,11 @@ const userRole = computed(() => {
   overflow-x: hidden;
 }
 
+.menu-item-group {
+  display: flex;
+  flex-direction: column;
+}
+
 .menu-item {
   display: flex;
   align-items: center;
@@ -254,6 +370,10 @@ const userRole = computed(() => {
   text-decoration: none;
   transition: background 0.2s ease;
   border-radius: var(--radius-md);
+}
+
+.menu-item-parent {
+  justify-content: space-between;
 }
 
 .menu-item:hover {
@@ -268,7 +388,7 @@ const userRole = computed(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  width: 100%;
+  flex: 1;
 }
 
 .menu-icon-wrapper {
@@ -297,6 +417,94 @@ const userRole = computed(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* 子菜单箭头 */
+.submenu-arrow {
+  font-size: 12px;
+  color: var(--text-grey-40);
+  transition: transform 0.3s ease;
+}
+
+.submenu-arrow.expanded {
+  transform: rotate(180deg);
+}
+
+/* 子菜单 */
+.submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  padding-left: 52px;
+}
+
+.submenu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background 0.2s ease;
+}
+
+.submenu-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.submenu-item.active {
+  background: var(--bg-tertiary);
+}
+
+.tag-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.submenu-title {
+  font-family: var(--font-dinpro);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-black);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.article-count {
+  font-size: 12px;
+  color: var(--text-grey-40);
+  flex-shrink: 0;
+}
+
+.submenu-empty {
+  padding: 12px;
+  font-size: 12px;
+  color: var(--text-grey-40);
+  text-align: center;
+}
+
+/* 子菜单过渡动画 */
+.submenu-enter-active,
+.submenu-leave-active {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.submenu-enter-from,
+.submenu-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+
+.submenu-enter-to,
+.submenu-leave-from {
+  max-height: 500px;
+  opacity: 1;
 }
 
 /* 颜色变体 */

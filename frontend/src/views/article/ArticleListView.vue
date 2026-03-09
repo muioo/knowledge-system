@@ -1,7 +1,9 @@
 <template>
   <div class="article-list-view content-wrapper">
     <div class="header-section">
-      <h1 class="text-2xl font-bold text-gray-900">文章管理</h1>
+      <h1 class="text-2xl font-bold text-gray-900">
+        {{ currentTagName ? `${currentTagName} 的文章` : '文章管理' }}
+      </h1>
     </div>
 
     <!-- 搜索和筛选 -->
@@ -96,8 +98,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { Document, Search, Edit, Delete, View, PriceTag } from '@element-plus/icons-vue'
 import { articleApi } from '@/api/article'
 import { tagApi } from '@/api/tag'
@@ -106,6 +108,7 @@ import type { Tag } from '@/types/tag'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
+const route = useRoute()
 
 // 数据
 const loading = ref(false)
@@ -115,6 +118,13 @@ const tags = ref<Tag[]>([])
 // 搜索和筛选
 const searchKeyword = ref('')
 const selectedTagId = ref<number | null>(null)
+
+// 当前标签名称（用于显示）
+const currentTagName = computed(() => {
+  if (!selectedTagId.value) return ''
+  const tag = tags.value.find(t => t.id === selectedTagId.value)
+  return tag ? tag.name : ''
+})
 
 // 分页
 const pagination = ref({
@@ -231,8 +241,25 @@ function formatDate(dateStr: string) {
 }
 
 onMounted(() => {
+  // 从路由查询参数中获取 tag_id
+  const tagIdFromQuery = route.query.tag_id as string
+  if (tagIdFromQuery) {
+    selectedTagId.value = parseInt(tagIdFromQuery)
+  }
+
   loadArticles()
   loadTags()
+})
+
+// 监听路由变化，当 tag_id 变化时重新加载文章
+watch(() => route.query.tag_id, (newTagId) => {
+  if (newTagId) {
+    selectedTagId.value = parseInt(newTagId as string)
+  } else {
+    selectedTagId.value = null
+  }
+  pagination.value.page = 1
+  loadArticles()
 })
 </script>
 
