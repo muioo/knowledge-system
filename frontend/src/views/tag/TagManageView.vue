@@ -225,20 +225,27 @@ onMounted(() => {
 <style scoped>
 .tag-manage-view {
   width: 100%;
-  padding: 20px;
 }
 
 .header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+}
+
+.header-section h1 {
+  margin: 0;
+  font-family: var(--font-dinpro);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-black);
 }
 
 .tag-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  gap: 16px;
 }
 
 .tag-card {
@@ -246,8 +253,10 @@ onMounted(() => {
   border: 1px solid var(--border-default);
   border-left-width: 4px;
   border-radius: var(--radius-lg);
-  padding: 20px;
+  padding: 16px;
   transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .tag-card:hover {
@@ -257,42 +266,48 @@ onMounted(() => {
 .tag-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 12px;
+  width: 100%;
 }
 
 .tag-name-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex: 1;
+  min-width: 0;
 }
 
 .tag-color {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-sm);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
   flex-shrink: 0;
 }
 
 .tag-name {
   font-family: var(--font-dinpro);
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-black);
   margin: 0;
-  word-break: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tag-actions {
   display: flex;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .tag-info {
   color: var(--text-grey-40);
   font-size: 13px;
   margin: 0;
+  margin-top: auto;
 }
 
 .color-picker-wrapper {
@@ -341,5 +356,6 @@ onMounted(() => {
 
 .empty-state p {
   color: var(--text-grey-40);
+  margin: 0;
 }
 </style>
