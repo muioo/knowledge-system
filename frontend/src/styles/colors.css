@@ -269,7 +269,7 @@ body {
 .content-wrapper {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 12px;
   width: 100%;
 }
 
@@ -299,12 +299,12 @@ body {
 @media (max-width: 1200px) {
   .content-wrapper {
     max-width: 100%;
-    padding: 16px;
+    padding: 12px;
   }
 }
 
 @media (max-width: 768px) {
   .content-wrapper {
-    padding: 12px;
+    padding: 10px;
   }
 }
