@@ -276,7 +276,6 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   flex: 1;
-  min-width: 0;
 }
 
 .tag-color {
@@ -292,8 +291,7 @@ onMounted(() => {
   font-weight: 600;
   color: var(--text-black);
   margin: 0;
-  word-break: break-word;
-  line-height: 1.4;
+  white-space: nowrap;
 }
 
 .tag-actions {
