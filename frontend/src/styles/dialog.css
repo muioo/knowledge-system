@@ -72,8 +72,19 @@
   padding: 0 !important;
   margin-top: 24px !important;
   display: flex !important;
-  gap: 12px !important;
+  gap: 16px !important;
   justify-content: flex-end !important;
+}
+
+/* 编辑对话框按钮特殊处理 */
+.dialog-edit .el-dialog__footer {
+  gap: 16px !important;
+}
+
+.dialog-edit .el-dialog__footer button {
+  font-size: 15px !important;
+  padding: 12px 24px !important;
+  min-width: 100px !important;
 }
 
 /* ============================================
