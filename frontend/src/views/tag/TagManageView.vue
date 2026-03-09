@@ -28,12 +28,12 @@
             <div class="tag-color" :style="{ backgroundColor: tag.color }"></div>
             <h3 class="tag-name">{{ tag.name }}</h3>
           </div>
-          <div class="tag-actions">
-            <el-button text :icon="Edit" @click="openEditDialog(tag)" class="btn-ghost">编辑</el-button>
-            <el-button text :icon="Delete" type="danger" @click="confirmDelete(tag)" class="btn-ghost btn-danger">删除</el-button>
-          </div>
         </div>
         <p class="tag-info">创建于 {{ formatDate(tag.created_at) }}</p>
+        <div class="tag-actions">
+          <el-button text :icon="Edit" @click="openEditDialog(tag)" class="btn-ghost">编辑</el-button>
+          <el-button text :icon="Delete" type="danger" @click="confirmDelete(tag)" class="btn-ghost btn-danger">删除</el-button>
+        </div>
       </div>
     </div>
 
@@ -264,9 +264,6 @@ onMounted(() => {
 }
 
 .tag-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 12px;
   width: 100%;
 }
@@ -275,7 +272,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex: 1;
+  width: 100%;
 }
 
 .tag-color {
@@ -294,17 +291,22 @@ onMounted(() => {
   white-space: nowrap;
 }
 
-.tag-actions {
-  display: flex;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
 .tag-info {
   color: var(--text-grey-40);
   font-size: 13px;
-  margin: 0;
+  margin: 0 0 12px 0;
+}
+
+.tag-actions {
+  display: flex;
+  gap: 8px;
   margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-default);
+}
+
+.tag-actions .el-button {
+  flex: 1;
 }
 
 .color-picker-wrapper {
