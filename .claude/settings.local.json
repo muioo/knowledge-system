@@ -14,7 +14,8 @@
       "Bash(npx vue-tsc:*)",
       "Bash(npm run build:*)",
       "Bash(curl:*)",
-      "Bash(mysql:*)"
+      "Bash(mysql:*)",
+      "Bash(git fetch:*)"
     ]
   }
 }

@@ -228,16 +228,5 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-/* 组件特定样式 */
-.edit-form {
-  margin-top: 8px;
-}
-
-.edit-form :deep(.el-form-item) {
-  margin-bottom: 18px;
-}
-
-.edit-form :deep(.el-form-item:last-child) {
-  margin-bottom: 0;
-}
+/* 组件特定样式已移至 dialog.css 统一管理 */
 </style>

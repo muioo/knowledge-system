@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, h } from 'vue'
 import { PriceTag, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { useTagStore } from '@/store/tag'
 import { storeToRefs } from 'pinia'
@@ -177,20 +177,33 @@ async function submitForm() {
 }
 
 // 确认删除
-function confirmDelete(tag: Tag) {
-  ElMessageBox.confirm(
-    `确定要删除标签"${tag.name}"吗？此操作不可撤销。`,
-    '确认删除',
-    {
+async function confirmDelete(tag: Tag) {
+  try {
+    await ElMessageBox({
+      title: '确认删除',
+      message: h('div', { class: 'dialog-confirm-content' }, [
+        h('div', { class: 'dialog-icon delete' }, [
+          h('svg', { viewBox: '0 0 24 24' }, [
+            h('path', { d: 'M3 6h18m-2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2' })
+          ])
+        ]),
+        h('div', { class: 'dialog-text-wrapper' }, [
+          h('p', `确定要删除标签"${tag.name}"吗？`),
+          h('p', { class: 'dialog-warning-text' }, '删除后该标签将从所有文章中移除，此操作不可撤销。')
+        ])
+      ]),
+      customClass: 'dialog-unified',
+      showCancelButton: true,
       confirmButtonText: '删除',
       cancelButtonText: '取消',
-      type: 'warning',
-    }
-  ).then(() => {
-    deleteTag(tag.id)
-  }).catch(() => {
+      confirmButtonClass: 'dialog-btn-danger',
+      cancelButtonClass: 'dialog-btn-secondary'
+    })
+
+    await deleteTag(tag.id)
+  } catch {
     // 用户取消
-  })
+  }
 }
 
 // 删除标签

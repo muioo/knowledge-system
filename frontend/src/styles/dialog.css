@@ -84,6 +84,18 @@
   width: 520px !important;
 }
 
+.dialog-edit .el-dialog__body {
+  padding: 0 !important;
+}
+
+.dialog-edit :deep(.el-form-item) {
+  margin-bottom: 20px !important;
+}
+
+.dialog-edit :deep(.el-form-item:last-child) {
+  margin-bottom: 0 !important;
+}
+
 .dialog-edit .dialog-icon {
   width: 48px;
   height: 48px;
