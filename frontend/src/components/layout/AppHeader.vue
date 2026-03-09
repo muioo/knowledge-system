@@ -170,7 +170,7 @@ function handleLogout() {
 .header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .header-right {
@@ -219,6 +219,7 @@ function handleLogout() {
 
 /* 折叠按钮样式 */
 .toggle-btn {
+  margin-left: -12px;
   transition: transform 0.3s ease;
 }
 
