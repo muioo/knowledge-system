@@ -20,7 +20,7 @@
 
     <!-- 用户表格 -->
     <UserTable
-      :users="users"
+      :users="filteredUsers"
       :loading="loading"
       :current-user-id="currentUserId"
       @edit="handleEditUser"
