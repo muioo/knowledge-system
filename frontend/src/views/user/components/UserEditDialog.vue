@@ -2,16 +2,30 @@
   <el-dialog
     v-model="visible"
     :title="isEditMode ? '编辑用户' : '新建用户'"
-    width="500px"
-    custom-class="user-edit-dialog"
+    width="520px"
+    custom-class="dialog-unified dialog-edit"
     :close-on-click-modal="false"
+    destroy-on-close
     @close="handleClose"
   >
+    <!-- 图标和标题区域 -->
+    <template #header>
+      <div class="dialog-icon edit">
+        <svg viewBox="0 0 24 24">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+      </div>
+      <span>{{ isEditMode ? '编辑用户' : '新建用户' }}</span>
+    </template>
+
+    <!-- 表单内容 -->
     <el-form
       ref="formRef"
       :model="formData"
       :rules="formRules"
       label-width="80px"
+      class="edit-form"
     >
       <el-form-item label="用户名" prop="username">
         <el-input
@@ -57,11 +71,13 @@
       </el-form-item>
     </el-form>
 
+    <!-- 底部按钮 -->
     <template #footer>
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" @click="handleSubmit" :loading="loading">
-        {{ isEditMode ? '保存' : '创建' }}
-      </el-button>
+      <button class="dialog-btn-secondary" @click="handleClose">取消</button>
+      <button class="dialog-btn-primary" @click="handleSubmit" :disabled="loading">
+        <span v-if="!loading">{{ isEditMode ? '保存' : '创建' }}</span>
+        <span v-else>保存中...</span>
+      </button>
     </template>
   </el-dialog>
 </template>
@@ -212,183 +228,16 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-/* 编辑对话框样式 - 统一位置和样式 */
-:deep(.el-dialog) {
-  border-radius: 20px !important;
-  border: 2px solid var(--border-default, #e5e7eb) !important;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2) !important;
-  overflow: hidden !important;
+/* 组件特定样式 */
+.edit-form {
+  margin-top: 8px;
 }
 
-:deep(.el-dialog__header) {
-  padding: 0 0 20px 0 !important;
-  margin-bottom: 20px !important;
-  border-bottom: 2px solid var(--border-default, #e5e7eb) !important;
-  margin: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
+.edit-form .el-form-item {
+  margin-bottom: 20px;
 }
 
-:deep(.el-dialog__title) {
-  font-family: var(--font-dinpro, 'DIN Pro', sans-serif) !important;
-  font-size: 20px !important;
-  font-weight: 700 !important;
-  color: var(--text-black, #111827) !important;
-  letter-spacing: -0.01em !important;
-}
-
-:deep(.el-dialog__headerbtn) {
-  top: -4px !important;
-  right: -8px !important;
-  width: 36px !important;
-  height: 36px !important;
-  border-radius: 50% !important;
-  transition: all 0.2s ease !important;
-}
-
-:deep(.el-dialog__headerbtn:hover) {
-  background: var(--bg-tertiary, #f9fafb) !important;
-}
-
-:deep(.el-dialog__headerbtn .el-dialog__close) {
-  color: var(--text-grey-40, #9ca3af) !important;
-  font-size: 20px !important;
-  font-weight: bold !important;
-}
-
-:deep(.el-dialog__headerbtn:hover .el-dialog__close) {
-  color: var(--text-black, #111827) !important;
-}
-
-:deep(.el-dialog__body) {
-  padding: 8px 0 24px 0 !important;
-  font-family: 'Poppins', sans-serif !important;
-}
-
-:deep(.el-dialog__footer) {
-  padding: 0 32px 32px 32px !important;
-  display: flex !important;
-  gap: 16px !important;
-  justify-content: flex-end !important;
-}
-
-/* 表单样式 */
-:deep(.el-form-item__label) {
-  font-family: var(--font-dinpro, 'DIN Pro', sans-serif) !important;
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  color: var(--text-black, #111827) !important;
-}
-
-:deep(.el-input__wrapper) {
-  border-radius: 8px !important;
-  border: 1px solid var(--border-default, #e5e7eb) !important;
-  padding: 8px 12px !important;
-  transition: all 0.2s ease !important;
-}
-
-:deep(.el-input__wrapper:hover) {
-  border-color: var(--color-indigo, #7459d9) !important;
-}
-
-:deep(.el-input__wrapper.is-focus) {
-  border-color: var(--color-indigo, #7459d9) !important;
-  box-shadow: 0 0 0 3px rgba(116, 89, 217, 0.1) !important;
-}
-
-:deep(.el-input__inner) {
-  font-family: 'Poppins', sans-serif !important;
-  font-size: 14px !important;
-  color: var(--text-black, #111827) !important;
-}
-
-:deep(.el-select .el-input__wrapper) {
-  border-radius: 8px !important;
-}
-
-:deep(.el-switch__core) {
-  border-radius: 12px !important;
-  height: 24px !important;
-  min-width: 48px !important;
-  border: 2px solid var(--border-default, #e5e7eb) !important;
-}
-
-:deep(.el-switch.is-checked .el-switch__core) {
-  background: var(--color-indigo, #7459d9) !important;
-  border-color: var(--color-indigo, #7459d9) !important;
-}
-
-:deep(.el-switch__action) {
-  border-radius: 50% !important;
-  width: 18px !important;
-  height: 18px !important;
-  top: 1px !important;
-  left: 1px !important;
-}
-
-:deep(.el-switch.is-checked .el-switch__action) {
-  left: calc(100% - 19px) !important;
-}
-
-:deep(.el-switch__label) {
-  font-family: var(--font-dinpro, 'DIN Pro', sans-serif) !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  color: var(--text-black, #111827) !important;
-}
-
-/* 按钮样式 */
-:deep(.el-button) {
-  border-radius: 12px !important;
-  font-family: var(--font-dinpro, 'DIN Pro', sans-serif) !important;
-  font-size: 15px !important;
-  font-weight: 600 !important;
-  padding: 12px 28px !important;
-  border: none !important;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  min-width: 100px !important;
-}
-
-:deep(.el-button--default) {
-  background: var(--bg-tertiary, #f9fafb) !important;
-  color: var(--text-black, #111827) !important;
-  border: 2px solid var(--border-default, #e5e7eb) !important;
-}
-
-:deep(.el-button--default:hover) {
-  background: var(--bg-secondary, #f3f4f6) !important;
-  border-color: var(--color-indigo, #7459d9) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-}
-
-:deep(.el-button--primary) {
-  background: linear-gradient(135deg, #7459d9 0%, #6b4fc4 100%) !important;
-  color: white !important;
-  border: 2px solid transparent !important;
-}
-
-:deep(.el-button--primary:hover) {
-  background: linear-gradient(135deg, #6b4fc4 0%, #5e47b8 100%) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 20px rgba(116, 89, 217, 0.35) !important;
-}
-
-:deep(.el-button--primary:active) {
-  transform: translateY(0) !important;
-}
-</style>
-
-<style>
-/* 统一对话框包装器的定位方式 */
-.el-overlay-dialog {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-}
-
-.user-edit-dialog {
-  margin: auto !important;
+.edit-form .el-form-item:last-child {
+  margin-bottom: 0;
 }
 </style>

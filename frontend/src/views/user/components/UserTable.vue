@@ -67,6 +67,7 @@
 <script setup lang="ts">
 import { Edit, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { h } from 'vue'
 import { userApi } from '@/api/user'
 import type { User } from '@/types/user'
 
@@ -94,15 +95,25 @@ function handleEdit(user: User) {
 async function handleToggleStatus(user: User) {
   const action = user.is_active ? '禁用' : '启用'
   try {
-    await ElMessageBox.confirm(
-      `确定要${action}用户"${user.username}"吗？`,
-      `确认${action}`,
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    )
+    await ElMessageBox({
+      title: `确认${action}`,
+      message: h('div', { class: 'dialog-confirm-content' }, [
+        h('div', { class: 'dialog-icon warning' }, [
+          h('svg', { viewBox: '0 0 24 24' }, [
+            h('path', { d: 'M12 9v4m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' })
+          ])
+        ]),
+        h('div', { class: 'dialog-text-wrapper' }, [
+          h('p', `确定要${action}用户"${user.username}"吗？`)
+        ])
+      ]),
+      customClass: 'dialog-unified',
+      showCancelButton: true,
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      confirmButtonClass: 'dialog-btn-secondary',
+      cancelButtonClass: 'dialog-btn-secondary'
+    })
 
     await userApi.updateUserStatus(user.id, !user.is_active)
     ElMessage.success(`用户${action}成功`)
@@ -116,15 +127,26 @@ async function handleToggleStatus(user: User) {
 
 async function handleDelete(user: User) {
   try {
-    await ElMessageBox.confirm(
-      `确定要删除用户"${user.username}"吗？删除后该用户的所有文章也将被删除，此操作不可撤销。`,
-      '确认删除',
-      {
-        confirmButtonText: '删除',
-        cancelButtonText: '取消',
-        type: 'warning',
-      }
-    )
+    await ElMessageBox({
+      title: '确认删除',
+      message: h('div', { class: 'dialog-confirm-content' }, [
+        h('div', { class: 'dialog-icon delete' }, [
+          h('svg', { viewBox: '0 0 24 24' }, [
+            h('path', { d: 'M3 6h18m-2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2' })
+          ])
+        ]),
+        h('div', { class: 'dialog-text-wrapper' }, [
+          h('p', `确定要删除用户"${user.username}"吗？`),
+          h('p', { class: 'dialog-warning-text' }, '删除后该用户的所有文章也将被删除，此操作不可撤销。')
+        ])
+      ]),
+      customClass: 'dialog-unified',
+      showCancelButton: true,
+      confirmButtonText: '删除',
+      cancelButtonText: '取消',
+      confirmButtonClass: 'dialog-btn-danger',
+      cancelButtonClass: 'dialog-btn-secondary'
+    })
 
     await userApi.deleteUser(user.id)
     ElMessage.success('用户删除成功')
@@ -157,7 +179,7 @@ function formatDate(dateStr: string) {
   border: 1px solid var(--border-default);
 }
 
-/* 表格操作按钮样式 - 较小的圆角 */
+/* 表格操作按钮样式 */
 .user-table-container :deep(.el-button) {
   border-radius: 6px !important;
 }
@@ -168,126 +190,5 @@ function formatDate(dateStr: string) {
 
 .user-table-container :deep(.el-button--text:hover) {
   background: rgba(116, 89, 217, 0.05) !important;
-}
-</style>
-
-<style>
-/* 确认对话框样式 - 统一位置和样式 */
-.el-message-box__wrapper {
-  justify-content: center !important;
-  align-items: center !important;
-}
-
-.el-message-box {
-  border-radius: 20px !important;
-  border: 2px solid var(--border-default, #e5e7eb) !important;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2) !important;
-  padding: 32px !important;
-  min-width: 480px !important;
-  max-width: 520px !important;
-  position: relative !important;
-  transform: none !important;
-  top: auto !important;
-  left: auto !important;
-  margin: auto !important;
-}
-
-.el-message-box__header {
-  padding: 0 0 20px 0 !important;
-  margin-bottom: 20px !important;
-  border-bottom: 2px solid var(--border-default, #e5e7eb) !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-}
-
-.el-message-box__title {
-  font-family: var(--font-dinpro, 'DIN Pro', sans-serif) !important;
-  font-size: 20px !important;
-  font-weight: 700 !important;
-  color: var(--text-black, #111827) !important;
-  letter-spacing: -0.01em !important;
-}
-
-.el-message-box__headerbtn {
-  top: -4px !important;
-  right: -8px !important;
-  width: 36px !important;
-  height: 36px !important;
-  border-radius: 50% !important;
-  transition: all 0.2s ease !important;
-}
-
-.el-message-box__headerbtn:hover {
-  background: var(--bg-tertiary, #f9fafb) !important;
-}
-
-.el-message-box__headerbtn .el-message-box__close {
-  color: var(--text-grey-40, #9ca3af) !important;
-  font-size: 20px !important;
-  font-weight: bold !important;
-}
-
-.el-message-box__headerbtn:hover .el-message-box__close {
-  color: var(--text-black, #111827) !important;
-}
-
-.el-message-box__content {
-  padding: 8px 0 24px 0 !important;
-  font-family: 'Poppins', sans-serif !important;
-}
-
-.el-message-box__message {
-  font-size: 16px !important;
-  color: var(--text-black, #111827) !important;
-  line-height: 1.7 !important;
-  font-weight: 400 !important;
-}
-
-.el-message-box__btns {
-  padding: 20px 0 0 0 !important;
-  display: flex !important;
-  gap: 16px !important;
-  justify-content: flex-end !important;
-}
-
-.el-message-box__btns button {
-  border-radius: 12px !important;
-  font-family: var(--font-dinpro, 'DIN Pro', sans-serif) !important;
-  font-size: 15px !important;
-  font-weight: 600 !important;
-  padding: 12px 28px !important;
-  border: none !important;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  min-width: 100px !important;
-}
-
-.el-message-box__btns .el-button--default {
-  background: var(--bg-tertiary, #f9fafb) !important;
-  color: var(--text-black, #111827) !important;
-  border: 2px solid var(--border-default, #e5e7eb) !important;
-}
-
-.el-message-box__btns .el-button--default:hover {
-  background: var(--bg-secondary, #f3f4f6) !important;
-  border-color: var(--color-indigo, #7459d9) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-}
-
-.el-message-box__btns .el-button--primary {
-  background: linear-gradient(135deg, #7459d9 0%, #6b4fc4 100%) !important;
-  color: white !important;
-  border: 2px solid transparent !important;
-}
-
-.el-message-box__btns .el-button--primary:hover {
-  background: linear-gradient(135deg, #6b4fc4 0%, #5e47b8 100%) !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 8px 20px rgba(116, 89, 217, 0.35) !important;
-}
-
-.el-message-box__btns .el-button--primary:active {
-  transform: translateY(0) !important;
 }
 </style>
