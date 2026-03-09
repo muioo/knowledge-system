@@ -20,17 +20,24 @@
 
     <!-- 用户表格 -->
     <UserTable
-      :users="filteredUsers"
+      :users="users"
       :loading="loading"
-      :total="total"
-      :page="page"
-      :size="size"
       :current-user-id="currentUserId"
-      @refresh="loadUsers"
-      @update:page="page = $event"
-      @update:size="size = $event"
       @edit="handleEditUser"
     />
+
+    <!-- 分页 -->
+    <div v-if="total > 0" class="pagination-container">
+      <el-pagination
+        v-model:current-page="page"
+        v-model:page-size="size"
+        :total="total"
+        :page-sizes="[10, 20, 50, 100]"
+        layout="total, sizes, prev, pager, next, jumper"
+        @size-change="handleSizeChange"
+        @current-change="handlePageChange"
+      />
+    </div>
 
     <!-- 编辑对话框 -->
     <UserEditDialog
@@ -114,6 +121,16 @@ function handleEditUser(user: User) {
   editDialogVisible.value = true
 }
 
+// 分页变化
+function handlePageChange(page: number) {
+  loadUsers()
+}
+
+function handleSizeChange(size: number) {
+  page.value = 1
+  loadUsers()
+}
+
 onMounted(() => {
   loadUsers()
 })
@@ -145,5 +162,11 @@ onMounted(() => {
 .search-input {
   width: 300px;
   flex-shrink: 0;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
 }
 </style>

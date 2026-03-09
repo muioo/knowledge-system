@@ -61,24 +61,10 @@
         </template>
       </el-table-column>
     </el-table>
-
-    <!-- 分页 -->
-    <div class="pagination-container">
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :total="total"
-        :page-sizes="[10, 20, 50, 100]"
-        layout="total, sizes, prev, pager, next, jumper"
-        @size-change="handleSizeChange"
-        @current-change="handlePageChange"
-      />
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
 import { Edit, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { userApi } from '@/api/user'
@@ -87,44 +73,18 @@ import type { User } from '@/types/user'
 interface Props {
   users: User[]
   loading: boolean
-  total: number
-  page: number
-  size: number
   currentUserId: number
 }
 
 interface Emits {
-  (e: 'refresh'): void
-  (e: 'update:page', value: number): void
-  (e: 'update:size', value: number): void
   (e: 'edit', user: User): void
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const currentPage = computed({
-  get: () => props.page,
-  set: (val) => emit('update:page', val),
-})
-
-const pageSize = computed({
-  get: () => props.size,
-  set: (val) => emit('update:size', val),
-})
-
 function handleSortChange() {
   // 如果需要排序功能可以在这里实现
-}
-
-function handlePageChange(page: number) {
-  emit('update:page', page)
-  emit('refresh')
-}
-
-function handleSizeChange(size: number) {
-  emit('update:size', size)
-  emit('refresh')
 }
 
 function handleEdit(user: User) {
@@ -146,7 +106,6 @@ async function handleToggleStatus(user: User) {
 
     await userApi.updateUserStatus(user.id, !user.is_active)
     ElMessage.success(`用户${action}成功`)
-    emit('refresh')
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('切换用户状态失败:', error)
@@ -169,7 +128,6 @@ async function handleDelete(user: User) {
 
     await userApi.deleteUser(user.id)
     ElMessage.success('用户删除成功')
-    emit('refresh')
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('删除用户失败:', error)
@@ -197,11 +155,5 @@ function formatDate(dateStr: string) {
   overflow: hidden;
   box-shadow: var(--shadow-prompt);
   border: 1px solid var(--border-default);
-}
-
-.pagination-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 24px;
 }
 </style>
