@@ -312,11 +312,15 @@ onMounted(() => {
 <style scoped>
 .article-create-view {
   width: 100%;
+  height: 100%;
   padding: 12px;
+  display: flex;
+  flex-direction: column;
 }
 
 .header-section {
   margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
 .header-section h1 {
@@ -334,10 +338,34 @@ onMounted(() => {
   box-shadow: var(--shadow-prompt);
   border: 1px solid var(--border-default);
   overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .article-create-view :deep(.el-card__body) {
   padding: 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.article-create-view :deep(.el-tabs) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.article-create-view :deep(.el-tabs__content) {
+  flex: 1;
+  overflow: auto;
+}
+
+.article-create-view :deep(.el-tab-pane) {
+  height: 100%;
+  overflow: auto;
 }
 
 /* 选项卡样式 */
