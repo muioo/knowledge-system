@@ -292,9 +292,8 @@ onMounted(() => {
   font-weight: 600;
   color: var(--text-black);
   margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-word;
+  line-height: 1.4;
 }
 
 .tag-actions {
