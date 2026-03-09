@@ -199,8 +199,7 @@ function formatDate(dateStr: string) {
 
 .pagination-container {
   display: flex;
-  justify-content: flex-end;
-  padding: 16px;
-  border-top: 1px solid #e5e7eb;
+  justify-content: center;
+  margin-top: 24px;
 }
 </style>
