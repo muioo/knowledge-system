@@ -3,9 +3,12 @@
     v-model="visible"
     :title="isEditMode ? '编辑用户' : '新建用户'"
     width="500px"
+    custom-class="user-edit-dialog"
+    :close-on-click-modal="false"
     @close="handleClose"
   >
-    <el-form
+    <div class="dialog-content-wrapper">
+      <el-form
       ref="formRef"
       :model="formData"
       :rules="formRules"
@@ -54,12 +57,15 @@
         />
       </el-form-item>
     </el-form>
+    </div>
 
     <template #footer>
-      <el-button @click="handleClose">取消</el-button>
-      <el-button type="primary" @click="handleSubmit" :loading="loading">
-        {{ isEditMode ? '保存' : '创建' }}
-      </el-button>
+      <div class="dialog-footer-wrapper">
+        <el-button @click="handleClose">取消</el-button>
+        <el-button type="primary" @click="handleSubmit" :loading="loading">
+          {{ isEditMode ? '保存' : '创建' }}
+        </el-button>
+      </div>
     </template>
   </el-dialog>
 </template>
@@ -212,16 +218,20 @@ async function handleSubmit() {
 <style scoped>
 /* 编辑对话框样式 */
 :deep(.el-dialog) {
-  border-radius: 16px !important;
+  border-radius: 20px !important;
   border: 2px solid var(--border-default, #e5e7eb) !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2) !important;
   overflow: hidden !important;
 }
 
 :deep(.el-dialog__header) {
-  padding: 24px 24px 16px 24px !important;
+  padding: 0 0 20px 0 !important;
+  margin-bottom: 20px !important;
   border-bottom: 2px solid var(--border-default, #e5e7eb) !important;
   margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
 }
 
 :deep(.el-dialog__title) {
@@ -233,8 +243,8 @@ async function handleSubmit() {
 }
 
 :deep(.el-dialog__headerbtn) {
-  top: 20px !important;
-  right: 20px !important;
+  top: -4px !important;
+  right: -8px !important;
   width: 36px !important;
   height: 36px !important;
   border-radius: 50% !important;
@@ -256,15 +266,25 @@ async function handleSubmit() {
 }
 
 :deep(.el-dialog__body) {
-  padding: 24px !important;
+  padding: 32px !important;
   font-family: 'Poppins', sans-serif !important;
 }
 
 :deep(.el-dialog__footer) {
-  padding: 16px 24px 24px 24px !important;
+  padding: 0 32px 32px 32px !important;
   display: flex !important;
   justify-content: flex-end !important;
-  gap: 12px !important;
+}
+
+.dialog-content-wrapper {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.dialog-footer-wrapper {
+  display: flex !important;
+  gap: 16px !important;
+  width: 100% !important;
 }
 
 /* 表单样式 */
@@ -334,36 +354,42 @@ async function handleSubmit() {
 
 /* 按钮样式 */
 :deep(.el-button) {
-  border-radius: 8px !important;
+  border-radius: 12px !important;
   font-family: var(--font-dinpro, 'DIN Pro', sans-serif) !important;
-  font-size: 14px !important;
+  font-size: 15px !important;
   font-weight: 600 !important;
-  padding: 10px 24px !important;
+  padding: 12px 28px !important;
   border: none !important;
-  transition: all 0.2s ease !important;
-  min-width: 80px !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  min-width: 100px !important;
 }
 
 :deep(.el-button--default) {
   background: var(--bg-tertiary, #f9fafb) !important;
   color: var(--text-black, #111827) !important;
-  border: 1px solid var(--border-default, #e5e7eb) !important;
+  border: 2px solid var(--border-default, #e5e7eb) !important;
 }
 
 :deep(.el-button--default:hover) {
   background: var(--bg-secondary, #f3f4f6) !important;
   border-color: var(--color-indigo, #7459d9) !important;
-  transform: translateY(-1px) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
 }
 
 :deep(.el-button--primary) {
-  background: var(--color-indigo, #7459d9) !important;
+  background: linear-gradient(135deg, #7459d9 0%, #6b4fc4 100%) !important;
   color: white !important;
+  border: 2px solid transparent !important;
 }
 
 :deep(.el-button--primary:hover) {
-  background: var(--color-indigo-50, #6b4fc4) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(116, 89, 217, 0.3) !important;
+  background: linear-gradient(135deg, #6b4fc4 0%, #5e47b8 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(116, 89, 217, 0.35) !important;
+}
+
+:deep(.el-button--primary:active) {
+  transform: translateY(0) !important;
 }
 </style>
