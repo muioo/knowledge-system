@@ -157,3 +157,92 @@ function formatDate(dateStr: string) {
   border: 1px solid var(--border-default);
 }
 </style>
+
+<style>
+/* 确认对话框样式 */
+.el-message-box {
+  border-radius: 16px !important;
+  border: 1px solid var(--border-default, #e5e7eb) !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+  padding: 24px !important;
+  min-width: 400px !important;
+}
+
+.el-message-box__header {
+  padding: 0 0 16px 0 !important;
+  border-bottom: 1px solid var(--border-default, #e5e7eb) !important;
+}
+
+.el-message-box__title {
+  font-family: var(--font-dinpro, 'DIN Pro', sans-serif) !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: var(--text-black, #111827) !important;
+}
+
+.el-message-box__headerbtn {
+  top: 0 !important;
+  right: 0 !important;
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.el-message-box__headerbtn .el-message-box__close {
+  color: var(--text-grey-40, #9ca3af) !important;
+  font-size: 18px !important;
+}
+
+.el-message-box__headerbtn:hover .el-message-box__close {
+  color: var(--text-black, #111827) !important;
+}
+
+.el-message-box__content {
+  padding: 20px 0 !important;
+  font-family: 'Poppins', sans-serif !important;
+}
+
+.el-message-box__message {
+  font-size: 15px !important;
+  color: var(--text-black, #111827) !important;
+  line-height: 1.6 !important;
+}
+
+.el-message-box__btns {
+  padding: 16px 0 0 0 !important;
+  display: flex !important;
+  gap: 12px !important;
+  justify-content: flex-end !important;
+}
+
+.el-message-box__btns button {
+  border-radius: var(--radius-md, 8px) !important;
+  font-family: var(--font-dinpro, 'DIN Pro', sans-serif) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  padding: 10px 20px !important;
+  border: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.el-message-box__btns .el-button--default {
+  background: var(--bg-tertiary, #f9fafb) !important;
+  color: var(--text-black, #111827) !important;
+  border: 1px solid var(--border-default, #e5e7eb) !important;
+}
+
+.el-message-box__btns .el-button--default:hover {
+  background: var(--bg-secondary, #f3f4f6) !important;
+  border-color: var(--color-indigo, #7459d9) !important;
+}
+
+.el-message-box__btns .el-button--primary {
+  background: var(--color-indigo, #7459d9) !important;
+  color: white !important;
+}
+
+.el-message-box__btns .el-button--primary:hover {
+  background: var(--color-indigo-50, #6b4fc4) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(116, 89, 217, 0.3) !important;
+}
+</style>
