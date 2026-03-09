@@ -424,20 +424,28 @@ window.addEventListener('beforeunload', () => {
 }
 
 .html-content :deep(pre) {
-  background: #1f2937;
-  color: #f3f4f6;
+  background: #F8F9FE;
+  color: var(--text-black);
   padding: 16px;
   border-radius: var(--radius-md);
   overflow-x: auto;
   margin: 16px 0;
+  border: 1px solid var(--border-default);
 }
 
 .html-content :deep(code) {
-  background: var(--bg-tertiary);
-  color: #ef4444;
-  padding: 2px 4px;
+  background: rgba(116, 89, 217, 0.1);
+  color: var(--color-indigo);
+  padding: 2px 6px;
   border-radius: var(--radius-sm);
   font-size: 0.875em;
+  font-weight: 500;
+}
+
+.html-content :deep(pre code) {
+  background: transparent;
+  color: inherit;
+  padding: 0;
 }
 
 .html-content :deep(a) {
