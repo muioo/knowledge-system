@@ -364,6 +364,19 @@ watch(() => route.query.tag_id, (newTagId) => {
   flex-wrap: wrap;
 }
 
+.tags .el-tag {
+  font-family: var(--font-dinpro);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border: none;
+  color: white !important;
+}
+
+.tags .el-tag.el-tag--light {
+  border: none !important;
+}
+
 .meta-info {
   display: flex;
   gap: 16px;
