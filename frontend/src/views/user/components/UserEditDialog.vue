@@ -234,7 +234,7 @@ async function handleSubmit() {
 }
 
 .edit-form :deep(.el-form-item) {
-  margin-bottom: 28px;
+  margin-bottom: 18px;
 }
 
 .edit-form :deep(.el-form-item:last-child) {
