@@ -210,5 +210,160 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-/* 添加必要的样式 */
+/* 编辑对话框样式 */
+:deep(.el-dialog) {
+  border-radius: 16px !important;
+  border: 2px solid var(--border-default, #e5e7eb) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15) !important;
+  overflow: hidden !important;
+}
+
+:deep(.el-dialog__header) {
+  padding: 24px 24px 16px 24px !important;
+  border-bottom: 2px solid var(--border-default, #e5e7eb) !important;
+  margin: 0 !important;
+}
+
+:deep(.el-dialog__title) {
+  font-family: var(--font-dinpro, 'DIN Pro', sans-serif) !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: var(--text-black, #111827) !important;
+  letter-spacing: -0.01em !important;
+}
+
+:deep(.el-dialog__headerbtn) {
+  top: 20px !important;
+  right: 20px !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  transition: all 0.2s ease !important;
+}
+
+:deep(.el-dialog__headerbtn:hover) {
+  background: var(--bg-tertiary, #f9fafb) !important;
+}
+
+:deep(.el-dialog__headerbtn .el-dialog__close) {
+  color: var(--text-grey-40, #9ca3af) !important;
+  font-size: 20px !important;
+  font-weight: bold !important;
+}
+
+:deep(.el-dialog__headerbtn:hover .el-dialog__close) {
+  color: var(--text-black, #111827) !important;
+}
+
+:deep(.el-dialog__body) {
+  padding: 24px !important;
+  font-family: 'Poppins', sans-serif !important;
+}
+
+:deep(.el-dialog__footer) {
+  padding: 16px 24px 24px 24px !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 12px !important;
+}
+
+/* 表单样式 */
+:deep(.el-form-item__label) {
+  font-family: var(--font-dinpro, 'DIN Pro', sans-serif) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: var(--text-black, #111827) !important;
+}
+
+:deep(.el-input__wrapper) {
+  border-radius: 8px !important;
+  border: 1px solid var(--border-default, #e5e7eb) !important;
+  padding: 8px 12px !important;
+  transition: all 0.2s ease !important;
+}
+
+:deep(.el-input__wrapper:hover) {
+  border-color: var(--color-indigo, #7459d9) !important;
+}
+
+:deep(.el-input__wrapper.is-focus) {
+  border-color: var(--color-indigo, #7459d9) !important;
+  box-shadow: 0 0 0 3px rgba(116, 89, 217, 0.1) !important;
+}
+
+:deep(.el-input__inner) {
+  font-family: 'Poppins', sans-serif !important;
+  font-size: 14px !important;
+  color: var(--text-black, #111827) !important;
+}
+
+:deep(.el-select .el-input__wrapper) {
+  border-radius: 8px !important;
+}
+
+:deep(.el-switch__core) {
+  border-radius: 12px !important;
+  height: 24px !important;
+  min-width: 48px !important;
+  border: 2px solid var(--border-default, #e5e7eb) !important;
+}
+
+:deep(.el-switch.is-checked .el-switch__core) {
+  background: var(--color-indigo, #7459d9) !important;
+  border-color: var(--color-indigo, #7459d9) !important;
+}
+
+:deep(.el-switch__action) {
+  border-radius: 50% !important;
+  width: 18px !important;
+  height: 18px !important;
+  top: 1px !important;
+  left: 1px !important;
+}
+
+:deep(.el-switch.is-checked .el-switch__action) {
+  left: calc(100% - 19px) !important;
+}
+
+:deep(.el-switch__label) {
+  font-family: var(--font-dinpro, 'DIN Pro', sans-serif) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: var(--text-black, #111827) !important;
+}
+
+/* 按钮样式 */
+:deep(.el-button) {
+  border-radius: 8px !important;
+  font-family: var(--font-dinpro, 'DIN Pro', sans-serif) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  padding: 10px 24px !important;
+  border: none !important;
+  transition: all 0.2s ease !important;
+  min-width: 80px !important;
+}
+
+:deep(.el-button--default) {
+  background: var(--bg-tertiary, #f9fafb) !important;
+  color: var(--text-black, #111827) !important;
+  border: 1px solid var(--border-default, #e5e7eb) !important;
+}
+
+:deep(.el-button--default:hover) {
+  background: var(--bg-secondary, #f3f4f6) !important;
+  border-color: var(--color-indigo, #7459d9) !important;
+  transform: translateY(-1px) !important;
+}
+
+:deep(.el-button--primary) {
+  background: var(--color-indigo, #7459d9) !important;
+  color: white !important;
+}
+
+:deep(.el-button--primary:hover) {
+  background: var(--color-indigo-50, #6b4fc4) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(116, 89, 217, 0.3) !important;
+}
 </style>

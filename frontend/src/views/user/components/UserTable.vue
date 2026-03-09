@@ -156,6 +156,19 @@ function formatDate(dateStr: string) {
   box-shadow: var(--shadow-prompt);
   border: 1px solid var(--border-default);
 }
+
+/* 表格操作按钮样式 - 较小的圆角 */
+.user-table-container :deep(.el-button) {
+  border-radius: 6px !important;
+}
+
+.user-table-container :deep(.el-button--text) {
+  border-radius: 6px !important;
+}
+
+.user-table-container :deep(.el-button--text:hover) {
+  background: rgba(116, 89, 217, 0.05) !important;
+}
 </style>
 
 <style>
