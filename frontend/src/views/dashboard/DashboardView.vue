@@ -48,7 +48,7 @@
           </div>
           <div class="stat-content">
             <p class="stat-label">阅读时长</p>
-            <p class="stat-value">{{ stats.readingHours }}<span class="stat-unit">小时</span></p>
+            <p class="stat-value">{{ stats.readingMinutes }}<span class="stat-unit">分钟</span></p>
           </div>
         </div>
       </div>
@@ -132,7 +132,7 @@ const stats = ref({
   totalArticles: 0,
   totalTags: 0,
   readArticles: 0,
-  readingHours: 0
+  readingMinutes: 0
 })
 
 // 最近阅读
@@ -166,7 +166,7 @@ async function loadStats() {
 
     // 计算总阅读时长
     const totalDuration = readingRes.data.items.reduce((sum, item) => sum + item.total_duration, 0)
-    stats.value.readingHours = Math.round(totalDuration / 3600)
+    stats.value.readingMinutes = Math.round(totalDuration / 60)
 
     console.log('统计数据加载完成:', stats.value)
   } catch (error) {
@@ -191,11 +191,7 @@ function formatDate(dateStr: string | null) {
 
 // 格式化时长
 function formatDuration(seconds: number) {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  if (hours > 0) {
-    return `${hours}小时${minutes}分钟`
-  }
+  const minutes = Math.floor(seconds / 60)
   return `${minutes}分钟`
 }
 

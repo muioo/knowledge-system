@@ -23,7 +23,7 @@
           </div>
           <div class="ml-4">
             <p class="text-sm text-gray-600">总阅读时长</p>
-            <p class="text-2xl font-bold text-gray-900">{{ totalReadingHours }}小时</p>
+            <p class="text-2xl font-bold text-gray-900">{{ totalReadingMinutes }}分钟</p>
           </div>
         </div>
       </div>
@@ -180,9 +180,9 @@ const totalViews = computed(() => {
   return articleStats.value.reduce((sum, item) => sum + item.total_views, 0)
 })
 
-const totalReadingHours = computed(() => {
+const totalReadingMinutes = computed(() => {
   const totalSeconds = articleStats.value.reduce((sum, item) => sum + item.total_duration, 0)
-  return Math.round(totalSeconds / 3600)
+  return Math.round(totalSeconds / 60)
 })
 
 const readArticles = computed(() => {
@@ -240,11 +240,7 @@ function formatDateTime(dateStr: string | null) {
 
 // 格式化时长
 function formatDuration(seconds: number) {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  if (hours > 0) {
-    return `${hours}小时${minutes}分钟`
-  }
+  const minutes = Math.floor(seconds / 60)
   return `${minutes}分钟`
 }
 
