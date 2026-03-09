@@ -4,13 +4,7 @@
     <div class="logo-section">
       <router-link to="/dashboard" class="logo-link" title="知识管理系统">
         <div class="logo-icon">
-          <svg viewBox="0 0 40 40" fill="none">
-            <rect width="40" height="40" rx="12" fill="var(--color-indigo)"/>
-            <path d="M12 10 L12 30 L28 30 L28 10 Z" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M16 10 L16 26 L24 26 L24 10" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M16 16 L24 16" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
-            <path d="M16 20 L24 20" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
-          </svg>
+          <img :src="logoImage" alt="Logo" class="logo-image" />
         </div>
         <transition name="fade">
           <span v-if="!collapsed" class="logo-text">知识管理系统</span>
@@ -119,6 +113,7 @@ import {
 } from '@element-plus/icons-vue'
 import type { Tag } from '@/types/tag'
 import { ElMessage } from 'element-plus'
+import logoImage from '@/assets/cat1.jpg'
 
 interface Props {
   collapsed?: boolean
@@ -318,11 +313,15 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--bg-white);
 }
 
-.logo-icon svg {
+.logo-image {
   width: 100%;
   height: 100%;
+  object-fit: cover;
 }
 
 .logo-text {
