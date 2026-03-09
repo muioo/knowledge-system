@@ -1,18 +1,14 @@
 <template>
   <div class="user-manage-view content-wrapper">
-    <!-- 头部区域 -->
+    <!-- 头部区域：标题和搜索框 -->
     <div class="header-section">
-      <h1 class="text-2xl font-bold text-gray-900">用户管理</h1>
-    </div>
-
-    <!-- 搜索区域 -->
-    <div class="search-section">
+      <h1 class="page-title">用户管理</h1>
       <el-input
         v-model="searchKeyword"
         placeholder="搜索用户名或邮箱"
         :prefix-icon="Search"
         clearable
-        style="width: 300px"
+        class="search-input"
         @clear="handleSearch"
         @keyup.enter="handleSearch"
       >
@@ -126,14 +122,28 @@ onMounted(() => {
 <style scoped>
 .user-manage-view {
   width: 100%;
-  padding: 20px;
+  padding: 12px;
 }
 
 .header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 20px;
+  gap: 20px;
 }
 
-.search-section {
-  margin-bottom: 20px;
+.page-title {
+  font-family: var(--font-dinpro);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-black);
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.search-input {
+  width: 300px;
+  flex-shrink: 0;
 }
 </style>
