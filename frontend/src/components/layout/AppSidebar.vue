@@ -106,6 +106,7 @@
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
+import { useTagStore } from '@/store/tag'
 import { storeToRefs } from 'pinia'
 import { ArrowDown } from '@element-plus/icons-vue'
 import {
@@ -116,7 +117,6 @@ import {
   TrendCharts,
   UserFilled,
 } from '@element-plus/icons-vue'
-import { tagApi } from '@/api/tag'
 import type { Tag } from '@/types/tag'
 import { ElMessage } from 'element-plus'
 
@@ -134,8 +134,9 @@ const router = useRouter()
 const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
 
-// 标签列表
-const tags = ref<Tag[]>([])
+// 标签状态
+const tagStore = useTagStore()
+const { tags } = storeToRefs(tagStore)
 
 // 文章子菜单展开状态
 const articleSubmenuExpanded = ref(false)
@@ -261,8 +262,7 @@ function goToTagArticles(tag: Tag) {
 // 加载标签列表
 async function loadTags() {
   try {
-    const res = await tagApi.getList()
-    tags.value = res.data
+    await tagStore.fetchTags()
   } catch (error) {
     console.error('加载标签列表失败:', error)
   }

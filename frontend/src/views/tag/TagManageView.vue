@@ -77,14 +77,17 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { PriceTag, Plus, Edit, Delete } from '@element-plus/icons-vue'
-import { tagApi } from '@/api/tag'
+import { useTagStore } from '@/store/tag'
+import { storeToRefs } from 'pinia'
 import type { Tag } from '@/types/tag'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 
+// Tag Store
+const tagStore = useTagStore()
+const { tags, loading } = storeToRefs(tagStore)
+
 // 数据
-const loading = ref(false)
-const tags = ref<Tag[]>([])
 const submitting = ref(false)
 
 // 对话框
@@ -117,15 +120,11 @@ const presetColors = [
 
 // 加载标签列表
 async function loadTags() {
-  loading.value = true
   try {
-    const res = await tagApi.getList()
-    tags.value = res.data
+    await tagStore.fetchTags()
   } catch (error) {
     console.error('加载标签列表失败:', error)
     ElMessage.error('加载标签列表失败')
-  } finally {
-    loading.value = false
   }
 }
 
@@ -161,14 +160,13 @@ async function submitForm() {
     submitting.value = true
     try {
       if (isEditMode.value && editingTag.value) {
-        await tagApi.update(editingTag.value.id, formData.value)
+        await tagStore.updateTag(editingTag.value.id, formData.value)
         ElMessage.success('标签更新成功')
       } else {
-        await tagApi.create(formData.value)
+        await tagStore.createTag(formData.value)
         ElMessage.success('标签创建成功')
       }
       dialogVisible.value = false
-      loadTags()
     } catch (error: any) {
       console.error('保存标签失败:', error)
       ElMessage.error(error.response?.data?.detail || '保存失败')
@@ -198,9 +196,8 @@ function confirmDelete(tag: Tag) {
 // 删除标签
 async function deleteTag(id: number) {
   try {
-    await tagApi.delete(id)
+    await tagStore.deleteTag(id)
     ElMessage.success('删除成功')
-    loadTags()
   } catch (error: any) {
     console.error('删除标签失败:', error)
     ElMessage.error(error.response?.data?.detail || '删除失败')
