@@ -9,96 +9,103 @@
     </div>
 
     <!-- 内容区域 -->
-    <div v-else>
+    <div v-else class="dashboard-content">
       <!-- 统计卡片 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="card">
-          <div class="flex items-center">
-            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <el-icon :size="24" color="#3B82F6"><Document /></el-icon>
-            </div>
-            <div class="ml-4">
-              <p class="text-sm text-gray-600">文章总数</p>
-              <p class="text-2xl font-bold text-gray-900">{{ stats.totalArticles }}</p>
-            </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-blue">
+            <el-icon :size="28"><Document /></el-icon>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">文章总数</p>
+            <p class="stat-value">{{ stats.totalArticles }}</p>
           </div>
         </div>
 
-        <div class="card">
-          <div class="flex items-center">
-            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <el-icon :size="24" color="#10B981"><PriceTag /></el-icon>
-            </div>
-            <div class="ml-4">
-              <p class="text-sm text-gray-600">标签数量</p>
-              <p class="text-2xl font-bold text-gray-900">{{ stats.totalTags }}</p>
-            </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-green">
+            <el-icon :size="28"><PriceTag /></el-icon>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">标签数量</p>
+            <p class="stat-value">{{ stats.totalTags }}</p>
           </div>
         </div>
 
-        <div class="card">
-          <div class="flex items-center">
-            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <el-icon :size="24" color="#8B5CF6"><View /></el-icon>
-            </div>
-            <div class="ml-4">
-              <p class="text-sm text-gray-600">已读文章</p>
-              <p class="text-2xl font-bold text-gray-900">{{ stats.readArticles }}</p>
-            </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-purple">
+            <el-icon :size="28"><View /></el-icon>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">已读文章</p>
+            <p class="stat-value">{{ stats.readArticles }}</p>
           </div>
         </div>
 
-        <div class="card">
-          <div class="flex items-center">
-            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-              <el-icon :size="24" color="#F59E0B"><Clock /></el-icon>
-            </div>
-            <div class="ml-4">
-              <p class="text-sm text-gray-600">阅读时长</p>
-              <p class="text-2xl font-bold text-gray-900">{{ stats.readingHours }}小时</p>
-            </div>
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-orange">
+            <el-icon :size="28"><Clock /></el-icon>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">阅读时长</p>
+            <p class="stat-value">{{ stats.readingHours }}<span class="stat-unit">小时</span></p>
           </div>
         </div>
       </div>
 
-      <!-- 最近阅读 -->
-      <div v-if="recentReadings.length > 0" class="card">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">最近阅读</h2>
-        <div class="space-y-2">
-          <div
-            v-for="item in recentReadings"
-            :key="item.article_id"
-            class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer"
-            @click="goToArticle(item.article_id)"
-          >
-            <div class="flex-1">
-              <p class="font-medium text-gray-900">{{ item.article_title }}</p>
-              <p class="text-sm text-gray-500">{{ formatDate(item.last_read_at) }}</p>
-            </div>
-            <div class="text-right">
-              <p class="text-sm text-gray-600">{{ item.total_views }} 次阅读</p>
-              <p class="text-sm text-gray-500">{{ formatDuration(item.total_duration) }}</p>
+      <!-- 主要内容区域：最近阅读 + 快捷操作 -->
+      <div class="main-content">
+        <!-- 最近阅读 -->
+        <div v-if="recentReadings.length > 0" class="content-card">
+          <h2 class="card-title">最近阅读</h2>
+          <div class="reading-list">
+            <div
+              v-for="item in recentReadings"
+              :key="item.article_id"
+              class="reading-item"
+              @click="goToArticle(item.article_id)"
+            >
+              <div class="reading-info">
+                <p class="reading-title">{{ item.article_title }}</p>
+                <p class="reading-date">{{ formatDate(item.last_read_at) }}</p>
+              </div>
+              <div class="reading-stats">
+                <p class="reading-count">{{ item.total_views }} 次阅读</p>
+                <p class="reading-duration">{{ formatDuration(item.total_duration) }}</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- 快捷操作 -->
-      <div class="card">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">快捷操作</h2>
-        <div class="flex flex-wrap gap-3">
-          <el-button type="primary" :icon="Plus" @click="$router.push('/articles/create')" class="btn-primary">
-            创建文章
-          </el-button>
-          <el-button :icon="FolderOpened" @click="$router.push('/articles')" class="btn-outline">
-            浏览文章
-          </el-button>
-          <el-button :icon="PriceTag" @click="$router.push('/tags')" class="btn-outline">
-            管理标签
-          </el-button>
-          <el-button :icon="TrendCharts" @click="$router.push('/reading-stats')" class="btn-outline">
-            阅读统计
-          </el-button>
+        <!-- 快捷操作 -->
+        <div class="content-card">
+          <h2 class="card-title">快捷操作</h2>
+          <div class="quick-actions">
+            <div class="action-item" @click="$router.push('/articles/create')">
+              <div class="action-icon action-icon-primary">
+                <el-icon :size="24"><Plus /></el-icon>
+              </div>
+              <span>创建文章</span>
+            </div>
+            <div class="action-item" @click="$router.push('/articles')">
+              <div class="action-icon action-icon-blue">
+                <el-icon :size="24"><FolderOpened /></el-icon>
+              </div>
+              <span>浏览文章</span>
+            </div>
+            <div class="action-item" @click="$router.push('/tags')">
+              <div class="action-icon action-icon-green">
+                <el-icon :size="24"><PriceTag /></el-icon>
+              </div>
+              <span>管理标签</span>
+            </div>
+            <div class="action-item" @click="$router.push('/reading-stats')">
+              <div class="action-icon action-icon-purple">
+                <el-icon :size="24"><TrendCharts /></el-icon>
+              </div>
+              <span>阅读统计</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -206,6 +213,9 @@ onMounted(() => {
 .dashboard-container {
   width: 100%;
   padding: 12px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .dashboard-container > h1 {
@@ -224,41 +234,267 @@ onMounted(() => {
   min-height: 400px;
 }
 
-.card {
+.dashboard-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 统计卡片网格 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.stat-card {
   background: var(--bg-white);
   border-radius: 12px;
   padding: 24px;
   box-shadow: var(--shadow-prompt);
   border: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  gap: 20px;
   transition: all 0.2s ease;
 }
 
-.card:hover {
+.stat-card:hover {
   box-shadow: 0px 12px 24px 0px rgba(50, 50, 71, 0.1);
+  transform: translateY(-2px);
 }
 
-.grid {
+.stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon-blue {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3B82F6;
+}
+
+.stat-icon-green {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10B981;
+}
+
+.stat-icon-purple {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8B5CF6;
+}
+
+.stat-icon-orange {
+  background: rgba(245, 158, 11, 0.1);
+  color: #F59E0B;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  font-family: var(--font-dinpro);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-grey-40);
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-family: var(--font-dinpro);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-black);
+  line-height: 1;
+}
+
+.stat-unit {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-grey-40);
+  margin-left: 4px;
+}
+
+/* 主要内容区域 */
+.main-content {
+  flex: 1;
   display: grid;
+  grid-template-columns: 2fr 1fr;
   gap: 20px;
+  min-height: 0;
 }
 
-.grid-cols-1 {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
+.content-card {
+  background: var(--bg-white);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--shadow-prompt);
+  border: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
-@media (min-width: 768px) {
-  .md\:grid-cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.card-title {
+  font-family: var(--font-dinpro);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-black);
+  margin-bottom: 20px;
+}
+
+/* 最近阅读列表 */
+.reading-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.reading-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reading-item:hover {
+  background: rgba(116, 89, 217, 0.05);
+  transform: translateX(4px);
+}
+
+.reading-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.reading-title {
+  font-family: var(--font-dinpro);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-black);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reading-date {
+  font-size: 13px;
+  color: var(--text-grey-40);
+}
+
+.reading-stats {
+  text-align: right;
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+
+.reading-count {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-black);
+  margin-bottom: 2px;
+}
+
+.reading-duration {
+  font-size: 13px;
+  color: var(--text-grey-40);
+}
+
+/* 快捷操作 */
+.quick-actions {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-dinpro);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-black);
+}
+
+.action-item:hover {
+  background: rgba(116, 89, 217, 0.05);
+  transform: translateX(4px);
+}
+
+.action-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.action-icon-primary {
+  background: var(--color-indigo);
+  color: white;
+}
+
+.action-icon-blue {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3B82F6;
+}
+
+.action-icon-green {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10B981;
+}
+
+.action-icon-purple {
+  background: rgba(139, 92, 246, 0.1);
+  color: #8B5CF6;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .main-content {
+    grid-template-columns: 1fr;
   }
 }
 
-@media (min-width: 1024px) {
-  .lg\:grid-cols-4 {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+@media (max-width: 640px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
   }
-}
 
-.space-y-2 > * + * {
-  margin-top: 0.5rem;
+  .stat-card {
+    padding: 20px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
 }
 </style>
