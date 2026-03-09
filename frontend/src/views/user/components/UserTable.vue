@@ -193,8 +193,10 @@ function formatDate(dateStr: string) {
 <style scoped>
 .user-table-container {
   background: #ffffff;
-  border-radius: 0.5rem;
+  border-radius: 28px;
   overflow: hidden;
+  box-shadow: var(--shadow-prompt);
+  border: 1px solid var(--border-default);
 }
 
 .pagination-container {

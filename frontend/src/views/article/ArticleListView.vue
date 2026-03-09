@@ -266,20 +266,28 @@ watch(() => route.query.tag_id, (newTagId) => {
 <style scoped>
 .article-list-view {
   width: 100%;
-  padding: 20px;
+  padding: 12px;
 }
 
 .header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+}
+
+.header-section h1 {
+  font-family: var(--font-dinpro);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-black);
+  margin: 0;
 }
 
 .card {
   background: var(--bg-white);
-  border-radius: var(--radius-lg);
-  padding: 20px;
+  border-radius: 28px;
+  padding: 32px;
   box-shadow: var(--shadow-prompt);
   border: 1px solid var(--border-default);
   margin-bottom: 20px;

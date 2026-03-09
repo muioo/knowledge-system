@@ -222,6 +222,7 @@ onMounted(() => {
 <style scoped>
 .tag-manage-view {
   width: 100%;
+  padding: 12px;
 }
 
 .header-section {
@@ -249,8 +250,8 @@ onMounted(() => {
   background: var(--bg-white);
   border: 1px solid var(--border-default);
   border-left-width: 4px;
-  border-radius: var(--radius-lg);
-  padding: 16px;
+  border-radius: 28px;
+  padding: 20px;
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;

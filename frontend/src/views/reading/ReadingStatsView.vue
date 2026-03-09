@@ -262,13 +262,13 @@ onMounted(() => {
 <style scoped>
 .reading-stats-view {
   width: 100%;
-  padding: 20px;
+  padding: 12px;
 }
 
 .card {
   background: var(--bg-white);
-  border-radius: var(--radius-lg);
-  padding: 20px;
+  border-radius: 28px;
+  padding: 32px;
   box-shadow: var(--shadow-prompt);
   border: 1px solid var(--border-default);
 }
@@ -290,8 +290,8 @@ onMounted(() => {
 
 .stats-tabs {
   background: var(--bg-white);
-  border-radius: var(--radius-lg);
-  padding: 20px;
+  border-radius: 28px;
+  padding: 32px;
   box-shadow: var(--shadow-prompt);
   border: 1px solid var(--border-default);
 }

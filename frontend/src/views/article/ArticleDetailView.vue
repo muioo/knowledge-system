@@ -273,7 +273,7 @@ window.addEventListener('beforeunload', () => {
 <style scoped>
 .article-detail-view {
   width: 100%;
-  padding: 20px;
+  padding: 12px;
   max-width: 900px;
   margin: 0 auto;
 }
@@ -289,8 +289,8 @@ window.addEventListener('beforeunload', () => {
 
 .article-container {
   background: var(--bg-white);
-  border-radius: var(--radius-lg);
-  padding: 34px;
+  border-radius: 28px;
+  padding: 32px;
   box-shadow: var(--shadow-prompt);
   border: 1px solid var(--border-default);
 }
