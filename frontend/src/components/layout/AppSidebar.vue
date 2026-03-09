@@ -443,7 +443,7 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 8px;
-  padding-left: 40px;
+  padding-left: 8px;
   cursor: pointer;
   border-radius: var(--radius-md);
   transition: background 0.2s ease;
