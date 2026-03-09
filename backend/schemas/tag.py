@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 from datetime import datetime
+from typing import Optional
 
 class TagBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=50)
@@ -15,6 +16,7 @@ class TagUpdate(BaseModel):
 class TagResponse(TagBase):
     id: int
     created_at: datetime
+    article_count: Optional[int] = Field(default=0, description="文章数量")
 
     class Config:
         from_attributes = True

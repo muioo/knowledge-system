@@ -8,34 +8,46 @@ async def create_tag(data: TagCreate) -> TagResponse:
     if existing:
         raise ValueError("标签已存在")
     tag = await Tag.create(name=data.name, color=data.color)
+    # 获取文章数量
+    article_count = await tag.articles.all().count()
     return TagResponse(
         id=tag.id,
         name=tag.name,
         color=tag.color,
-        created_at=tag.created_at
+        created_at=tag.created_at,
+        article_count=article_count
     )
 
 async def get_tag_by_id(tag_id: int) -> TagResponse:
     tag = await Tag.get_or_none(id=tag_id)
     if not tag:
         raise ValueError("标签不存在")
+    # 获取文章数量
+    article_count = await tag.articles.all().count()
     return TagResponse(
         id=tag.id,
         name=tag.name,
         color=tag.color,
-        created_at=tag.created_at
+        created_at=tag.created_at,
+        article_count=article_count
     )
 
 async def list_tags() -> List[TagResponse]:
     tags = await Tag.all()
-    return [
-        TagResponse(
-            id=t.id,
-            name=t.name,
-            color=t.color,
-            created_at=t.created_at
-        ) for t in tags
-    ]
+    result = []
+    for t in tags:
+        # 获取每个标签的文章数量
+        article_count = await t.articles.all().count()
+        result.append(
+            TagResponse(
+                id=t.id,
+                name=t.name,
+                color=t.color,
+                created_at=t.created_at,
+                article_count=article_count
+            )
+        )
+    return result
 
 async def update_tag(tag_id: int, data: TagUpdate) -> TagResponse:
     tag = await Tag.get_or_none(id=tag_id)
@@ -46,11 +58,14 @@ async def update_tag(tag_id: int, data: TagUpdate) -> TagResponse:
     if data.color:
         tag.color = data.color
     await tag.save()
+    # 获取文章数量
+    article_count = await tag.articles.all().count()
     return TagResponse(
         id=tag.id,
         name=tag.name,
         color=tag.color,
-        created_at=tag.created_at
+        created_at=tag.created_at,
+        article_count=article_count
     )
 
 async def delete_tag(tag_id: int) -> bool:

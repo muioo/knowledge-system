@@ -2,6 +2,7 @@ export interface Tag {
   id: number
   name: string
   color: string
+  article_count?: number
   created_at: string
 }
 
