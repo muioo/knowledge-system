@@ -172,7 +172,12 @@ function formatDate(dateStr: string) {
 </style>
 
 <style>
-/* 确认对话框样式 */
+/* 确认对话框样式 - 统一位置和样式 */
+.el-message-box__wrapper {
+  justify-content: center !important;
+  align-items: center !important;
+}
+
 .el-message-box {
   border-radius: 20px !important;
   border: 2px solid var(--border-default, #e5e7eb) !important;
@@ -180,6 +185,11 @@ function formatDate(dateStr: string) {
   padding: 32px !important;
   min-width: 480px !important;
   max-width: 520px !important;
+  position: relative !important;
+  transform: none !important;
+  top: auto !important;
+  left: auto !important;
+  margin: auto !important;
 }
 
 .el-message-box__header {

@@ -7,8 +7,7 @@
     :close-on-click-modal="false"
     @close="handleClose"
   >
-    <div class="dialog-content-wrapper">
-      <el-form
+    <el-form
       ref="formRef"
       :model="formData"
       :rules="formRules"
@@ -57,15 +56,12 @@
         />
       </el-form-item>
     </el-form>
-    </div>
 
     <template #footer>
-      <div class="dialog-footer-wrapper">
-        <el-button @click="handleClose">取消</el-button>
-        <el-button type="primary" @click="handleSubmit" :loading="loading">
-          {{ isEditMode ? '保存' : '创建' }}
-        </el-button>
-      </div>
+      <el-button @click="handleClose">取消</el-button>
+      <el-button type="primary" @click="handleSubmit" :loading="loading">
+        {{ isEditMode ? '保存' : '创建' }}
+      </el-button>
     </template>
   </el-dialog>
 </template>
@@ -216,7 +212,7 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-/* 编辑对话框样式 */
+/* 编辑对话框样式 - 统一位置和样式 */
 :deep(.el-dialog) {
   border-radius: 20px !important;
   border: 2px solid var(--border-default, #e5e7eb) !important;
@@ -266,25 +262,15 @@ async function handleSubmit() {
 }
 
 :deep(.el-dialog__body) {
-  padding: 32px !important;
+  padding: 8px 0 24px 0 !important;
   font-family: 'Poppins', sans-serif !important;
 }
 
 :deep(.el-dialog__footer) {
   padding: 0 32px 32px 32px !important;
   display: flex !important;
-  justify-content: flex-end !important;
-}
-
-.dialog-content-wrapper {
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-.dialog-footer-wrapper {
-  display: flex !important;
   gap: 16px !important;
-  width: 100% !important;
+  justify-content: flex-end !important;
 }
 
 /* 表单样式 */
@@ -391,5 +377,18 @@ async function handleSubmit() {
 
 :deep(.el-button--primary:active) {
   transform: translateY(0) !important;
+}
+</style>
+
+<style>
+/* 统一对话框包装器的定位方式 */
+.el-overlay-dialog {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.user-edit-dialog {
+  margin: auto !important;
 }
 </style>
