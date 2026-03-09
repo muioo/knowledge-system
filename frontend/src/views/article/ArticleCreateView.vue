@@ -449,10 +449,28 @@ onMounted(() => {
   padding: 4px 10px;
   border: none;
   color: white !important;
+  background-color: var(--tag-color) !important;
 }
 
 .article-create-view :deep(.el-tag.el-tag--light) {
   border: none !important;
+  background-color: var(--tag-color) !important;
+}
+
+.article-create-view :deep(.el-select__tag) {
+  background-color: var(--tag-color) !important;
+  border: none !important;
+  color: white !important;
+}
+
+.article-create-view :deep(.el-select__tag .el-tag__close) {
+  color: white !important;
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  border-radius: 50%;
+}
+
+.article-create-view :deep(.el-select__tag .el-tag__close:hover) {
+  background-color: rgba(255, 255, 255, 0.3) !important;
 }
 
 /* 开关样式 */
