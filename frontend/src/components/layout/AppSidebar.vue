@@ -442,8 +442,10 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px;
-  padding-left: 8px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-right: 8px;
+  padding-left: 0;
   cursor: pointer;
   border-radius: var(--radius-md);
   transition: background 0.2s ease;
