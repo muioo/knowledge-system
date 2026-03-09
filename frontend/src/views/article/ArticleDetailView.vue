@@ -331,6 +331,19 @@ window.addEventListener('beforeunload', () => {
   flex-wrap: wrap;
 }
 
+.tags .el-tag {
+  font-family: var(--font-dinpro);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border: none;
+  color: white !important;
+}
+
+.tags .el-tag.el-tag--light {
+  border: none !important;
+}
+
 .meta-info {
   display: flex;
   gap: 16px;
@@ -371,6 +384,16 @@ window.addEventListener('beforeunload', () => {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.keywords-list .el-tag {
+  font-family: var(--font-dinpro);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border: none;
+  background: rgba(116, 89, 217, 0.1) !important;
+  color: var(--color-indigo) !important;
 }
 
 .article-content {
