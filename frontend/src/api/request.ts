@@ -77,14 +77,30 @@ apiClient.interceptors.response.use(
             refresh_token: refreshToken,
           })
 
+          // 检查响应格式
+          if (!response.data || !response.data.data) {
+            throw new Error('Token 刷新失败：响应格式错误')
+          }
+
           const { access_token } = response.data.data
+          if (!access_token) {
+            throw new Error('Token 刷新失败：未返回 access_token')
+          }
+
           localStorage.setItem(TOKEN_KEY, access_token)
           processQueue(access_token)
 
           originalRequest.headers.Authorization = `Bearer ${access_token}`
           return apiClient(originalRequest)
+        } else {
+          // 没有 refresh_token，直接跳转到登录页
+          localStorage.removeItem(TOKEN_KEY)
+          window.location.href = '/login'
+          return Promise.reject(new Error('未找到 refresh_token'))
         }
-      } catch (refreshError) {
+      } catch (refreshError: any) {
+        console.error('[Token Refresh] 失败:', refreshError)
+        console.error('[Token Refresh] 响应数据:', refreshError.response?.data)
         failedQueue.forEach((callback) => callback('' as any))
         failedQueue = []
 
