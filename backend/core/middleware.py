@@ -11,6 +11,10 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """请求日志中间件"""
 
     async def dispatch(self, request: Request, call_next):
+        # OPTIONS 预检请求直接放行，不记录日志
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         start_time = time.time()
         logger.info(f"请求: {request.method} {request.url.path}")
         response = await call_next(request)
@@ -24,6 +28,10 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
     """错误处理中间件"""
 
     async def dispatch(self, request: Request, call_next):
+        # OPTIONS 预检请求直接放行，不做错误处理
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         try:
             return await call_next(request)
         except Exception as e:

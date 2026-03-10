@@ -368,4 +368,14 @@ onMounted(() => {
   color: var(--text-grey-40);
   margin: 0;
 }
+
+/* 删除按钮样式 */
+.tag-manage-view :deep(.btn-danger:hover) {
+  background-color: #FEE2E2 !important;
+  color: #DC2626 !important;
+}
+
+.tag-manage-view :deep(.btn-danger) {
+  transition: all 0.2s ease;
+}
 </style>

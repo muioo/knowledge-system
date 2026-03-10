@@ -79,10 +79,9 @@ interface Props {
 
 interface Emits {
   (e: 'edit', user: User): void
-  (e: 'delete'): void
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 function handleSortChange() {
@@ -151,7 +150,6 @@ async function handleDelete(user: User) {
 
     await userApi.deleteUser(user.id)
     ElMessage.success('用户删除成功')
-    emit('delete')
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('删除用户失败:', error)
@@ -192,5 +190,15 @@ function formatDate(dateStr: string) {
 
 .user-table-container :deep(.el-button--text:hover) {
   background: rgba(116, 89, 217, 0.05) !important;
+}
+
+/* 删除按钮样式 */
+.user-table-container :deep(.btn-danger:hover) {
+  background-color: #FEE2E2 !important;
+  color: #DC2626 !important;
+}
+
+.user-table-container :deep(.btn-danger) {
+  transition: all 0.2s ease;
 }
 </style>

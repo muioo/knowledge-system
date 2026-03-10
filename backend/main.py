@@ -26,13 +26,16 @@ app = FastAPI(
 # CORS 中间件必须最先添加，以便正确处理 OPTIONS 预检请求
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
+    allow_origins=["*"],  # 开发环境允许所有来源
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
-app.add_middleware(ErrorHandlingMiddleware)
+
+# 注意：自定义中间件可能会干扰 CORS，需要确保它们正确处理 OPTIONS 请求
 app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(ErrorHandlingMiddleware)
 
 register_routers(app)
 

@@ -106,7 +106,6 @@ import { tagApi } from '@/api/tag'
 import type { Article } from '@/types'
 import type { Tag } from '@/types/tag'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { h } from 'vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -203,32 +202,20 @@ function editArticle(id: number) {
 }
 
 // 确认删除
-async function confirmDelete(article: Article) {
-  try {
-    await ElMessageBox({
-      title: '确认删除',
-      message: h('div', { class: 'dialog-confirm-content' }, [
-        h('div', { class: 'dialog-icon delete' }, [
-          h('svg', { viewBox: '0 0 24 24' }, [
-            h('path', { d: 'M3 6h18m-2 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2' })
-          ])
-        ]),
-        h('div', { class: 'dialog-text-wrapper' }, [
-          h('p', `确定要删除文章《${article.title}》吗？`),
-          h('p', { class: 'dialog-warning-text' }, '删除后不可撤销。')
-        ])
-      ]),
-      customClass: 'dialog-unified',
-      showCancelButton: true,
+function confirmDelete(article: Article) {
+  ElMessageBox.confirm(
+    `确定要删除文章《${article.title}》吗？此操作不可撤销。`,
+    '确认删除',
+    {
       confirmButtonText: '删除',
       cancelButtonText: '取消',
-      confirmButtonClass: 'dialog-btn-danger',
-      cancelButtonClass: 'dialog-btn-secondary'
-    })
+      type: 'warning',
+    }
+  ).then(() => {
     deleteArticle(article.id)
-  } catch {
+  }).catch(() => {
     // 用户取消
-  }
+  })
 }
 
 // 删除文章
@@ -440,5 +427,15 @@ watch(() => route.query.tag_id, (newTagId) => {
 
 .mr-2 {
   margin-right: 8px;
+}
+
+/* 删除按钮样式 */
+.article-list-view :deep(.btn-danger:hover) {
+  background-color: #FEE2E2 !important;
+  color: #DC2626 !important;
+}
+
+.article-list-view :deep(.btn-danger) {
+  transition: all 0.2s ease;
 }
 </style>
