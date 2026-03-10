@@ -58,9 +58,9 @@
             <el-tag
               v-for="tag in article.tags"
               :key="tag.id"
-              :color="tag.color"
+              :style="getTagStyle(tag.color)"
               size="small"
-              class="mr-2"
+              class="article-tag"
             >
               {{ tag.name }}
             </el-tag>
@@ -132,6 +132,25 @@ const pagination = ref({
   size: 20,
   total: 0
 })
+
+// 计算标签样式（根据背景色深浅自动选择文字颜色）
+function getTagStyle(color: string) {
+  // 解析颜色，计算亮度
+  const hex = color.replace('#', '')
+  const r = parseInt(hex.substr(0, 2), 16)
+  const g = parseInt(hex.substr(2, 2), 16)
+  const b = parseInt(hex.substr(4, 2), 16)
+  // 计算亮度 (YIQ公式)
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000
+  // 亮度大于128则背景较浅，使用深色文字；否则使用白色文字
+  const textColor = brightness > 128 ? '#333333' : '#ffffff'
+
+  return {
+    backgroundColor: color,
+    color: textColor,
+    border: 'none'
+  }
+}
 
 // 加载文章列表
 async function loadArticles() {
@@ -372,16 +391,11 @@ watch(() => route.query.tag_id, (newTagId) => {
   flex-wrap: wrap;
 }
 
-.tags .el-tag {
+.article-tag {
   font-family: var(--font-dinpro);
   font-size: 13px;
   font-weight: 500;
   padding: 4px 10px;
-  border: none;
-  color: white !important;
-}
-
-.tags .el-tag.el-tag--light {
   border: none !important;
 }
 

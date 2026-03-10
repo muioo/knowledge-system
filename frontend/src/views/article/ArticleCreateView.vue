@@ -490,7 +490,6 @@ onMounted(() => {
   font-weight: 500;
   padding: 4px 10px;
   border: none;
-  color: white !important;
   background-color: var(--tag-color) !important;
 }
 

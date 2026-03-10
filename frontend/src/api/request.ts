@@ -57,7 +57,11 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as CustomAxiosRequestConfig
 
     // Token 过期处理
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // 但登录和注册接口的 401 错误不应触发刷新逻辑
+    const isAuthEndpoint = originalRequest.url?.includes('/auth/login') ||
+                          originalRequest.url?.includes('/auth/register')
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
         return new Promise((resolve) => {
           failedQueue.push((token: string) => {
