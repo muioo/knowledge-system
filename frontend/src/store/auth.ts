@@ -17,8 +17,22 @@ export const useAuthStore = defineStore('auth', () => {
   // Actions
   async function login(credentials: LoginRequest) {
     loading.value = true
-    const response = await authApi.login(credentials)
-    const { access_token, refresh_token, user: userData } = response.data
+    const response = await authApi.login(credentials) as any
+    // 调试日志：检查响应格式
+    console.log('[Login] 完整响应:', response)
+    console.log('[Login] response.data:', response.data)
+
+    // 防御性处理：兼容不同的响应格式
+    let tokenData
+    if (response.data) {
+      tokenData = response.data
+    } else if (response.access_token) {
+      tokenData = response
+    } else {
+      throw new Error('登录响应格式错误')
+    }
+
+    const { access_token, refresh_token, user: userData } = tokenData
 
     token.value = access_token
     user.value = userData
@@ -33,8 +47,19 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function register(data: RegisterRequest) {
     loading.value = true
-    const response = await authApi.register(data)
-    const { access_token, refresh_token, user: userData } = response.data
+    const response = await authApi.register(data) as any
+
+    // 防御性处理：兼容不同的响应格式
+    let tokenData
+    if (response.data) {
+      tokenData = response.data
+    } else if (response.access_token) {
+      tokenData = response
+    } else {
+      throw new Error('注册响应格式错误')
+    }
+
+    const { access_token, refresh_token, user: userData } = tokenData
 
     token.value = access_token
     user.value = userData
@@ -51,9 +76,11 @@ export const useAuthStore = defineStore('auth', () => {
     if (!token.value) return
 
     try {
-      const response = await userApi.getMe()
-      user.value = response.data
-      localStorage.setItem(USER_KEY, JSON.stringify(response.data))
+      const response = await userApi.getMe() as any
+      // 防御性处理：兼容不同的响应格式
+      const userData = response.data || response
+      user.value = userData
+      localStorage.setItem(USER_KEY, JSON.stringify(userData))
     } catch (error) {
       logout()
       throw error
@@ -64,8 +91,18 @@ export const useAuthStore = defineStore('auth', () => {
     const refreshTokenValue = localStorage.getItem(REFRESH_TOKEN_KEY)
     if (!refreshTokenValue) throw new Error('No refresh token')
 
-    const response = await authApi.refreshToken(refreshTokenValue)
-    const { access_token } = response.data
+    const response = await authApi.refreshToken(refreshTokenValue) as any
+    // 防御性处理：兼容不同的响应格式
+    let tokenData
+    if (response.data) {
+      tokenData = response.data
+    } else if (response.access_token) {
+      tokenData = response
+    } else {
+      throw new Error('Token刷新响应格式错误')
+    }
+
+    const { access_token } = tokenData
 
     token.value = access_token
     localStorage.setItem(TOKEN_KEY, access_token)
