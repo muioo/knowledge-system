@@ -70,7 +70,7 @@ pip install -r requirements.txt
 复制 `.env.example` 为 `.env` 并修改配置：
 
 ```bash
-cp .env.example .env
+cp .env .env
 ```
 
 编辑 `.env` 文件，设置必要的配置项：

@@ -145,7 +145,7 @@ uvicorn main:app --reload
 **Step 6: 提交**
 
 ```bash
-git add requirements.txt .env.example main.py .gitignore
+git add requirements.txt .env main.py .gitignore
 git commit -m "chore: initialize project with dependencies and basic setup"
 ```
 
@@ -2733,7 +2733,7 @@ pip install -r requirements.txt
 复制 `.env.example` 为 `.env` 并修改配置：
 
 ```bash
-cp .env.example .env
+cp .env .env
 ```
 
 ### 3. 启动服务

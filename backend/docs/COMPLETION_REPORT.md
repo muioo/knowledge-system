@@ -233,7 +233,7 @@ python -m py_compile utils/converters/*.py \
 
 2. **配置环境**
    ```bash
-   cp .env.example .env
+   cp .env .env
    # 编辑 .env 文件，设置必要的配置
    ```
 

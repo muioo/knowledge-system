@@ -34,8 +34,8 @@ class Settings(BaseSettings):
     # 使用相对于此文件的路径：backend/settings/config.py -> ../uploads -> backend/uploads
     upload_dir: str = str(Path(__file__).resolve().parent.parent / "uploads")
 
-    # CORS 配置
-    cors_origins: str = '["http://localhost:3001", "http://localhost:5173", "http://localhost:8000","http://localhost:3000"]'
+    # CORS 配置 服务器前端地址
+    cors_origins: str = '["http://localhost:3001", "http://localhost:5173","http://localhost:3000"]'
 
     # 火山引擎 AI 配置
     ark_api_key: str
