@@ -123,11 +123,11 @@ function handleEditUser(user: User) {
 }
 
 // 分页变化
-function handlePageChange(page: number) {
+function handlePageChange(_page: number) {
   loadUsers()
 }
 
-function handleSizeChange(size: number) {
+function handleSizeChange(_size: number) {
   page.value = 1
   loadUsers()
 }

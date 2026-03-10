@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { storeToRefs } from 'pinia'
 import { ElMessage } from 'element-plus'
@@ -84,7 +84,6 @@ defineEmits<{
 }>()
 
 // 路由
-const route = useRoute()
 const router = useRouter()
 
 // 用户状态

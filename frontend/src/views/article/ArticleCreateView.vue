@@ -296,7 +296,9 @@ async function handleFileUpload() {
     fileUploading.value = true
     try {
       const formData = new FormData()
-      formData.append('file', selectedFile.value)
+      if (selectedFile.value) {
+        formData.append('file', selectedFile.value)
+      }
       formData.append('title', fileForm.value.title)
       formData.append('summary', fileForm.value.summary)
       formData.append('keywords', fileForm.value.keywords)

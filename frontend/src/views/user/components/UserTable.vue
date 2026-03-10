@@ -82,7 +82,7 @@ interface Emits {
   (e: 'delete'): void
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 function handleSortChange() {

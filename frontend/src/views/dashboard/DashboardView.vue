@@ -161,11 +161,11 @@ async function loadStats() {
     console.log('加载阅读统计...')
     const readingRes = await getReadingStats({ page: 1, size: 10 })
     console.log('阅读统计响应:', readingRes)
-    stats.value.readArticles = readingRes.data.total
-    recentReadings.value = readingRes.data.items
+    stats.value.readArticles = readingRes.data.data.total
+    recentReadings.value = readingRes.data.data.items
 
     // 计算总阅读时长
-    const totalDuration = readingRes.data.items.reduce((sum, item) => sum + item.total_duration, 0)
+    const totalDuration = readingRes.data.data.items.reduce((sum: number, item: any) => sum + item.total_duration, 0)
     stats.value.readingMinutes = Math.round(totalDuration / 60)
 
     console.log('统计数据加载完成:', stats.value)

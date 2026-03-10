@@ -197,8 +197,8 @@ async function loadHistory() {
       page: historyPagination.value.page,
       size: historyPagination.value.size
     })
-    readingHistory.value = res.data.items
-    historyPagination.value.total = res.data.total
+    readingHistory.value = res.data.data.items
+    historyPagination.value.total = res.data.data.total
   } catch (error) {
     console.error('加载阅读历史失败:', error)
     ElMessage.error('加载阅读历史失败')
@@ -215,8 +215,8 @@ async function loadStats() {
       page: statsPagination.value.page,
       size: statsPagination.value.size
     })
-    articleStats.value = res.data.items
-    statsPagination.value.total = res.data.total
+    articleStats.value = res.data.data.items
+    statsPagination.value.total = res.data.data.total
   } catch (error) {
     console.error('加载统计数据失败:', error)
     ElMessage.error('加载统计数据失败')

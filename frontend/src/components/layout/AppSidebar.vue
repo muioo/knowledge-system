@@ -112,7 +112,6 @@ import {
   UserFilled,
 } from '@element-plus/icons-vue'
 import type { Tag } from '@/types/tag'
-import { ElMessage } from 'element-plus'
 import logoImage from '@/assets/cat1.jpg'
 
 interface Props {
