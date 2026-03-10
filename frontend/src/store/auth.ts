@@ -18,7 +18,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function login(credentials: LoginRequest) {
     loading.value = true
     const response = await authApi.login(credentials)
-    const { access_token, refresh_token, user: userData } = response.data
+    const { access_token, refresh_token, user: userData } = response.data.data
 
     token.value = access_token
     user.value = userData
@@ -34,7 +34,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function register(data: RegisterRequest) {
     loading.value = true
     const response = await authApi.register(data)
-    const { access_token, refresh_token, user: userData } = response.data
+    const { access_token, refresh_token, user: userData } = response.data.data
 
     token.value = access_token
     user.value = userData
@@ -52,8 +52,8 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await userApi.getMe()
-      user.value = response.data
-      localStorage.setItem(USER_KEY, JSON.stringify(response.data))
+      user.value = response.data.data
+      localStorage.setItem(USER_KEY, JSON.stringify(response.data.data))
     } catch (error) {
       logout()
       throw error
@@ -65,7 +65,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!refreshTokenValue) throw new Error('No refresh token')
 
     const response = await authApi.refreshToken(refreshTokenValue)
-    const { access_token } = response.data
+    const { access_token } = response.data.data
 
     token.value = access_token
     localStorage.setItem(TOKEN_KEY, access_token)
