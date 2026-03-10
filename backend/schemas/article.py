@@ -65,6 +65,7 @@ class ArticleFromHtmlUrlRequest(BaseModel):
     use_ai: bool = Field(True, description="是否使用AI提取关键词和摘要，默认为True")
     summary: Optional[str] = Field(None, description="手动输入的摘要（不使用AI时）")
     keywords: Optional[str] = Field(None, description="手动输入的关键词（不使用AI时）")
+    api_key: Optional[str] = Field(None, description="火山引擎 ARK API Key（使用AI时需要）")
 
 class ArticleFromHtmlUrlResponse(BaseModel):
     """从 HTML URL 导入文章响应"""

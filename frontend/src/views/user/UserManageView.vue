@@ -24,6 +24,7 @@
       :loading="loading"
       :current-user-id="currentUserId"
       @edit="handleEditUser"
+      @delete="loadUsers"
     />
 
     <!-- 分页 -->
@@ -139,15 +140,20 @@ onMounted(() => {
 <style scoped>
 .user-manage-view {
   width: 100%;
-  padding: 12px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  box-sizing: border-box;
 }
 
 .header-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   gap: 20px;
+  flex-shrink: 0;
 }
 
 .page-title {
@@ -167,6 +173,7 @@ onMounted(() => {
 .pagination-container {
   display: flex;
   justify-content: center;
-  margin-top: 24px;
+  margin-top: 16px;
+  flex-shrink: 0;
 }
 </style>

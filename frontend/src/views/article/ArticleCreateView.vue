@@ -55,6 +55,16 @@
               />
             </el-form-item>
 
+            <el-form-item v-if="urlForm.use_ai" label="API Key">
+              <el-input
+                v-model="urlForm.api_key"
+                type="password"
+                placeholder="请输入火山引擎 ARK API Key"
+                show-password
+                clearable
+              />
+            </el-form-item>
+
             <template v-if="!urlForm.use_ai">
               <el-form-item label="摘要" prop="summary">
                 <el-input
@@ -184,7 +194,8 @@ const urlForm = ref({
   tag_ids: [] as number[],
   use_ai: true,
   summary: '',
-  keywords: ''
+  keywords: '',
+  api_key: ''
 })
 
 const urlFormRules: FormRules = {
@@ -244,7 +255,8 @@ async function handleUrlImport() {
         tag_ids: urlForm.value.tag_ids,
         use_ai: urlForm.value.use_ai,
         summary: urlForm.value.use_ai ? undefined : urlForm.value.summary,
-        keywords: urlForm.value.use_ai ? undefined : urlForm.value.keywords
+        keywords: urlForm.value.use_ai ? undefined : urlForm.value.keywords,
+        api_key: urlForm.value.use_ai ? urlForm.value.api_key || undefined : undefined
       })
       ElMessage.success('文章导入成功')
       router.push('/articles')

@@ -355,7 +355,8 @@ async def import_article_from_html_url(
     title: Optional[str] = None,
     use_ai: bool = True,
     summary: Optional[str] = None,
-    keywords: Optional[str] = None
+    keywords: Optional[str] = None,
+    api_key: Optional[str] = None
 ) -> ArticleResponse:
     """
     从 URL 导入 HTML 文章
@@ -398,7 +399,8 @@ async def import_article_from_html_url(
         try:
             ai_result = await extract_article_from_url(
                 url=url,
-                html_content=cleaned_html
+                html_content=cleaned_html,
+                api_key=api_key
             )
             ai_summary = ai_result.get("summary")
             ai_keywords = ai_result.get("keywords")

@@ -46,6 +46,7 @@ export interface UrlImportRequest {
   use_ai?: boolean
   summary?: string
   keywords?: string
+  api_key?: string
 }
 
 export interface ArticleListParams {

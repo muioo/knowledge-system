@@ -79,6 +79,7 @@ interface Props {
 
 interface Emits {
   (e: 'edit', user: User): void
+  (e: 'delete'): void
 }
 
 const props = defineProps<Props>()
@@ -150,6 +151,7 @@ async function handleDelete(user: User) {
 
     await userApi.deleteUser(user.id)
     ElMessage.success('用户删除成功')
+    emit('delete')
   } catch (error: any) {
     if (error !== 'cancel') {
       console.error('删除用户失败:', error)

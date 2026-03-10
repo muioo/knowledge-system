@@ -169,7 +169,8 @@ async def import_html_article_from_url(
             title=request.title,
             use_ai=request.use_ai,
             summary=request.summary,
-            keywords=request.keywords
+            keywords=request.keywords,
+            api_key=request.api_key
         )
         return SuccessResponse(data=result)
     except ValueError as e:

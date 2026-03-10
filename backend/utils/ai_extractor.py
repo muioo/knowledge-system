@@ -12,11 +12,25 @@ from backend.settings.config import settings
 # 创建线程池用于执行同步的 AI 调用
 _executor = ThreadPoolExecutor(max_workers=2)
 
-# 初始化客户端
-client = Ark(
-    base_url='https://ark.cn-beijing.volces.com/api/v3',
-    api_key=settings.ark_api_key,
-)
+# 初始化默认客户端（使用配置文件中的 API Key）
+_default_client = None
+
+
+def _get_client(api_key: Optional[str] = None) -> Ark:
+    """获取 AI 客户端"""
+    global _default_client
+    if api_key:
+        return Ark(
+            base_url='https://ark.cn-beijing.volces.com/api/v3',
+            api_key=api_key,
+        )
+    else:
+        if _default_client is None:
+            _default_client = Ark(
+                base_url='https://ark.cn-beijing.volces.com/api/v3',
+                api_key=settings.ark_api_key,
+            )
+        return _default_client
 
 
 def _clean_text(text: str) -> str:
@@ -121,13 +135,14 @@ def _parse_json_response(result_text: str) -> Dict:
         raise ValueError(f"JSON解析失败: {str(e)}, AI返回内容: {result_text[:200]}")
 
 
-async def extract_article_from_url(url: str, html_content: str) -> Dict:
+async def extract_article_from_url(url: str, html_content: str, api_key: Optional[str] = None) -> Dict:
     """
     从网页 URL 和内容中提取文章信息
 
     Args:
         url: 文章链接
         html_content: 网页内容
+        api_key: 火山引擎 ARK API Key（可选，不提供则使用配置文件中的）
 
     Returns:
         包含 title, content, summary, keywords 的字典
@@ -153,8 +168,11 @@ async def extract_article_from_url(url: str, html_content: str) -> Dict:
 只返回JSON，不要其他内容。"""
 
     try:
+        # 获取客户端（使用传入的 API Key 或默认的）
+        ai_client = _get_client(api_key)
+
         # 直接调用 SDK（同步方式，与 12.py 相同）
-        response = client.responses.create(
+        response = ai_client.responses.create(
             model="ep-20260302234602-pz4hc",
             input=[{"role": "user", "content": prompt}],
         )
@@ -182,8 +200,11 @@ def _extract_article_summary_sync(content: str) -> Dict:
 返回JSON格式：
 {{"summary":"100-200字摘要","keywords":"关键词1,关键词2,关键词3"}}"""
 
+    # 获取默认客户端
+    ai_client = _get_client()
+
     # 直接调用 SDK
-    response = client.responses.create(
+    response = ai_client.responses.create(
         model="ep-20260302234602-pz4hc",
         input=[{"role": "user", "content": prompt}],
     )
