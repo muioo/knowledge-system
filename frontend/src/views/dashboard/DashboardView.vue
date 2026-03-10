@@ -147,26 +147,42 @@ async function loadStats() {
 
     // 加载文章统计
     console.log('加载文章列表...')
-    const articlesRes = await articleApi.getList({ page: 1, size: 1 })
-    console.log('文章响应:', articlesRes)
-    stats.value.totalArticles = articlesRes.data.total
+    try {
+      const articlesRes = await articleApi.getList({ page: 1, size: 1 })
+      console.log('文章响应:', articlesRes)
+      stats.value.totalArticles = articlesRes.data.total
+    } catch (error) {
+      console.error('加载文章统计失败:', error)
+    }
 
     // 加载标签统计
     console.log('加载标签列表...')
-    const tagsRes = await tagApi.getList()
-    console.log('标签响应:', tagsRes)
-    stats.value.totalTags = tagsRes.data.length
+    try {
+      const tagsRes = await tagApi.getList()
+      console.log('标签响应:', tagsRes)
+      stats.value.totalTags = tagsRes.data.length
+    } catch (error) {
+      console.error('加载标签统计失败:', error)
+    }
 
-    // 加载阅读统计
+    // 加载阅读统计（独立处理，失败不影响其他数据）
     console.log('加载阅读统计...')
-    const readingRes = await getReadingStats({ page: 1, size: 10 })
-    console.log('阅读统计响应:', readingRes)
-    stats.value.readArticles = readingRes.data.data.total
-    recentReadings.value = readingRes.data.data.items
+    try {
+      const readingRes = await getReadingStats({ page: 1, size: 10 })
+      console.log('阅读统计响应:', readingRes)
+      stats.value.readArticles = readingRes.data.data.total
+      recentReadings.value = readingRes.data.data.items
 
-    // 计算总阅读时长
-    const totalDuration = readingRes.data.data.items.reduce((sum: number, item: any) => sum + item.total_duration, 0)
-    stats.value.readingMinutes = Math.round(totalDuration / 60)
+      // 计算总阅读时长
+      const totalDuration = readingRes.data.data.items.reduce((sum: number, item: any) => sum + item.total_duration, 0)
+      stats.value.readingMinutes = Math.round(totalDuration / 60)
+    } catch (error) {
+      console.error('加载阅读统计失败:', error)
+      // 阅读统计失败不影响其他数据显示
+      stats.value.readArticles = 0
+      stats.value.readingMinutes = 0
+      recentReadings.value = []
+    }
 
     console.log('统计数据加载完成:', stats.value)
   } catch (error) {
