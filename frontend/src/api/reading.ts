@@ -1,5 +1,5 @@
 import apiClient from './request'
-import type { ApiPaginatedResponse } from '@/types/api'
+import type { ApiResponse, PaginatedData } from '@/types/api'
 
 // 阅读历史响应
 export interface ReadingHistory {
@@ -36,12 +36,12 @@ export const endReading = (articleId: number, data: EndReadingRequest) =>
 
 // 获取阅读历史
 export const getReadingHistory = (params?: { page?: number; size?: number }) =>
-  apiClient.get<ApiPaginatedResponse<ReadingHistory>>('/reading/history', { params })
+  apiClient.get<ApiResponse<PaginatedData<ReadingHistory>>>('/reading/history', { params })
 
 // 获取个人阅读统计
 export const getReadingStats = (params?: { page?: number; size?: number }) =>
-  apiClient.get<ApiPaginatedResponse<ReadingStats>>('/reading/stats', { params })
+  apiClient.get<ApiResponse<PaginatedData<ReadingStats>>>('/reading/stats', { params })
 
 // 获取文章阅读统计（管理员）
 export const getArticleStats = (articleId: number, params?: { page?: number; size?: number }) =>
-  apiClient.get<ApiPaginatedResponse<ReadingStats>>(`/reading/articles/${articleId}/stats`, { params })
+  apiClient.get<ApiResponse<PaginatedData<ReadingStats>>>(`/reading/articles/${articleId}/stats`, { params })

@@ -196,7 +196,7 @@ async function loadHistory() {
     const res = await getReadingHistory({
       page: historyPagination.value.page,
       size: historyPagination.value.size
-    })
+    }) as any
     readingHistory.value = res.data.items
     historyPagination.value.total = res.data.total
   } catch (error) {
@@ -214,7 +214,7 @@ async function loadStats() {
     const res = await getReadingStats({
       page: statsPagination.value.page,
       size: statsPagination.value.size
-    })
+    }) as any
     articleStats.value = res.data.items
     statsPagination.value.total = res.data.total
   } catch (error) {

@@ -81,7 +81,7 @@ interface Emits {
   (e: 'edit', user: User): void
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 function handleSortChange() {

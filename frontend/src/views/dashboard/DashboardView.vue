@@ -168,7 +168,7 @@ async function loadStats() {
     // 加载阅读统计（独立处理，失败不影响其他数据）
     console.log('加载阅读统计...')
     try {
-      const readingRes = await getReadingStats({ page: 1, size: 10 })
+      const readingRes = await getReadingStats({ page: 1, size: 10 }) as any
       console.log('阅读统计响应:', readingRes)
       stats.value.readArticles = readingRes.data.total
       recentReadings.value = readingRes.data.items
