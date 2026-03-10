@@ -1,7 +1,7 @@
 from backend.models import User
 from backend.schemas.user import UserCreate, TokenResponse, UserResponse
 from backend.utils.password import hash_password, verify_password
-from backend.utils.jwt import create_access_token, create_refresh_token
+from backend.utils.jwt import create_access_token, create_refresh_token, decode_token
 from typing import Optional
 
 async def register_user(data: UserCreate) -> TokenResponse:
@@ -50,6 +50,44 @@ async def login_user(username: str, password: str) -> TokenResponse:
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
+        user=UserResponse(
+            id=user.id,
+            username=user.username,
+            email=user.email,
+            role=user.role,
+            is_active=user.is_active,
+            created_at=user.created_at
+        )
+    )
+
+
+async def refresh_token(refresh_token_str: str) -> TokenResponse:
+    """使用 refresh_token 刷新 access_token"""
+    # 解码 refresh_token
+    payload = decode_token(refresh_token_str)
+
+    if not payload:
+        raise ValueError("无效的 refresh_token")
+
+    user_id = payload.get("sub")
+
+    if not user_id:
+        raise ValueError("无效的 refresh_token")
+
+    user = await User.get_or_none(id=int(user_id))
+    if not user:
+        raise ValueError("用户不存在")
+
+    if not user.is_active:
+        raise ValueError("用户已被禁用")
+
+    # 生成新的 tokens
+    access_token = create_access_token({"sub": str(user.id), "role": user.role})
+    new_refresh_token = create_refresh_token({"sub": str(user.id)})
+
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=new_refresh_token,
         user=UserResponse(
             id=user.id,
             username=user.username,
