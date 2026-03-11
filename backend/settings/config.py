@@ -39,6 +39,8 @@ class Settings(BaseSettings):
 
     # 火山引擎 AI 配置
     ark_api_key: str
+    # 是否验证SSL证书（某些网络环境下需要禁用）
+    verify_ssl: bool = True
 
     @property
     def cors_origins_list(self) -> List[str]:

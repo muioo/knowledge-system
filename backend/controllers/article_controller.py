@@ -431,8 +431,8 @@ async def import_article_from_html_url(
         images_dir = os.path.join(article_dir, "images")
         os.makedirs(images_dir, exist_ok=True)
 
-        # 8. 提取并下载图片
-        image_urls = extract_images(full_html)
+        # 8. 提取并下载图片（传入base_url处理相对路径）
+        image_urls = extract_images(full_html, base_url=url)
         url_mapping = {}
 
         if image_urls:

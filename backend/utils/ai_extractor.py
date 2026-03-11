@@ -49,27 +49,40 @@ async def _call_ai_api(prompt: str, api_key: Optional[str] = None) -> Dict:
     }
 
     try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
+        timeout_config = httpx.Timeout(
+            connect=10.0,
+            read=60.0,
+            write=10.0,
+            pool=10.0
+        )
+
+        async with httpx.AsyncClient(
+            timeout=timeout_config,
+            verify=settings.verify_ssl,
+            follow_redirects=True,
+            limits=httpx.Limits(max_keepalive_connections=5, max_connections=10)
+        ) as client:
             response = await client.post(
                 f"{ARK_API_BASE}/chat/completions",
                 headers=headers,
                 json=payload
             )
+
             response.raise_for_status()
             result = response.json()
 
-            # 解析响应
             if "choices" in result and len(result["choices"]) > 0:
                 content = result["choices"][0]["message"]["content"]
                 return {"content": content}
             else:
-                raise ValueError(f"API 响应格式异常: {result}")
+                raise ValueError(f"API 响应格式异常")
 
     except httpx.HTTPStatusError as e:
-        error_detail = e.response.text
-        raise ValueError(f"API 请求失败 (HTTP {e.response.status_code}): {error_detail}")
-    except httpx.RequestError as e:
-        raise ValueError(f"网络请求失败: {str(e)}")
+        raise ValueError(f"API 请求失败 (HTTP {e.response.status_code})")
+    except httpx.TimeoutException:
+        raise ValueError("网络请求超时")
+    except httpx.RequestError:
+        raise ValueError("网络请求失败")
     except Exception as e:
         raise ValueError(f"AI 调用失败: {str(e)}")
 
@@ -90,14 +103,8 @@ def _clean_text(text: str) -> str:
 
 def _clean_json_strings(obj) -> Dict:
     """递归清理 JSON 对象中的所有字符串值"""
-    import logging
-    logger = logging.getLogger(__name__)
-
     if isinstance(obj, str):
-        cleaned = _clean_text(obj)
-        if len(cleaned) != len(obj):
-            logger.debug(f"[AI Extractor] 清理字符串: {len(obj)} -> {len(cleaned)} 字符")
-        return cleaned
+        return _clean_text(obj)
     elif isinstance(obj, dict):
         return {k: _clean_json_strings(v) for k, v in obj.items()}
     elif isinstance(obj, list):
@@ -111,15 +118,7 @@ def _parse_json_response(result_text: str) -> Dict:
     import logging
     logger = logging.getLogger(__name__)
 
-    original_length = len(result_text)
-    logger.info(f"[AI Extractor] 原始返回内容长度: {original_length} 字符")
-
-    result_text = _clean_text(result_text)
-    result_text = result_text.strip()
-
-    cleaned_length = len(result_text)
-    if cleaned_length != original_length:
-        logger.info(f"[AI Extractor] 清理控制字符后: {cleaned_length} 字符 (移除 {original_length - cleaned_length} 字符)")
+    result_text = _clean_text(result_text).strip()
 
     # 移除 markdown 代码块标记
     if result_text.startswith("```json"):
@@ -150,9 +149,7 @@ def _parse_json_response(result_text: str) -> Dict:
             except json.JSONDecodeError:
                 pass
 
-        debug_content = result_text[:500]
-        logger.error(f"[AI Extractor] AI返回内容片段: {debug_content}")
-        raise ValueError(f"JSON解析失败: {str(e)}, AI返回内容: {result_text[:200]}")
+        raise ValueError(f"JSON解析失败")
 
 
 async def extract_article_from_url(url: str, html_content: str, api_key: Optional[str] = None) -> Dict:
@@ -240,8 +237,11 @@ async def extract_article_async(article_id: int) -> bool:
     Returns:
         bool: 成功返回 True，失败返回 False
     """
+    import logging
     import aiofiles
     from backend.models import Article
+
+    logger = logging.getLogger(__name__)
 
     try:
         article = await Article.get(id=article_id)
@@ -249,19 +249,17 @@ async def extract_article_async(article_id: int) -> bool:
         await article.save()
 
         if not article.html_path:
-            print(f"[AI Extractor] Article {article_id}: No html_path")
+            logger.warning(f"[AI Extractor] Article {article_id}: No html_path")
             return False
 
         html_path = os.path.join(settings.upload_dir, article.html_path)
 
         if not os.path.exists(html_path):
-            print(f"[AI Extractor] Article {article_id}: File not found: {html_path}")
+            logger.warning(f"[AI Extractor] Article {article_id}: File not found")
             return False
 
         async with aiofiles.open(html_path, 'r', encoding='utf-8') as f:
             html_content = await f.read()
-
-        print(f"[AI Extractor] Article {article_id}: Read {len(html_content)} chars from HTML")
 
         # 提取正文内容
         from bs4 import BeautifulSoup
@@ -273,24 +271,18 @@ async def extract_article_async(article_id: int) -> bool:
         text_content = soup.get_text(separator=' ', strip=True)
         text_content = ' '.join(text_content.split())[:5000]
 
-        print(f"[AI Extractor] Article {article_id}: Using {len(text_content)} chars for AI")
-
         result = await extract_article_summary(text_content)
-
-        print(f"[AI Extractor] Article {article_id}: AI result keys: {result.keys()}")
 
         article.summary = result.get("summary")
         article.keywords = result.get("keywords")
         article.processing_status = "completed"
         await article.save()
 
-        print(f"[AI Extractor] Article {article_id}: Successfully extracted")
+        logger.info(f"[AI Extractor] Article {article_id}: Successfully extracted")
         return True
 
     except Exception as e:
-        print(f"[AI Extractor] Article {article_id}: Failed with error: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        logger.error(f"[AI Extractor] Article {article_id}: Failed - {str(e)}")
 
         try:
             article = await Article.get(id=article_id)
