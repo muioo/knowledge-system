@@ -39,7 +39,7 @@ const apiClient: AxiosInstance = axios.create({
 // 请求拦截器
 apiClient.interceptors.request.use(
   (config: CustomAxiosRequestConfig) => {
-    const token = localStorage.getItem(TOKEN_KEY)
+    const token = sessionStorage.getItem(TOKEN_KEY)
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -75,7 +75,7 @@ apiClient.interceptors.response.use(
       isRefreshing = true
 
       try {
-        const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY)
+        const refreshToken = sessionStorage.getItem(REFRESH_TOKEN_KEY)
         if (refreshToken) {
           const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
             refresh_token: refreshToken,
@@ -91,14 +91,14 @@ apiClient.interceptors.response.use(
             throw new Error('Token 刷新失败：未返回 access_token')
           }
 
-          localStorage.setItem(TOKEN_KEY, access_token)
+          sessionStorage.setItem(TOKEN_KEY, access_token)
           processQueue(access_token)
 
           originalRequest.headers.Authorization = `Bearer ${access_token}`
           return apiClient(originalRequest)
         } else {
           // 没有 refresh_token，直接跳转到登录页
-          localStorage.removeItem(TOKEN_KEY)
+          sessionStorage.removeItem(TOKEN_KEY)
           window.location.href = '/login'
           return Promise.reject(new Error('未找到 refresh_token'))
         }
@@ -108,8 +108,8 @@ apiClient.interceptors.response.use(
         failedQueue.forEach((callback) => callback('' as any))
         failedQueue = []
 
-        localStorage.removeItem(TOKEN_KEY)
-        localStorage.removeItem(REFRESH_TOKEN_KEY)
+        sessionStorage.removeItem(TOKEN_KEY)
+        sessionStorage.removeItem(REFRESH_TOKEN_KEY)
         window.location.href = '/login'
         return Promise.reject(refreshError)
       } finally {

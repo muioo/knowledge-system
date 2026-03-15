@@ -126,7 +126,7 @@ const router = createRouter({
 
 // 路由守卫
 router.beforeEach((to, _from, next) => {
-  const token = localStorage.getItem(TOKEN_KEY)
+  const token = sessionStorage.getItem(TOKEN_KEY)
   const requiresAuth = to.matched.some((record) => record.meta?.requiresAuth !== false)
   const requiresAdmin = to.matched.some((record) => record.meta?.requiresAdmin === true)
 
@@ -141,8 +141,8 @@ router.beforeEach((to, _from, next) => {
     next('/dashboard')
   } else if (requiresAdmin && token) {
     // 检查用户是否是管理员
-    // 从 localStorage 获取用户信息
-    const userStr = localStorage.getItem('user')
+    // 从 sessionStorage 获取用户信息
+    const userStr = sessionStorage.getItem('user')
     if (userStr) {
       try {
         const user = JSON.parse(userStr)

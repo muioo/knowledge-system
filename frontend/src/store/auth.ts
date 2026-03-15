@@ -37,9 +37,9 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = access_token
     user.value = userData
 
-    localStorage.setItem(TOKEN_KEY, access_token)
-    localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token)
-    localStorage.setItem(USER_KEY, JSON.stringify(userData))
+    sessionStorage.setItem(TOKEN_KEY, access_token)
+    sessionStorage.setItem(REFRESH_TOKEN_KEY, refresh_token)
+    sessionStorage.setItem(USER_KEY, JSON.stringify(userData))
 
     loading.value = false
     return response
@@ -64,9 +64,9 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = access_token
     user.value = userData
 
-    localStorage.setItem(TOKEN_KEY, access_token)
-    localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token)
-    localStorage.setItem(USER_KEY, JSON.stringify(userData))
+    sessionStorage.setItem(TOKEN_KEY, access_token)
+    sessionStorage.setItem(REFRESH_TOKEN_KEY, refresh_token)
+    sessionStorage.setItem(USER_KEY, JSON.stringify(userData))
 
     loading.value = false
     return response
@@ -80,7 +80,7 @@ export const useAuthStore = defineStore('auth', () => {
       // 防御性处理：兼容不同的响应格式
       const userData = response.data || response
       user.value = userData
-      localStorage.setItem(USER_KEY, JSON.stringify(userData))
+      sessionStorage.setItem(USER_KEY, JSON.stringify(userData))
     } catch (error) {
       logout()
       throw error
@@ -88,7 +88,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function refreshToken() {
-    const refreshTokenValue = localStorage.getItem(REFRESH_TOKEN_KEY)
+    const refreshTokenValue = sessionStorage.getItem(REFRESH_TOKEN_KEY)
     if (!refreshTokenValue) throw new Error('No refresh token')
 
     const response = await authApi.refreshToken(refreshTokenValue) as any
@@ -105,29 +105,29 @@ export const useAuthStore = defineStore('auth', () => {
     const { access_token } = tokenData
 
     token.value = access_token
-    localStorage.setItem(TOKEN_KEY, access_token)
+    sessionStorage.setItem(TOKEN_KEY, access_token)
   }
 
   function logout() {
     user.value = null
     token.value = null
-    localStorage.removeItem(TOKEN_KEY)
-    localStorage.removeItem(REFRESH_TOKEN_KEY)
-    localStorage.removeItem(USER_KEY)
+    sessionStorage.removeItem(TOKEN_KEY)
+    sessionStorage.removeItem(REFRESH_TOKEN_KEY)
+    sessionStorage.removeItem(USER_KEY)
   }
 
-  // 从 localStorage 恢复状态
+  // 从 sessionStorage 恢复状态
   function restoreState() {
-    const savedToken = localStorage.getItem(TOKEN_KEY)
-    const savedUser = localStorage.getItem(USER_KEY)
+    const savedToken = sessionStorage.getItem(TOKEN_KEY)
+    const savedUser = sessionStorage.getItem(USER_KEY)
 
     if (savedToken && savedUser) {
       try {
         token.value = savedToken
         user.value = JSON.parse(savedUser)
       } catch {
-        localStorage.removeItem(TOKEN_KEY)
-        localStorage.removeItem(USER_KEY)
+        sessionStorage.removeItem(TOKEN_KEY)
+        sessionStorage.removeItem(USER_KEY)
       }
     }
   }

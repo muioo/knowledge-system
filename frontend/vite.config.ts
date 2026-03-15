@@ -13,6 +13,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
+        // 修改为服务器后端ip:port
         target: 'http://localhost:8022',
         changeOrigin: true,
         rewrite: (path) => path,
