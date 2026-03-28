@@ -1,19 +1,31 @@
 import React, { useRef, useState, useEffect } from 'react';
 
 /**
+ * 颜色常量
+ */
+const COLORS = {
+  primary: '#2563eb',
+  blue: '#3b82f6',
+  rgba: (r, g, b, a) => `rgba(${r}, ${g}, ${b}, ${a})`,
+};
+
+/**
+ * 路由配置
+ */
+const routes = [
+  { start: { x: 100, y: 150, delay: 0 }, end: { x: 200, y: 80, delay: 2 }, color: COLORS.primary },
+  { start: { x: 200, y: 80, delay: 2 }, end: { x: 260, y: 120, delay: 4 }, color: COLORS.primary },
+  { start: { x: 50, y: 50, delay: 1 }, end: { x: 150, y: 180, delay: 3 }, color: COLORS.primary },
+  { start: { x: 280, y: 60, delay: 0.5 }, end: { x: 180, y: 180, delay: 2.5 }, color: COLORS.primary }
+];
+
+/**
  * DotMap 组件
  * 使用 Canvas 绘制动态点地图和路径动画
  */
 const DotMap = () => {
   const canvasRef = useRef(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-
-  const routes = [
-    { start: { x: 100, y: 150, delay: 0 }, end: { x: 200, y: 80, delay: 2 }, color: '#2563eb' },
-    { start: { x: 200, y: 80, delay: 2 }, end: { x: 260, y: 120, delay: 4 }, color: '#2563eb' },
-    { start: { x: 50, y: 50, delay: 1 }, end: { x: 150, y: 180, delay: 3 }, color: '#2563eb' },
-    { start: { x: 280, y: 60, delay: 0.5 }, end: { x: 180, y: 180, delay: 2.5 }, color: '#2563eb' }
-  ];
 
   const generateDots = (width, height) => {
     const dots = [];
@@ -71,7 +83,7 @@ const DotMap = () => {
       dots.forEach((dot) => {
         ctx.beginPath();
         ctx.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(37, 99, 235, ${dot.opacity})`;
+        ctx.fillStyle = COLORS.rgba(37, 99, 235, dot.opacity);
         ctx.fill();
       });
     }
@@ -103,12 +115,12 @@ const DotMap = () => {
 
         ctx.beginPath();
         ctx.arc(x, y, 3, 0, Math.PI * 2);
-        ctx.fillStyle = '#3b82f6';
+        ctx.fillStyle = COLORS.blue;
         ctx.fill();
 
         ctx.beginPath();
         ctx.arc(x, y, 6, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(59, 130, 246, 0.4)';
+        ctx.fillStyle = COLORS.rgba(59, 130, 246, 0.4);
         ctx.fill();
 
         if (progress === 1) {
