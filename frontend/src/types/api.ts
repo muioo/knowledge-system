@@ -66,9 +66,9 @@ export interface Article {
 
 // 文章创建数据
 export interface ArticleCreateData {
-  title: string;
-  summary: string;
-  keywords: string;
+  title?: string;
+  summary?: string;
+  keywords?: string;
   tagIds?: number[];
 }
 

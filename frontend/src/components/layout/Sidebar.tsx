@@ -14,7 +14,18 @@ import {
  * Sidebar 组件 - 侧边栏导航
  * 完全还原 home.html 的样式
  */
-export const Sidebar = ({ isOpen, onClose }) => {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose?: () => void;
+}
+
+interface MenuItem {
+  path: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  label: string;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -22,7 +33,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
   const [extraOptionsOpen, setExtraOptionsOpen] = useState(false);
   const [moreInfoOpen, setMoreInfoOpen] = useState(false);
 
-  const menuItems = useMemo(
+  const menuItems = useMemo<MenuItem[]>(
     () => [
       { path: '/dashboard', icon: HomeIcon, label: '仪表盘' },
       { path: '/articles', icon: FileTextIcon, label: '文章管理' },
@@ -32,7 +43,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
     []
   );
 
-  const handleNavigate = (path) => {
+  const handleNavigate = (path: string) => {
     navigate(path);
     // Mobile 关闭侧边栏
     if (window.innerWidth < 768 && onClose) {

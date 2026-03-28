@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, FormEvent } from 'react';
 import { useArticles } from '../contexts/ArticleContext';
 import ArticleCard from '../components/ArticleCard';
 import Input from '../components/ui/Input';
 
-const ArticleList = () => {
+const ArticleList: React.FC = () => {
   const {
     articles,
     tags,
@@ -18,13 +18,13 @@ const ArticleList = () => {
   } = useArticles();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTag, setSelectedTag] = useState(null);
+  const [selectedTag, setSelectedTag] = useState<number | null>(null);
 
   useEffect(() => {
     fetchArticles();
   }, [currentPage]);
 
-  const handleSearch = (e) => {
+  const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     setCurrentPage(1);
     fetchArticles({
@@ -33,7 +33,7 @@ const ArticleList = () => {
     });
   };
 
-  const handleTagFilter = (tagId) => {
+  const handleTagFilter = (tagId: number) => {
     setSelectedTag(tagId === selectedTag ? null : tagId);
     setCurrentPage(1);
     fetchArticles({
@@ -42,7 +42,7 @@ const ArticleList = () => {
     });
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('确定要删除这篇文章吗？')) {
       const result = await deleteArticle(id);
       if (!result.success) {
@@ -121,7 +121,7 @@ const ArticleList = () => {
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-2">
               <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                onClick={() => setCurrentPage(currentPage - 1)}
                 disabled={currentPage === 1}
                 className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -131,7 +131,7 @@ const ArticleList = () => {
                 第 {currentPage} / {totalPages} 页，共 {total} 篇
               </span>
               <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => setCurrentPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
                 className="px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >

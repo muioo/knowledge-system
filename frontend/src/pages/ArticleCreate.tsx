@@ -3,19 +3,38 @@ import { useNavigate } from 'react-router-dom';
 import { useArticles } from '../contexts/ArticleContext';
 import Input from '../components/ui/Input';
 import Card from '../components/ui/Card';
+import type { Tag } from '../types/api';
 
-const ArticleCreate = () => {
+interface FileData {
+  file: File | null;
+  title: string;
+  summary: string;
+  keywords: string;
+  tagIds: number[];
+}
+
+interface UrlData {
+  url: string;
+  tagIds: number[];
+  title: string;
+}
+
+const ArticleCreate: React.FC = () => {
   const navigate = useNavigate();
   const { tags, createArticle, importFromUrl, isLoading } = useArticles();
 
-  const [mode, setMode] = useState('file');
-  const [fileData, setFileData] = useState({ file: null, title: '', summary: '', keywords: '', tagIds: [] });
-  const [urlData, setUrlData] = useState({ url: '', tagIds: [], title: '' });
+  const [mode, setMode] = useState<'file' | 'url'>('file');
+  const [fileData, setFileData] = useState<FileData>({ file: null, title: '', summary: '', keywords: '', tagIds: [] });
+  const [urlData, setUrlData] = useState<UrlData>({ url: '', tagIds: [], title: '' });
   const [error, setError] = useState('');
 
-  const handleFileChange = (e) => { setFileData({ ...fileData, file: e.target.files[0] }); };
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFileData({ ...fileData, file: e.target.files[0] });
+    }
+  };
 
-  const handleTagToggle = (tagId) => {
+  const handleTagToggle = (tagId: number) => {
     const currentData = mode === 'file' ? fileData : urlData;
     const newTagIds = currentData.tagIds.includes(tagId)
       ? currentData.tagIds.filter(id => id !== tagId)
@@ -24,7 +43,7 @@ const ArticleCreate = () => {
     else setUrlData({ ...urlData, tagIds: newTagIds });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -33,14 +52,20 @@ const ArticleCreate = () => {
         setError('请填写所有必填字段');
         return;
       }
-      const result = await createArticle(fileData);
+      const result = await createArticle({
+        file: fileData.file,
+        title: fileData.title,
+        summary: fileData.summary,
+        keywords: fileData.keywords,
+        tagIds: fileData.tagIds
+      });
       if (result.success) navigate('/articles');
-      else setError(result.error);
+      else setError(result.error || '创建文章失败');
     } else {
       if (!urlData.url) { setError('请输入文章 URL'); return; }
       const result = await importFromUrl(urlData);
       if (result.success) navigate('/articles');
-      else setError(result.error);
+      else setError(result.error || '导入文章失败');
     }
   };
 
@@ -78,27 +103,34 @@ const ArticleCreate = () => {
           ) : (
             <>
               <div><label className="block text-sm font-medium text-gray-700 mb-2">文章 URL <span className="text-blue-500">*</span></label><Input type="url" value={urlData.url} onChange={(e) => setUrlData({ ...urlData, url: e.target.value })} placeholder="https://example.com/article" required /><p className="mt-1 text-xs text-gray-500">系统将自动抓取内容并使用 AI 提取标题、摘要和关键词</p></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-2">自定义标题（可选）</label><Input type="text" value={urlData.title} onChange={(e) => setUrlData({ ...urlData, title: e.target.value })} placeholder="留空则由 AI 自动提取" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-2">标题（可选）</label><Input type="text" value={urlData.title} onChange={(e) => setUrlData({ ...urlData, title: e.target.value })} placeholder="留空则自动提取" /></div>
             </>
           )}
 
-          {tags.length > 0 && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">选择标签</label>
-              <div className="flex flex-wrap gap-2">
-                {tags.map(tag => {
-                  const isSelected = (mode === 'file' ? fileData.tagIds : urlData.tagIds).includes(tag.id);
-                  return <button key={tag.id} type="button" onClick={() => handleTagToggle(tag.id)} className={`px-3 py-1 rounded-full text-sm transition-colors ${isSelected ? 'text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`} style={isSelected ? { backgroundColor: tag.color } : {}}>{tag.name}</button>;
-                })}
-              </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">标签</label>
+            <div className="flex flex-wrap gap-2">
+              {tags.map(tag => (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() => handleTagToggle(tag.id)}
+                  className={`px-3 py-1 rounded-full text-sm transition-colors ${(mode === 'file' ? fileData.tagIds : urlData.tagIds).includes(tag.id) ? 'text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                  style={(mode === 'file' ? fileData.tagIds : urlData.tagIds).includes(tag.id) ? { backgroundColor: tag.color } : {}}
+                >
+                  {tag.name}
+                </button>
+              ))}
             </div>
-          )}
+          </div>
 
-          <div className="flex gap-4 pt-4">
-            <button type="submit" disabled={isLoading} className="flex-1 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-colors disabled:opacity-50">
+          <div className="flex gap-3">
+            <button type="submit" disabled={isLoading} className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
               {isLoading ? '处理中...' : mode === 'file' ? '上传文章' : '导入文章'}
             </button>
-            <button type="button" onClick={() => navigate('/articles')} className="px-6 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">取消</button>
+            <button type="button" onClick={() => navigate('/articles')} className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+              取消
+            </button>
           </div>
         </form>
       </Card>

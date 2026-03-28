@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ArticleProvider } from './contexts/ArticleContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import MainLayout from './components/layout/MainLayout';
+import { MainLayout } from './components/layout/MainLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ArticleList from './pages/ArticleList';
@@ -12,7 +12,7 @@ import ArticleDetail from './pages/ArticleDetail';
 import TagManage from './pages/TagManage';
 import ReadingStats from './pages/ReadingStats';
 
-function App() {
+const App: React.FC = () => {
   return (
     <AuthProvider>
       <ArticleProvider>
@@ -34,6 +34,6 @@ function App() {
       </ArticleProvider>
     </AuthProvider>
   );
-}
+};
 
 export default App;

@@ -5,7 +5,12 @@ import { MenuIcon } from '../ui/Icons';
 /**
  * Header 组件 - 移动端顶部栏
  */
-export const Header = ({ onMenuToggle, title = '仪表盘' }) => {
+interface HeaderProps {
+  onMenuToggle: () => void;
+  title?: string;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title = '仪表盘' }) => {
   const { user } = useAuth();
 
   return (

@@ -7,7 +7,7 @@ export const articleApi = {
    */
   getArticles: async (params?: Record<string, any>): Promise<PaginatedResponse<Article>> => {
     const response = await apiClient.get<ApiResponse<PaginatedResponse<Article>>>('/articles/', { params });
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -15,15 +15,15 @@ export const articleApi = {
    */
   getArticle: async (id: number): Promise<Article> => {
     const response = await apiClient.get<ApiResponse<Article>>(`/articles/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   /**
    * 获取文章 HTML 内容
    */
-  getArticleHtml: async (id: number): Promise<Article> => {
-    const response = await apiClient.get<ApiResponse<Article>>(`/articles/${id}/html`);
-    return response.data;
+  getArticleHtml: async (id: number): Promise<{ html_content: string }> => {
+    const response = await apiClient.get<ApiResponse<{ html_content: string }>>(`/articles/${id}/html`);
+    return response.data.data;
   },
 
   /**
@@ -32,9 +32,9 @@ export const articleApi = {
   uploadArticle: async (file: File, data: ArticleCreateData): Promise<Article> => {
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('title', data.title);
-    formData.append('summary', data.summary);
-    formData.append('keywords', data.keywords);
+    if (data.title) formData.append('title', data.title);
+    if (data.summary) formData.append('summary', data.summary);
+    if (data.keywords) formData.append('keywords', data.keywords);
     if (data.tagIds && data.tagIds.length > 0) {
       formData.append('tag_ids', data.tagIds.join(','));
     }
@@ -42,7 +42,7 @@ export const articleApi = {
     const response = await apiClient.post<ApiResponse<Article>>('/articles/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -50,7 +50,7 @@ export const articleApi = {
    */
   importFromUrl: async (data: UrlImportData): Promise<Article> => {
     const response = await apiClient.post<ApiResponse<Article>>('/articles/from-url-html', data);
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -58,7 +58,7 @@ export const articleApi = {
    */
   updateArticle: async (id: number, data: Partial<ArticleCreateData> & { tagIds?: number[] }): Promise<Article> => {
     const response = await apiClient.put<ApiResponse<Article>>(`/articles/${id}`, data);
-    return response.data;
+    return response.data.data;
   },
 
   /**

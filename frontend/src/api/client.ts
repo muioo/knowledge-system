@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import type { ApiResponse } from '../types/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8022/api/v1';
+const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8022/api/v1';
 
 // 创建 axios 实例
 export const apiClient: AxiosInstance = axios.create({
@@ -32,7 +32,7 @@ const processQueue = (error: Error | null, token: string | null = null) => {
     if (error) {
       prom.reject(error);
     } else {
-      prom.resolve(token);
+      prom.resolve(token || undefined);
     }
   });
   failedQueue = [];

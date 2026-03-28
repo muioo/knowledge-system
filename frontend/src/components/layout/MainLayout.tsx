@@ -7,7 +7,7 @@ import { Header } from './Header';
  * MainLayout 组件 - 主布局容器
  * 包含 Sidebar、Header 和内容区域
  */
-export const MainLayout = () => {
+export const MainLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleMenuToggle = () => {

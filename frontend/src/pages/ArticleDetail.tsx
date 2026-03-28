@@ -3,21 +3,25 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { articleApi } from '../api/article';
 import { readingApi } from '../api/reading';
 import Card from '../components/ui/Card';
+import type { Article } from '../types/api';
 
-const ArticleDetail = () => {
-  const { id } = useParams();
+const ArticleDetail: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [article, setArticle] = useState(null);
+  const [article, setArticle] = useState<Article | null>(null);
   const [htmlContent, setHtmlContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchArticle();
-    readingApi.startReading(parseInt(id)).catch(console.error);
+    if (id) {
+      readingApi.startReading(parseInt(id)).catch(console.error);
+    }
   }, [id]);
 
   const fetchArticle = async () => {
+    if (!id) return;
     setIsLoading(true);
     setError(null);
     try {
@@ -27,17 +31,18 @@ const ArticleDetail = () => {
       ]);
       setArticle(articleData);
       setHtmlContent(htmlData.html_content || '');
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || '获取文章详情失败');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const formatDate = (dateString) => new Date(dateString).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+  const formatDate = (dateString: string): string => new Date(dateString).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
 
   if (isLoading) return <div className="flex items-center justify-center min-h-[50vh]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>;
   if (error) return <div className="max-w-4xl mx-auto"><div className="bg-red-50 text-red-600 p-4 rounded-lg">{error}</div><button onClick={() => navigate('/articles')} className="mt-4 px-4 py-2 text-blue-600 hover:underline">返回文章列表</button></div>;
+  if (!article) return <div className="max-w-4xl mx-auto"><div className="bg-red-50 text-red-600 p-4 rounded-lg">文章不存在</div></div>;
 
   return (
     <div className="max-w-4xl mx-auto">

@@ -7,7 +7,7 @@ export const tagApi = {
    */
   getTags: async (): Promise<Tag[]> => {
     const response = await apiClient.get<ApiResponse<Tag[]>>('/tags/');
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -15,7 +15,7 @@ export const tagApi = {
    */
   getTag: async (id: number): Promise<Tag> => {
     const response = await apiClient.get<ApiResponse<Tag>>(`/tags/${id}`);
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -23,7 +23,7 @@ export const tagApi = {
    */
   createTag: async (data: { name: string; color?: string }): Promise<Tag> => {
     const response = await apiClient.post<ApiResponse<Tag>>('/tags/', data);
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -31,7 +31,7 @@ export const tagApi = {
    */
   updateTag: async (id: number, data: { name?: string; color?: string }): Promise<Tag> => {
     const response = await apiClient.put<ApiResponse<Tag>>(`/tags/${id}`, data);
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -48,6 +48,6 @@ export const tagApi = {
     const response = await apiClient.get<ApiResponse<PaginatedResponse<any>>>(`/tags/${id}/articles`, {
       params: { page, size },
     });
-    return response.data;
+    return response.data.data;
   },
 };

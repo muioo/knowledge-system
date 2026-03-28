@@ -2,9 +2,15 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Card from './ui/Card';
 import { FileTextIcon, EyeIcon } from './ui/Icons';
+import type { Article } from '../types/api';
 
-const ArticleCard = ({ article, onDelete }) => {
-  const formatDate = (dateString) => {
+interface ArticleCardProps {
+  article: Article;
+  onDelete: (id: number) => void;
+}
+
+const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete }) => {
+  const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString('zh-CN', {
       year: 'numeric',
       month: '2-digit',

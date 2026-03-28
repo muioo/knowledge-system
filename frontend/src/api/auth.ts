@@ -12,7 +12,7 @@ export const authApi = {
    */
   login: async (data: LoginRequest): Promise<LoginResponse> => {
     const response = await apiClient.post<ApiResponse<LoginResponse>>('/auth/login', data);
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -20,6 +20,6 @@ export const authApi = {
    */
   getCurrentUser: async (): Promise<User> => {
     const response = await apiClient.get<ApiResponse<User>>('/users/me');
-    return response.data;
+    return response.data.data;
   },
 };

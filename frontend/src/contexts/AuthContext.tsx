@@ -1,10 +1,18 @@
-/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { authApi } from '../api/auth';
+import type { User, LoginResponse } from '../types/api';
 
-const AuthContext = createContext(undefined);
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => void;
+}
 
-export const useAuth = () => {
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
@@ -12,8 +20,12 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -39,15 +51,15 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = async (username, password) => {
+  const login = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const response = await authApi.login({ username, password });
+      const response: LoginResponse = await authApi.login({ username, password });
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('refresh_token', response.refresh_token);
       setUser(response.user);
       setIsAuthenticated(true);
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         error: error.response?.data?.detail || '登录失败，请检查用户名和密码',
@@ -77,7 +89,7 @@ export const AuthProvider = ({ children }) => {
       login,
       logout,
     }),
-    [user, isAuthenticated, isLoading, login, logout]
+    [user, isAuthenticated, isLoading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

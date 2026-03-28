@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { readingApi } from '../api/reading';
 import Card from '../components/ui/Card';
+import type { ReadingStats, ReadingHistory } from '../types/api';
 
-const ReadingStats = () => {
-  const [stats, setStats] = useState([]);
-  const [history, setHistory] = useState([]);
+const ReadingStats: React.FC = () => {
+  const [stats, setStats] = useState<ReadingStats[]>([]);
+  const [history, setHistory] = useState<ReadingHistory[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('stats');
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'stats' | 'history'>('stats');
 
   useEffect(() => { fetchData(); }, [activeTab]);
 
@@ -22,20 +23,22 @@ const ReadingStats = () => {
         const data = await readingApi.getHistory();
         setHistory(data.items || []);
       }
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || '获取数据失败');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const formatDuration = (seconds) => {
+  const formatDuration = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     return hours > 0 ? `${hours}小时${minutes}分钟` : `${minutes}分钟`;
   };
 
-  const formatDate = (dateString) => new Date(dateString).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+  };
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -79,24 +82,19 @@ const ReadingStats = () => {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">文章</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">文章标题</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">开始时间</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">时长</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">阅读时长</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">进度</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
-                {history.map(record => (
-                  <tr key={record.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4"><a href={`/articles/${record.article_id}`} className="text-blue-600 hover:underline">{record.article_title}</a></td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{formatDate(record.started_at)}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{record.reading_duration > 0 ? formatDuration(record.reading_duration) : '-'}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-gray-200 rounded-full h-2 w-24"><div className="bg-blue-500 h-2 rounded-full" style={{ width: `${record.reading_progress}%` }} /></div>
-                        <span className="text-sm text-gray-600">{record.reading_progress}%</span>
-                      </div>
-                    </td>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {history.map(item => (
+                  <tr key={item.id}>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{item.article_title}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{formatDate(item.started_at)}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{formatDuration(item.reading_duration)}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{Math.round(item.reading_progress)}%</td>
                   </tr>
                 ))}
               </tbody>

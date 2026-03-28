@@ -3,10 +3,18 @@ import Card from '../components/ui/Card';
 import { useAuth } from '../contexts/AuthContext';
 import { HomeIcon, FileTextIcon, TagIcon, BarChartIcon } from '../components/ui/Icons';
 
-const Dashboard = () => {
+interface StatItem {
+  title: string;
+  value: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  color: string;
+  path: string;
+}
+
+const Dashboard: React.FC = () => {
   const { user } = useAuth();
 
-  const stats = [
+  const stats: StatItem[] = [
     { title: '总文章数', value: '0', icon: FileTextIcon, color: 'bg-blue-500', path: '/articles' },
     { title: '标签数量', value: '0', icon: TagIcon, color: 'bg-green-500', path: '/tags' },
     { title: '阅读统计', value: '查看', icon: BarChartIcon, color: 'bg-purple-500', path: '/reading/stats' },

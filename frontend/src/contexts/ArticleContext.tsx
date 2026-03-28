@@ -1,10 +1,26 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { articleApi } from '../api/article';
 import { tagApi } from '../api/tag';
+import type { Article, Tag, ArticleCreateData, UrlImportData } from '../types/api';
 
-const ArticleContext = createContext(undefined);
+interface ArticleContextType {
+  articles: Article[];
+  tags: Tag[];
+  total: number;
+  currentPage: number;
+  pageSize: number;
+  isLoading: boolean;
+  error: string | null;
+  fetchArticles: (params?: any) => Promise<void>;
+  createArticle: (data: { file: File; title?: string; summary?: string; keywords?: string; tagIds?: number[] }) => Promise<{ success: boolean; error?: string }>;
+  importFromUrl: (data: UrlImportData) => Promise<{ success: boolean; error?: string }>;
+  deleteArticle: (id: number) => Promise<{ success: boolean; error?: string }>;
+  setCurrentPage: (page: number) => void;
+}
 
-export const useArticles = () => {
+const ArticleContext = createContext<ArticleContextType | undefined>(undefined);
+
+export const useArticles = (): ArticleContextType => {
   const context = useContext(ArticleContext);
   if (!context) {
     throw new Error('useArticles must be used within an ArticleProvider');
@@ -12,14 +28,18 @@ export const useArticles = () => {
   return context;
 };
 
-export const ArticleProvider = ({ children }) => {
-  const [articles, setArticles] = useState([]);
-  const [tags, setTags] = useState([]);
+interface ArticleProviderProps {
+  children: React.ReactNode;
+}
+
+export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) => {
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(20);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -33,7 +53,7 @@ export const ArticleProvider = ({ children }) => {
     fetchTags();
   }, []);
 
-  const fetchArticles = async (params = {}) => {
+  const fetchArticles = async (params: any = {}) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -44,51 +64,51 @@ export const ArticleProvider = ({ children }) => {
       });
       setArticles(response.items);
       setTotal(response.total);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || '获取文章列表失败');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const createArticle = async (data) => {
+  const createArticle = async (data: { file: File; title?: string; summary?: string; keywords?: string; tagIds?: number[] }): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     try {
       await articleApi.uploadArticle(data.file, data);
       await fetchArticles();
       return { success: true };
-    } catch (err) {
+    } catch (err: any) {
       return { success: false, error: err.message || '创建文章失败' };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const importFromUrl = async (data) => {
+  const importFromUrl = async (data: UrlImportData): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     try {
       await articleApi.importFromUrl(data);
       await fetchArticles();
       return { success: true };
-    } catch (err) {
+    } catch (err: any) {
       return { success: false, error: err.message || '导入文章失败' };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const deleteArticle = async (id) => {
+  const deleteArticle = async (id: number): Promise<{ success: boolean; error?: string }> => {
     try {
       await articleApi.deleteArticle(id);
       setArticles(articles.filter(a => a.id !== id));
       setTotal(prev => prev - 1);
       return { success: true };
-    } catch (err) {
+    } catch (err: any) {
       return { success: false, error: err.message || '删除文章失败' };
     }
   };
 
-  const value = {
+  const value: ArticleContextType = {
     articles,
     tags,
     total,

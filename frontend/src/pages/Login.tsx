@@ -10,7 +10,7 @@ import { EyeIcon, EyeOffIcon, ArrowRightIcon } from '../components/ui/Icons';
  * Login 登录页面
  * 还原 login.html 样式（简化版，无 Google 登录、忘记密码、注册）
  */
-const Login = () => {
+const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -21,7 +21,7 @@ const Login = () => {
 
   const EyeIconComponent = isPasswordVisible ? EyeOffIcon : EyeIcon;
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -29,7 +29,7 @@ const Login = () => {
     if (result.success) {
       navigate('/dashboard');
     } else {
-      setError(result.error);
+      setError(result.error || '登录失败');
     }
   };
 

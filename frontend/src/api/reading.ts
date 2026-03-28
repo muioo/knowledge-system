@@ -7,7 +7,7 @@ export const readingApi = {
    */
   startReading: async (articleId: number): Promise<ReadingHistory> => {
     const response = await apiClient.post<ApiResponse<ReadingHistory>>(`/reading/articles/${articleId}/start`);
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -17,7 +17,7 @@ export const readingApi = {
     const response = await apiClient.post<ApiResponse<ReadingHistory>>(`/reading/articles/${articleId}/end`, {
       reading_progress: progress,
     });
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -27,7 +27,7 @@ export const readingApi = {
     const response = await apiClient.get<ApiResponse<PaginatedResponse<ReadingHistory>>>('/reading/history', {
       params: { page, size },
     });
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -37,6 +37,6 @@ export const readingApi = {
     const response = await apiClient.get<ApiResponse<PaginatedResponse<ReadingStats>>>('/reading/stats', {
       params: { page, size },
     });
-    return response.data;
+    return response.data.data;
   },
 };
