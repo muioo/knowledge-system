@@ -20,15 +20,11 @@ export const MainLayout = () => {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Mobile Sidebar */}
+      {/* Sidebar - 单一实例，支持 mobile 和 desktop */}
       <Sidebar
         isOpen={sidebarOpen}
         onClose={handleSidebarClose}
-        isMobile={true}
       />
-
-      {/* Desktop Sidebar */}
-      <Sidebar isMobile={false} />
 
       {/* Main Content Area */}
       <div className="flex-1 ml-0 md:ml-64 transition-all duration-300">

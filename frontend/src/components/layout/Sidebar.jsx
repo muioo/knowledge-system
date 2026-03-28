@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -14,29 +14,39 @@ import {
  * Sidebar 组件 - 侧边栏导航
  * 完全还原 home.html 的样式
  */
-export const Sidebar = ({ isOpen, onClose, isMobile = false }) => {
-  const { user } = useAuth();
+export const Sidebar = ({ isOpen, onClose }) => {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const menuItems = [
-    { path: '/dashboard', icon: HomeIcon, label: '仪表盘' },
-    { path: '/articles', icon: FileTextIcon, label: '文章管理' },
-    { path: '/tags', icon: TagIcon, label: '标签管理' },
-    { path: '/reading', icon: BarChartIcon, label: '阅读统计' },
-  ];
+  // 折叠状态
+  const [extraOptionsOpen, setExtraOptionsOpen] = useState(false);
+  const [moreInfoOpen, setMoreInfoOpen] = useState(false);
+
+  const menuItems = useMemo(
+    () => [
+      { path: '/dashboard', icon: HomeIcon, label: '仪表盘' },
+      { path: '/articles', icon: FileTextIcon, label: '文章管理' },
+      { path: '/tags', icon: TagIcon, label: '标签管理' },
+      { path: '/reading', icon: BarChartIcon, label: '阅读统计' },
+    ],
+    []
+  );
 
   const handleNavigate = (path) => {
     navigate(path);
-    if (isMobile && onClose) {
+    // Mobile 关闭侧边栏
+    if (window.innerWidth < 768 && onClose) {
       onClose();
     }
   };
 
   const handleLogout = () => {
-    // TODO: 实现登出功能
-    console.log('Logout');
+    logout();
+    navigate('/login');
   };
 
+  // 响应式：mobile 时是抽屉，desktop 时是固定侧边栏
+  const isMobile = window.innerWidth < 768;
   const sidebarClasses = `
     ${isMobile ? 'fixed inset-0 z-[9999]' : 'hidden md:flex flex-col fixed top-0 left-0'}
     bg-white text-black
@@ -91,18 +101,42 @@ export const Sidebar = ({ isOpen, onClose, isMobile = false }) => {
           <div className="mt-4">
             {/* Extra Options */}
             <div className="mb-4">
-              <button className="w-full flex items-center justify-between py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors">
+              <button
+                onClick={() => setExtraOptionsOpen(!extraOptionsOpen)}
+                className="w-full flex items-center justify-between py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors"
+              >
                 <span className="font-semibold text-sm">Extra Options</span>
-                <ChevronDownIcon size={16} />
+                <ChevronDownIcon
+                  size={16}
+                  className={`transform transition-transform duration-200 ${extraOptionsOpen ? 'rotate-180' : ''}`}
+                />
               </button>
+              {extraOptionsOpen && (
+                <div className="ml-4 mt-2 space-y-2">
+                  <p className="text-sm text-gray-600 py-1 px-2">选项 1</p>
+                  <p className="text-sm text-gray-600 py-1 px-2">选项 2</p>
+                </div>
+              )}
             </div>
 
             {/* More Info */}
             <div className="mb-4">
-              <button className="w-full flex items-center justify-between py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors">
+              <button
+                onClick={() => setMoreInfoOpen(!moreInfoOpen)}
+                className="w-full flex items-center justify-between py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors"
+              >
                 <span className="font-semibold text-sm">More Info</span>
-                <ChevronDownIcon size={16} />
+                <ChevronDownIcon
+                  size={16}
+                  className={`transform transition-transform duration-200 ${moreInfoOpen ? 'rotate-180' : ''}`}
+                />
               </button>
+              {moreInfoOpen && (
+                <div className="ml-4 mt-2 space-y-2">
+                  <p className="text-sm text-gray-600 py-1 px-2">信息 1</p>
+                  <p className="text-sm text-gray-600 py-1 px-2">信息 2</p>
+                </div>
+              )}
             </div>
           </div>
         </nav>
