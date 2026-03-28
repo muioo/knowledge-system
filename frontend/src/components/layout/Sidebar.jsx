@@ -1,0 +1,122 @@
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import {
+  HomeIcon,
+  FileTextIcon,
+  TagIcon,
+  BarChartIcon,
+  UserIcon,
+  ChevronDownIcon,
+} from '../ui/Icons';
+
+/**
+ * Sidebar 组件 - 侧边栏导航
+ * 完全还原 home.html 的样式
+ */
+export const Sidebar = ({ isOpen, onClose, isMobile = false }) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const menuItems = [
+    { path: '/dashboard', icon: HomeIcon, label: '仪表盘' },
+    { path: '/articles', icon: FileTextIcon, label: '文章管理' },
+    { path: '/tags', icon: TagIcon, label: '标签管理' },
+    { path: '/reading', icon: BarChartIcon, label: '阅读统计' },
+  ];
+
+  const handleNavigate = (path) => {
+    navigate(path);
+    if (isMobile && onClose) {
+      onClose();
+    }
+  };
+
+  const handleLogout = () => {
+    // TODO: 实现登出功能
+    console.log('Logout');
+  };
+
+  const sidebarClasses = `
+    ${isMobile ? 'fixed inset-0 z-[9999]' : 'hidden md:flex flex-col fixed top-0 left-0'}
+    bg-white text-black
+    ${isMobile && !isOpen ? 'transform -translate-x-full' : 'transform translate-x-0'}
+    transition-transform duration-300 ease-in-out
+    ${isMobile ? 'w-full' : 'w-64'}
+    h-full shadow-lg
+  `;
+
+  return (
+    <>
+      {isMobile && isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[9998] md:hidden"
+          onClick={onClose}
+        />
+      )}
+      <div className={sidebarClasses}>
+        {/* Profile Section */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <UserIcon size={24} className="text-white" />
+            </div>
+            <div>
+              <p className="font-semibold">{user?.username || '用户'}</p>
+              <p className="text-sm text-gray-500">{user?.email || 'user@example.com'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Section */}
+        <nav className="flex-1 p-4 overflow-y-auto">
+          <ul>
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.path} className="mb-2">
+                  <button
+                    onClick={() => handleNavigate(item.path)}
+                    className="flex gap-2 font-medium text-sm items-center w-full py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors"
+                  >
+                    <Icon size={20} />
+                    {item.label}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Collapsible Sections */}
+          <div className="mt-4">
+            {/* Extra Options */}
+            <div className="mb-4">
+              <button className="w-full flex items-center justify-between py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors">
+                <span className="font-semibold text-sm">Extra Options</span>
+                <ChevronDownIcon size={16} />
+              </button>
+            </div>
+
+            {/* More Info */}
+            <div className="mb-4">
+              <button className="w-full flex items-center justify-between py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors">
+                <span className="font-semibold text-sm">More Info</span>
+                <ChevronDownIcon size={16} />
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-gray-200">
+          <button
+            onClick={handleLogout}
+            className="w-full font-medium text-sm p-3 text-center bg-blue-100 rounded-xl hover:bg-blue-200 transition-colors"
+          >
+            退出登录
+          </button>
+        </div>
+      </div>
+    </>
+  );
+};
