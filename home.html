@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Sidebar Demo</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Mobile sidebar transition */
+        .mobile-sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .mobile-sidebar.hidden {
+            transform: translateX(-100%);
+        }
+
+        .mobile-sidebar.visible {
+            transform: translateX(0);
+        }
+
+        /* Overlay transition */
+        .overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Collapsible content */
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            opacity: 0;
+        }
+
+        .collapsible-content.open {
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        /* Chevron rotation */
+        .chevron {
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .chevron.rotated {
+            transform: rotate(180deg);
+        }
+
+        /* Hamburger menu animation */
+        .hamburger line {
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            transform-origin: center;
+        }
+
+        .hamburger.open line:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+        }
+
+        .hamburger.open line:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.open line:nth-child(3) {
+            transform: translateY(-6px) rotate(-45deg);
+        }
+
+        /* Card entrance animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-animate {
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        .card-animate:nth-child(1) { animation-delay: 0.1s; }
+        .card-animate:nth-child(2) { animation-delay: 0.2s; }
+        .card-animate:nth-child(3) { animation-delay: 0.3s; }
+        .card-animate:nth-child(4) { animation-delay: 0.4s; }
+        .card-animate:nth-child(5) { animation-delay: 0.5s; }
+        .card-animate:nth-child(6) { animation-delay: 0.6s; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+
+        <!-- Mobile Sidebar Overlay -->
+        <div id="overlay" class="overlay hidden md:hidden fixed inset-0 bg-black/50 z-[9998]" onclick="toggleSidebar()"></div>
+
+        <!-- Mobile Sidebar -->
+        <div id="mobileSidebar" class="mobile-sidebar hidden md:hidden fixed inset-0 z-[9999] bg-white text-black">
+            <div class="flex flex-col h-full">
+                <!-- Profile Section -->
+                <div class="p-4 border-b border-gray-200">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-semibold">HextaUI</p>
+                            <p class="text-sm text-gray-500">hi@preetsuthar.me</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Section -->
+                <nav class="flex-1 p-4 overflow-y-auto">
+                    <ul>
+                        <li class="mb-2">
+                            <button class="flex gap-2 font-medium text-sm items-center w-full py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                    <polyline points="9 22 9 12 15 12 15 22" />
+                                </svg>
+                                Home
+                            </button>
+                        </li>
+                        <li class="mb-2">
+                            <button class="flex gap-2 font-medium text-sm items-center w-full py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                                    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                                </svg>
+                                Notifications
+                            </button>
+                        </li>
+                        <li class="mb-2">
+                            <button class="flex gap-2 font-medium text-sm items-center w-full py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="3" />
+                                    <path d="M12 1v6m0 6v6" />
+                                    <path d="M1 12h6m6 0h6" />
+                                </svg>
+                                Settings
+                            </button>
+                        </li>
+                        <li class="mb-2">
+                            <button class="flex gap-2 font-medium text-sm items-center w-full py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="7" height="7" x="3" y="3" rx="1" />
+                                    <rect width="7" height="7" x="14" y="3" rx="1" />
+                                    <rect width="7" height="7" x="14" y="14" rx="1" />
+                                    <rect width="7" height="7" x="3" y="14" rx="1" />
+                                </svg>
+                                Categories
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Collapsible Sections -->
+                    <div class="mt-4">
+                        <!-- Extra Options -->
+                        <div class="mb-4">
+                            <button class="w-full flex items-center justify-between py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors" onclick="toggleCollapsible('extraOptions')">
+                                <span class="font-semibold text-sm">Extra Options</span>
+                                <svg id="chevron-extraOptions" class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </button>
+                            <div id="extraOptions" class="collapsible-content">
+                                <div class="p-2">
+                                    <ul>
+                                        <li>
+                                            <button class="w-full font-medium text-sm text-left p-2 rounded-xl hover:bg-gray-100 transition-colors">Subscriptions</button>
+                                        </li>
+                                        <li>
+                                            <button class="w-full font-medium text-sm text-left p-2 rounded-xl hover:bg-gray-100 transition-colors">Appearance</button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- More Info -->
+                        <div class="mb-4">
+                            <button class="w-full flex items-center justify-between py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors" onclick="toggleCollapsible('moreInfo')">
+                                <span class="font-semibold text-sm">More Info</span>
+                                <svg id="chevron-moreInfo" class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </button>
+                            <div id="moreInfo" class="collapsible-content">
+                                <div class="p-2">
+                                    <p class="text-sm text-gray-500">Additional details and settings can be found here.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- Footer -->
+                <div class="p-4 border-t border-gray-200">
+                    <button class="w-full font-medium text-sm p-3 text-center bg-blue-100 rounded-xl hover:bg-blue-200 transition-colors">
+                        View profile
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desktop Sidebar -->
+        <div class="hidden md:flex flex-col fixed top-0 left-0 h-full w-64 bg-white text-black shadow-lg">
+            <!-- Profile Section -->
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-semibold">HextaUI</p>
+                        <p class="text-sm text-gray-500">hi@preetsuthar.me</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Section -->
+            <nav class="flex-1 p-4 overflow-y-auto">
+                <ul>
+                    <li class="mb-2">
+                        <button class="flex gap-2 font-medium text-sm items-center w-full py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                <polyline points="9 22 9 12 15 12 15 22" />
+                            </svg>
+                            Home
+                        </button>
+                    </li>
+                    <li class="mb-2">
+                        <button class="flex gap-2 font-medium text-sm items-center w-full py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                            </svg>
+                            Notifications
+                        </button>
+                    </li>
+                    <li class="mb-2">
+                        <button class="flex gap-2 font-medium text-sm items-center w-full py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3" />
+                                <path d="M12 1v6m0 6v6" />
+                                <path d="M1 12h6m6 0h6" />
+                            </svg>
+                            Settings
+                        </button>
+                    </li>
+                    <li class="mb-2">
+                        <button class="flex gap-2 font-medium text-sm items-center w-full py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect width="7" height="7" x="3" y="3" rx="1" />
+                                <rect width="7" height="7" x="14" y="3" rx="1" />
+                                <rect width="7" height="7" x="14" y="14" rx="1" />
+                                <rect width="7" height="7" x="3" y="14" rx="1" />
+                            </svg>
+                            Categories
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Collapsible Sections -->
+                <div class="mt-4">
+                    <!-- Extra Options -->
+                    <div class="mb-4">
+                        <button class="w-full flex items-center justify-between py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors" onclick="toggleCollapsible('desktopExtraOptions')">
+                            <span class="font-semibold text-sm">Extra Options</span>
+                            <svg id="chevron-desktopExtraOptions" class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                        </button>
+                        <div id="desktopExtraOptions" class="collapsible-content">
+                            <div class="p-2">
+                                <ul>
+                                    <li>
+                                        <button class="w-full font-medium text-sm text-left p-2 rounded-xl hover:bg-gray-100 transition-colors">Subscriptions</button>
+                                    </li>
+                                    <li>
+                                        <button class="w-full font-medium text-sm text-left p-2 rounded-xl hover:bg-gray-100 transition-colors">Appearance</button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- More Info -->
+                    <div class="mb-4">
+                        <button class="w-full flex items-center justify-between py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors" onclick="toggleCollapsible('desktopMoreInfo')">
+                            <span class="font-semibold text-sm">More Info</span>
+                            <svg id="chevron-desktopMoreInfo" class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                        </button>
+                        <div id="desktopMoreInfo" class="collapsible-content">
+                            <div class="p-2">
+                                <p class="text-sm text-gray-500">Additional details and settings can be found here.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Footer -->
+            <div class="p-4 border-t border-gray-200">
+                <button class="w-full font-medium text-sm p-3 text-center bg-blue-100 rounded-xl hover:bg-blue-200 transition-colors">
+                    View profile
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 ml-0 md:ml-64 transition-all duration-300">
+            <!-- Top bar for mobile toggle -->
+            <div class="p-4 bg-white border-b border-gray-200 md:hidden flex justify-between items-center shadow-sm">
+                <h1 class="text-xl font-bold text-gray-900">Dashboard</h1>
+                <button onclick="toggleSidebar()" aria-label="Toggle menu" class="focus:outline-none p-2 rounded-lg hover:bg-gray-100">
+                    <svg id="hamburger" class="hamburger" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="12" x2="21" y2="12" />
+                        <line x1="3" y1="18" x2="21" y2="18" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Main Content -->
+            <div class="p-6">
+                <div class="max-w-4xl">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Welcome to Your Dashboard</h1>
+                    <p class="text-gray-600 mb-8">
+                        This is a demo of an animated sidebar component with collapsible sections.
+                    </p>
+
+                    <!-- Demo Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="card-animate bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+                            <div class="w-12 h-12 bg-blue-500 rounded-lg mb-4"></div>
+                            <h3 class="font-semibold text-lg mb-2">Analytics</h3>
+                            <p class="text-sm text-gray-600">View your performance metrics</p>
+                        </div>
+                        <div class="card-animate bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+                            <div class="w-12 h-12 bg-green-500 rounded-lg mb-4"></div>
+                            <h3 class="font-semibold text-lg mb-2">Projects</h3>
+                            <p class="text-sm text-gray-600">Manage your active projects</p>
+                        </div>
+                        <div class="card-animate bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+                            <div class="w-12 h-12 bg-purple-500 rounded-lg mb-4"></div>
+                            <h3 class="font-semibold text-lg mb-2">Team</h3>
+                            <p class="text-sm text-gray-600">Collaborate with your team</p>
+                        </div>
+                        <div class="card-animate bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+                            <div class="w-12 h-12 bg-yellow-500 rounded-lg mb-4"></div>
+                            <h3 class="font-semibold text-lg mb-2">Messages</h3>
+                            <p class="text-sm text-gray-600">Check your notifications</p>
+                        </div>
+                        <div class="card-animate bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+                            <div class="w-12 h-12 bg-red-500 rounded-lg mb-4"></div>
+                            <h3 class="font-semibold text-lg mb-2">Calendar</h3>
+                            <p class="text-sm text-gray-600">Schedule your events</p>
+                        </div>
+                        <div class="card-animate bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+                            <div class="w-12 h-12 bg-indigo-500 rounded-lg mb-4"></div>
+                            <h3 class="font-semibold text-lg mb-2">Files</h3>
+                            <p class="text-sm text-gray-600">Access your documents</p>
+                        </div>
+                    </div>
+
+                    <!-- Info Section -->
+                    <div class="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
+                        <h2 class="font-semibold text-lg mb-2">Features</h2>
+                        <ul class="space-y-2 text-sm text-gray-700">
+                            <li class="flex items-center gap-2">
+                                <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                Responsive design with mobile menu toggle
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="w-2 h-2 bg-green-500 rounded-full"></span>
+                                Smooth CSS animations and transitions
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="w-2 h-2 bg-purple-500 rounded-full"></span>
+                                Collapsible sections for organized content
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                                Clean and modern UI with Tailwind CSS
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar toggle for mobile
+        let sidebarOpen = false;
+
+        function toggleSidebar() {
+            sidebarOpen = !sidebarOpen;
+            const sidebar = document.getElementById('mobileSidebar');
+            const overlay = document.getElementById('overlay');
+            const hamburger = document.getElementById('hamburger');
+
+            if (sidebarOpen) {
+                sidebar.classList.remove('hidden');
+                sidebar.classList.add('visible');
+                overlay.classList.remove('hidden');
+                overlay.classList.add('visible');
+                hamburger.classList.add('open');
+            } else {
+                sidebar.classList.remove('visible');
+                sidebar.classList.add('hidden');
+                overlay.classList.remove('visible');
+                overlay.classList.add('hidden');
+                hamburger.classList.remove('open');
+            }
+        }
+
+        // Collapsible sections toggle
+        function toggleCollapsible(id) {
+            const content = document.getElementById(id);
+            const chevron = document.getElementById('chevron-' + id);
+
+            content.classList.toggle('open');
+            chevron.classList.toggle('rotated');
+        }
+    </script>
+</body>
+</html>

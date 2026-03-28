@@ -24,7 +24,7 @@
 ### 环境配置
 
 ```yaml
-开发环境: http://localhost:8000
+开发环境: http://localhost:8022
 API版本: v1
 数据格式: JSON
 字符编码: UTF-8
