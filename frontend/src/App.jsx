@@ -8,6 +8,9 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ArticleList from './pages/ArticleList';
 import ArticleCreate from './pages/ArticleCreate';
+import ArticleDetail from './pages/ArticleDetail';
+import TagManage from './pages/TagManage';
+import ReadingStats from './pages/ReadingStats';
 
 function App() {
   return (
@@ -16,20 +19,13 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Login />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <MainLayout />
-                </ProtectedRoute>
-              }
-            >
+            <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="articles" element={<ArticleList />} />
               <Route path="articles/create" element={<ArticleCreate />} />
-              <Route path="articles/:id" element={<div>文章详情页面（待实现）</div>} />
-              <Route path="tags" element={<div>标签管理页面（待实现）</div>} />
-              <Route path="reading/stats" element={<div>阅读统计页面（待实现）</div>} />
+              <Route path="articles/:id" element={<ArticleDetail />} />
+              <Route path="tags" element={<TagManage />} />
+              <Route path="reading/stats" element={<ReadingStats />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
