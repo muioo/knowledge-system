@@ -1,9 +1,14 @@
 import React from 'react';
 
+interface IconProps {
+  className?: string;
+  size?: number;
+}
+
 /**
  * EyeIcon - 眼睛图标（显示密码）
  */
-export const EyeIcon = ({ className = '', size = 18 }) => (
+export const EyeIcon: React.FC<IconProps> = ({ className = '', size = 18 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
@@ -24,7 +29,7 @@ export const EyeIcon = ({ className = '', size = 18 }) => (
 /**
  * EyeOffIcon - 眼睛关闭图标（隐藏密码）
  */
-export const EyeOffIcon = ({ className = '', size = 18 }) => (
+export const EyeOffIcon: React.FC<IconProps> = ({ className = '', size = 18 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
@@ -47,7 +52,7 @@ export const EyeOffIcon = ({ className = '', size = 18 }) => (
 /**
  * ArrowRightIcon - 右箭头图标
  */
-export const ArrowRightIcon = ({ className = '', size = 24 }) => (
+export const ArrowRightIcon: React.FC<IconProps> = ({ className = '', size = 24 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
@@ -68,7 +73,7 @@ export const ArrowRightIcon = ({ className = '', size = 24 }) => (
 /**
  * HomeIcon - 首页图标
  */
-export const HomeIcon = ({ className = '', size = 20 }) => (
+export const HomeIcon: React.FC<IconProps> = ({ className = '', size = 20 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
@@ -89,7 +94,7 @@ export const HomeIcon = ({ className = '', size = 20 }) => (
 /**
  * FileTextIcon - 文档图标
  */
-export const FileTextIcon = ({ className = '', size = 20 }) => (
+export const FileTextIcon: React.FC<IconProps> = ({ className = '', size = 20 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
@@ -113,7 +118,7 @@ export const FileTextIcon = ({ className = '', size = 20 }) => (
 /**
  * TagIcon - 标签图标
  */
-export const TagIcon = ({ className = '', size = 20 }) => (
+export const TagIcon: React.FC<IconProps> = ({ className = '', size = 20 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
@@ -134,7 +139,7 @@ export const TagIcon = ({ className = '', size = 20 }) => (
 /**
  * BarChartIcon - 统计图表图标
  */
-export const BarChartIcon = ({ className = '', size = 20 }) => (
+export const BarChartIcon: React.FC<IconProps> = ({ className = '', size = 20 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
@@ -156,7 +161,7 @@ export const BarChartIcon = ({ className = '', size = 20 }) => (
 /**
  * MenuIcon - 菜单图标
  */
-export const MenuIcon = ({ className = '', size = 24 }) => (
+export const MenuIcon: React.FC<IconProps> = ({ className = '', size = 24 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
@@ -178,7 +183,7 @@ export const MenuIcon = ({ className = '', size = 24 }) => (
 /**
  * UserIcon - 用户图标
  */
-export const UserIcon = ({ className = '', size = 24 }) => (
+export const UserIcon: React.FC<IconProps> = ({ className = '', size = 24 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
@@ -199,7 +204,7 @@ export const UserIcon = ({ className = '', size = 24 }) => (
 /**
  * BellIcon - 通知图标
  */
-export const BellIcon = ({ className = '', size = 20 }) => (
+export const BellIcon: React.FC<IconProps> = ({ className = '', size = 20 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
@@ -220,7 +225,7 @@ export const BellIcon = ({ className = '', size = 20 }) => (
 /**
  * SettingsIcon - 设置图标
  */
-export const SettingsIcon = ({ className = '', size = 20 }) => (
+export const SettingsIcon: React.FC<IconProps> = ({ className = '', size = 20 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
@@ -242,7 +247,7 @@ export const SettingsIcon = ({ className = '', size = 20 }) => (
 /**
  * GridIcon - 分类图标
  */
-export const GridIcon = ({ className = '', size = 20 }) => (
+export const GridIcon: React.FC<IconProps> = ({ className = '', size = 20 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
@@ -265,7 +270,7 @@ export const GridIcon = ({ className = '', size = 20 }) => (
 /**
  * ChevronDownIcon - 下拉箭头图标
  */
-export const ChevronDownIcon = ({ className = '', size = 16 }) => (
+export const ChevronDownIcon: React.FC<IconProps> = ({ className = '', size = 16 }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}

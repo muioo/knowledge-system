@@ -1,10 +1,11 @@
 import React from 'react';
 
-/**
- * Button 组件
- * 支持多种变体和自定义样式
- */
-const Button = ({
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'default' | 'outline';
+  isHovered?: boolean;
+}
+
+const Button: React.FC<ButtonProps> = ({
   children,
   variant = 'default',
   className = '',
