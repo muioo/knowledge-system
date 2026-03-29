@@ -27,20 +27,55 @@ done
 echo "MySQL is ready."
 
 echo "=== Running aerich migrations ==="
-# 使用 aerich Command API 执行迁移
+# 分割 SQL 语句逐条执行，解决 MySQL 5.7 多语句问题
 python -c "
 import asyncio
+import re
 from aerich import Command
 from backend.settings.config import TORTOISE_ORM
+from tortoise import connections
+from aerich.migrate import Migrate
 
 async def migrate():
+    # 初始化 aerich
     command = Command(tortoise_config=TORTOISE_ORM, location='migrations')
     await command.init()
-    migrated = await command.upgrade()
-    if migrated:
-        print(f'Successfully migrated: {migrated}')
-    else:
+
+    # 获取待执行的迁移
+    migrate_instance = Migrate(TORTOISE_ORM, 'migrations', app='models')
+    await migrate_instance.init()
+
+    # 检查是否有新迁移
+    last_version = await migrate_instance.get_last_version()
+    if not last_version:
         print('No new migrations to run')
+        return
+
+    # 获取迁移 SQL
+    conn = connections.get('models')
+    upgrade_sql = await last_version.upgrade(conn)
+
+    # 分割 SQL 语句（按 ;; 分割，去除空语句）
+    statements = [s.strip() for s in upgrade_sql.split(';;') if s.strip()]
+
+    print(f'Executing {len(statements)} SQL statements...')
+    for i, stmt in enumerate(statements, 1):
+        try:
+            # 移除结尾的分号（execute_script 会自动添加）
+            stmt = stmt.rstrip(';')
+            await conn.execute_script(stmt)
+            print(f'  [{i}/{len(statements)}] OK')
+        except Exception as e:
+            print(f'  [{i}/{len(statements)}] FAILED: {e}')
+            # 如果是 CREATE TABLE 或 ALTER TABLE 已经存在，跳过
+            if 'already exists' in str(e) or 'Duplicate column' in str(e):
+                print(f'  (Skipping, already exists)')
+                continue
+            raise
+
+    # 标记迁移为已完成
+    await last_version.set_applied()
+    print(f'Successfully migrated: {last_version.version}')
 
 asyncio.run(migrate())
 "
