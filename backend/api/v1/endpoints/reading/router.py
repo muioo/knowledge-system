@@ -8,7 +8,8 @@ from backend.controllers.reading_controller import (
     end_reading,
     get_reading_history,
     get_reading_stats,
-    get_article_reading_stats
+    get_article_reading_stats,
+    get_reading_progress
 )
 from backend.controllers.reading_trends_controller import get_reading_trends
 from backend.controllers.reading_time_distribution_controller import get_time_distribution
@@ -106,3 +107,18 @@ async def get_distribution(
     """获取阅读时段分布数据"""
     data = await get_time_distribution(current_user.id)
     return data
+
+@router.get("/progress")
+async def get_progress_endpoint(
+    page: int = 1,
+    size: int = 20,
+    current_user: User = Depends(get_current_user)
+):
+    """获取阅读进度详情"""
+    items, total = await get_reading_progress(current_user.id, page, size)
+    return {
+        "items": items,
+        "total": total,
+        "page": page,
+        "size": size
+    }

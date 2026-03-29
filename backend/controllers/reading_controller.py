@@ -1,7 +1,8 @@
+
 from backend.models import ReadingHistory, ReadingStats, Article
 from backend.schemas.reading import ReadingEnd, ReadingHistoryResponse, ReadingStatsResponse
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Dict
 
 # 获取当前时间（带时区）
 def get_now():
@@ -118,3 +119,46 @@ async def get_article_reading_stats(article_id: int, page: int = 1, size: int = 
         ],
         total
     )
+
+async def get_reading_progress(user_id: int, page: int = 1, size: int = 20) -> tuple[List[Dict], int]:
+    """
+    获取文章阅读进度详情
+
+    Returns:
+        ([{
+            article_id: 1,
+            article_title: "...",
+            total_views: 3,
+            total_duration: 2700,
+            reading_progress: 75,
+            last_read_at: "2026-03-29T10:00:00Z"
+        }], total)
+    """
+    total = await ReadingStats.filter(user_id=user_id).count()
+
+    # 获取阅读统计，按最后阅读时间排序
+    stats = await ReadingStats.filter(
+        user_id=user_id
+    ).order_by("-last_read_at").prefetch_related("article").offset((page - 1) * size).limit(size)
+
+    # 获取最新的阅读进度（从阅读历史中获取最后一次的进度）
+    result = []
+    for s in stats:
+        # 获取该文章最新的阅读记录
+        latest_history = await ReadingHistory.filter(
+            user_id=user_id,
+            article_id=s.article_id
+        ).order_by("-started_at").first()
+
+        progress = latest_history.reading_progress if latest_history else 0
+
+        result.append({
+            "article_id": s.article_id,
+            "article_title": s.article.title,
+            "total_views": s.total_views,
+            "total_duration": s.total_duration,
+            "reading_progress": progress,
+            "last_read_at": s.last_read_at.isoformat() if s.last_read_at else None
+        })
+
+    return result, total
