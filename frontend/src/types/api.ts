@@ -62,9 +62,6 @@ export interface Article {
   html_path: string | null;
   processing_status: string | null;
   original_html_url: string | null;
-  // 阅读状态
-  is_read?: boolean | null;
-  reading_progress?: number | null;
 }
 
 // 文章创建数据
@@ -104,6 +101,8 @@ export interface ReadingHistory {
   ended_at: string | null;
   reading_duration: number;
   reading_progress: number;
+  scroll_position: number;
+  actual_progress: number;
 }
 
 // 阅读趋势

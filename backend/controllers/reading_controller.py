@@ -1,6 +1,6 @@
 
 from backend.models import ReadingHistory, ReadingStats, Article
-from backend.schemas.reading import ReadingEnd, ReadingHistoryResponse, ReadingStatsResponse
+from backend.schemas.reading import ReadingEnd, ReadingHistoryResponse, ReadingStatsResponse, ReadingProgressUpdate
 from datetime import datetime, timezone
 from typing import List, Dict
 
@@ -75,7 +75,9 @@ async def get_reading_history(user_id: int, page: int = 1, size: int = 20) -> tu
                 started_at=h.started_at,
                 ended_at=h.ended_at,
                 reading_duration=h.reading_duration,
-                reading_progress=h.reading_progress
+                reading_progress=h.actual_progress,  # 使用 actual_progress
+                scroll_position=h.scroll_position,
+                actual_progress=h.actual_progress
             ) for h in histories
         ],
         total
@@ -93,7 +95,8 @@ async def get_reading_stats(user_id: int, page: int = 1, size: int = 20) -> tupl
                 article_title=s.article.title,
                 total_views=s.total_views,
                 total_duration=s.total_duration,
-                last_read_at=s.last_read_at
+                last_read_at=s.last_read_at,
+                max_reading_progress=s.max_reading_progress
             ) for s in stats
         ],
         total
@@ -176,3 +179,67 @@ async def get_reading_progress(user_id: int, page: int = 1, size: int = 20) -> t
         })
 
     return result, total
+
+
+async def update_reading_progress(user_id: int, article_id: int, data: ReadingProgressUpdate) -> Dict:
+    """
+    更新阅读进度（基于滚动位置）
+
+    Args:
+        user_id: 用户ID
+        article_id: 文章ID
+        data: 进度更新数据
+
+    Returns:
+        更新后的阅读进度
+    """
+    # 获取当前活动的阅读记录
+    history = await ReadingHistory.filter(
+        user_id=user_id,
+        article_id=article_id,
+        ended_at=None  # 只更新未结束的记录
+    ).order_by("-started_at").first()
+
+    if not history:
+        # 如果没有活动记录，创建一个新的
+        history = await ReadingHistory.create(
+            user_id=user_id,
+            article_id=article_id,
+            started_at=get_now(),
+            scroll_position=data.scroll_position,
+            total_content_length=data.total_content_length,
+            actual_progress=data.actual_progress
+        )
+    else:
+        # 更新现有记录
+        history.scroll_position = data.scroll_position
+        history.total_content_length = data.total_content_length
+        history.actual_progress = data.actual_progress
+        history.reading_progress = data.actual_progress  # 同步更新进度
+        await history.save()
+
+    # 更新阅读统计
+    stats, created = await ReadingStats.get_or_create(
+        user_id=user_id,
+        article_id=article_id,
+        defaults={
+            "total_views": 1,
+            "total_duration": 0,
+            "last_reading_progress": data.actual_progress,
+            "max_reading_progress": data.actual_progress
+        }
+    )
+
+    if not created:
+        # 更新最高进度
+        if data.actual_progress > stats.max_reading_progress:
+            stats.max_reading_progress = data.actual_progress
+        stats.last_reading_progress = data.actual_progress
+        await stats.save()
+
+    return {
+        "scroll_position": history.scroll_position,
+        "total_content_length": history.total_content_length,
+        "actual_progress": history.actual_progress,
+        "reading_progress": history.reading_progress
+    }

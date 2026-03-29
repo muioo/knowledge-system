@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from backend.core.security import get_current_user, get_current_admin
 from backend.models import User
-from backend.schemas.reading import ReadingEnd, ReadingHistoryResponse, ReadingStatsResponse, ReadingTrendsResponse
+from backend.schemas.reading import ReadingEnd, ReadingHistoryResponse, ReadingStatsResponse, ReadingTrendsResponse, ReadingProgressUpdate
 from backend.schemas.response import SuccessResponse, PaginatedResponse, PaginatedData
 from backend.controllers.reading_controller import (
     start_reading,
@@ -9,7 +9,8 @@ from backend.controllers.reading_controller import (
     get_reading_history,
     get_reading_stats,
     get_article_reading_stats,
-    get_reading_progress
+    get_reading_progress,
+    update_reading_progress
 )
 from backend.controllers.reading_trends_controller import get_reading_trends
 from backend.controllers.reading_time_distribution_controller import get_time_distribution
@@ -123,5 +124,18 @@ async def get_progress_endpoint(
             "page": page,
             "size": size
         }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.put("/articles/{article_id}/progress")
+async def update_progress_endpoint(
+    article_id: int,
+    data: ReadingProgressUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    """更新阅读进度（基于滚动位置）"""
+    try:
+        result = await update_reading_progress(current_user.id, article_id, data)
+        return SuccessResponse(data=result)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

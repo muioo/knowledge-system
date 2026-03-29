@@ -17,6 +17,11 @@ class ReadingHistory(Model):
     reading_duration = fields.IntField(default=0, description="阅读时长（秒）")
     reading_progress = fields.IntField(default=0, description="阅读进度（0-100）")
 
+    # 阅读位置信息（基于滚动）
+    scroll_position = fields.IntField(default=0, description="滚动位置（像素）")
+    total_content_length = fields.IntField(default=0, description="总内容长度（像素）")
+    actual_progress = fields.IntField(default=0, description="实际阅读进度（基于滚动位置计算）")
+
     # 阅读会话信息（支持暂停/继续功能）
     session_id = fields.CharField(max_length=100, null=True, description="阅读会话ID，用于关联同一次阅读的多次暂停/继续")
     is_completed = fields.BooleanField(default=False, description="是否已完成阅读（进度>=100%）")

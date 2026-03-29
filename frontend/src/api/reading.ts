@@ -72,4 +72,22 @@ export const readingApi = {
     // 后端直接返回: { items, total, page, size }
     return response;
   },
+
+  /**
+   * 更新阅读进度（基于滚动位置）
+   */
+  updateProgress: async (articleId: number, data: {
+    scroll_position: number;
+    total_content_length: number;
+    actual_progress: number;
+  }): Promise<{
+    scroll_position: number;
+    total_content_length: number;
+    actual_progress: number;
+    reading_progress: number;
+  }> => {
+    const response = await apiClient.put<any>(`/reading/articles/${articleId}/progress`, data);
+    // SuccessResponse 格式: { code: 200, message: "success", data: {...} }
+    return response.data;
+  },
 };

@@ -9,7 +9,7 @@ import type { Article } from '../types/api';
 // 创建简单的图标组件，避免SVG解析问题
 const EyeIcon: React.FC<{ className?: string; size?: number }> = ({ className = '', size = 16 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10 7-10 7-10 7-10 7-10 7-10 7z" />
+    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10 7-10 7-10 7-10 7-10 7-10 7-10 7-10 7z" />
     <circle cx="12" cy="12" r="3" />
   </svg>
 );
@@ -30,9 +30,13 @@ const ArticleDetail: React.FC = () => {
   const [htmlContent, setHtmlContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [readingProgress, setReadingProgress] = useState(0);
+  const [showProgress, setShowProgress] = useState(false);
 
-  // 使用 ref 追踪当前文章ID，防止 StrictMode 导致重复调用
+  // 使用 ref 追踪当前文章ID，防止 StrictMode 重复调用
   const currentArticleIdRef = useRef<number | null>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchArticle();
@@ -43,9 +47,79 @@ const ArticleDetail: React.FC = () => {
       if (currentArticleIdRef.current !== articleId) {
         currentArticleIdRef.current = articleId;
         readingApi.startReading(articleId).catch(console.error);
+        setReadingProgress(0);
       }
     }
   }, [id]);
+
+  // 监听滚动事件，更新阅读进度
+  useEffect(() => {
+    if (!contentRef.current || !htmlContent) return;
+
+    const handleScroll = () => {
+      // 清除之前的定时器
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+
+      // 防抖：停止滚动500ms后才发送请求
+      scrollTimeoutRef.current = setTimeout(async () => {
+        if (!contentRef.current || !id) return;
+
+        const scrollPosition = window.scrollY;
+        const totalContentLength = document.documentElement.scrollHeight - window.innerHeight;
+        const actualProgress = Math.min(100, Math.round((scrollPosition / totalContentLength) * 100));
+
+        // 只在有实际滚动时才更新
+        if (actualProgress > 0) {
+          setReadingProgress(actualProgress);
+          setShowProgress(true);
+
+          try {
+            await readingApi.updateProgress(parseInt(id), {
+              scroll_position: Math.round(scrollPosition),
+              total_content_length: Math.round(totalContentLength),
+              actual_progress: actualProgress
+            });
+          } catch (error) {
+            console.error('Failed to update reading progress:', error);
+          }
+        }
+      }, 500);
+    };
+
+    // 添加滚动监听，使用 passive 提升性能
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    // 页面离开时保存最终进度
+    const handleBeforeUnload = () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      // 立即保存进度
+      const scrollPosition = window.scrollY;
+      const totalContentLength = document.documentElement.scrollHeight - window.innerHeight;
+      const actualProgress = Math.min(100, Math.round((scrollPosition / totalContentLength) * 100));
+
+      if (actualProgress > 0) {
+        navigator.sendBeacon('/api/v1/reading/articles/' + id + '/progress', JSON.stringify({
+          scroll_position: Math.round(scrollPosition),
+          total_content_length: Math.round(totalContentLength),
+          actual_progress: actualProgress
+        }));
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, [id, htmlContent]);
 
   const fetchArticle = async () => {
     if (!id) return;
@@ -75,7 +149,23 @@ const ArticleDetail: React.FC = () => {
   if (!article) return <div className="max-w-4xl mx-auto"><div className="bg-red-50 text-red-600 p-4 rounded-lg">文章不存在</div></div>;
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto relative">
+      {/* 阅读进度浮标 */}
+      {showProgress && readingProgress > 0 && (
+        <div className="fixed bottom-6 right-6 z-50 bg-white rounded-lg shadow-lg border border-gray-200 p-4 min-w-[200px]">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-700">阅读进度</span>
+            <span className="text-sm font-bold text-blue-600">{readingProgress}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-blue-500 rounded-full h-2 transition-all duration-300"
+              style={{ width: `${readingProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       <Link to="/articles" className="inline-flex items-center gap-2 text-blue-600 hover:underline mb-6">
         <ArrowRightIcon size={16} className="rotate-180" />
         返回文章列表
@@ -104,7 +194,15 @@ const ArticleDetail: React.FC = () => {
         {article.source_url && <div className="border-t border-gray-200 pt-4 mt-4"><h3 className="text-sm font-medium text-gray-700 mb-2">来源</h3><a href={article.source_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm break-all">{article.source_url}</a></div>}
       </Card>
 
-      {htmlContent ? <Card><div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: htmlContent }} /></Card> : <Card><div className="text-center py-12 text-gray-500">此文章没有可显示的内容</div></Card>}
+      {htmlContent ? (
+        <Card>
+          <div ref={contentRef} className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: htmlContent }} />
+        </Card>
+      ) : (
+        <Card>
+          <div className="text-center py-12 text-gray-500">此文章没有可显示的内容</div>
+        </Card>
+      )}
     </div>
   );
 };
