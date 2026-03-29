@@ -77,6 +77,10 @@ export interface UrlImportData {
   url: string;
   tagIds?: number[];
   title?: string;
+  use_ai?: boolean;
+  summary?: string;
+  keywords?: string;
+  api_key?: string;
 }
 
 // 阅读统计类型
@@ -97,4 +101,42 @@ export interface ReadingHistory {
   ended_at: string | null;
   reading_duration: number;
   reading_progress: number;
+}
+
+// 阅读趋势
+export interface ReadingTrend {
+  date: string;
+  minutes: number;
+  articles: number;
+}
+
+// 时段统计
+export interface TimePeriod {
+  name: string;
+  count: number;
+  duration: number;
+  percentage: number;
+}
+
+// 热力图数据
+export interface HeatmapData {
+  hour: number;
+  day: number;
+  count: number;
+}
+
+// 时间分布
+export interface TimeDistribution {
+  periods: TimePeriod[];
+  heatmap: HeatmapData[];
+}
+
+// 阅读进度
+export interface ReadingProgress {
+  article_id: number;
+  article_title: string;
+  total_views: number;
+  total_duration: number;
+  reading_progress: number;
+  last_read_at: string | null;
 }
