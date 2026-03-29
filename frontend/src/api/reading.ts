@@ -7,7 +7,7 @@ export const readingApi = {
    */
   startReading: async (articleId: number): Promise<ReadingHistory> => {
     const response = await apiClient.post<any>(`/reading/articles/${articleId}/start`);
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -17,7 +17,7 @@ export const readingApi = {
     const response = await apiClient.post<any>(`/reading/articles/${articleId}/end`, {
       reading_progress: progress,
     });
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -27,7 +27,7 @@ export const readingApi = {
     const response = await apiClient.get<any>('/reading/history', {
       params: { page, size },
     });
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -37,7 +37,7 @@ export const readingApi = {
     const response = await apiClient.get<any>('/reading/stats', {
       params: { page, size },
     });
-    return response.data;
+    return response.data.data;
   },
 
   /**
@@ -47,11 +47,11 @@ export const readingApi = {
     const response = await apiClient.get<any>('/reading/trends', {
       params: { days },
     });
-    return response.data;
+    return response.data.data;
   },
 
   /**
-   * 获取时段分布
+   * 获取时段分布（后端直接返回字典，不包装）
    */
   getTimeDistribution: async (): Promise<TimeDistribution> => {
     const response = await apiClient.get<any>('/reading/time-distribution');
@@ -59,12 +59,13 @@ export const readingApi = {
   },
 
   /**
-   * 获取阅读进度
+   * 获取阅读进度（后端直接返回字典，不包装）
    */
   getProgress: async (page = 1, size = 20): Promise<{ items: ReadingProgress[]; total: number; page: number; size: number }> => {
     const response = await apiClient.get<any>('/reading/progress', {
       params: { page, size },
     });
+    // 后端返回原始字典 { items, total, page, size }
     return response.data;
   },
 };
