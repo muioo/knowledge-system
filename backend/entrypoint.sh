@@ -1,10 +1,11 @@
 #!/bin/sh
-set -e
+# 不使用 set -e，以便显示错误信息
 
 echo "=== Waiting for MySQL to be ready ==="
 MAX_RETRIES=30
 RETRY=0
-until python -c "
+while true; do
+    if python -c "
 import asyncio, sys
 from tortoise import Tortoise
 from backend.settings.config import TORTOISE_ORM
@@ -12,10 +13,15 @@ async def check():
     try:
         await Tortoise.init(config=TORTOISE_ORM)
         await Tortoise.close_connections()
-    except Exception:
+        print('OK')
+    except Exception as e:
+        print(f'ERROR: {e}', file=sys.stderr)
         sys.exit(1)
 asyncio.run(check())
-" 2>/dev/null; do
+" 2>&1; then
+        break
+    fi
+
     RETRY=$((RETRY + 1))
     if [ $RETRY -ge $MAX_RETRIES ]; then
         echo "MySQL not ready after ${MAX_RETRIES} retries, exiting."
