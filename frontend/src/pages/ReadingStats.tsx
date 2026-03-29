@@ -20,17 +20,34 @@ const ReadingStats: React.FC = () => {
   const fetchOverviewData = async () => {
     setIsLoading(true);
     try {
-      // 获取阅读进度统计
-      const progressData = await readingApi.getProgress(1, 1000);
+      // 获取阅读进度统计（分页获取所有数据以计算总数）
+      let allItems: any[] = [];
+      let page = 1;
+      const pageSize = 100;
+
+      while (true) {
+        const progressData = await readingApi.getProgress(page, pageSize);
+        allItems = allItems.concat(progressData.items);
+        if (allItems.length >= progressData.total) break;
+        page++;
+      }
 
       // 计算总时长和文章数
-      const totalDur = progressData.items.reduce((sum, item) => sum + item.total_duration, 0);
-      const totalArts = progressData.items.length;
+      const totalDur = allItems.reduce((sum, item) => sum + item.total_duration, 0);
+      const totalArts = allItems.length;
 
       // 获取本周阅读时长（通过阅读统计计算）
-      const statsData = await readingApi.getStats(1, 1000);
+      let allStats: any[] = [];
+      page = 1;
+      while (true) {
+        const statsData = await readingApi.getStats(page, pageSize);
+        allStats = allStats.concat(statsData.items);
+        if (allStats.length >= statsData.total) break;
+        page++;
+      }
+
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      const weeklyDur = statsData.items
+      const weeklyDur = allStats
         .filter(item => item.last_read_at && new Date(item.last_read_at) >= weekAgo)
         .reduce((sum, item) => sum + item.total_duration, 0);
 
