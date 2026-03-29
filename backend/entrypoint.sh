@@ -27,7 +27,32 @@ done
 echo "MySQL is ready."
 
 echo "=== Running aerich migrations ==="
-aerich upgrade
+# 逐条执行迁移，解决 MySQL 5.7 多语句执行问题
+python -c "
+import asyncio
+from aerich import Command
+from backend.settings.config import settings
+
+async def migrate():
+    config = {
+        'connections': {'default': settings.database_url},
+        'apps': {
+            'models': {
+                'models': ['backend.models.user', 'backend.models.article', 'backend.models.tag', 'backend.models.reading'],
+                'default_connection': 'default',
+            }
+        }
+    }
+    command = Command(tortoise_config=config)
+    await command.init()
+    migrated = await command.upgrade(run_in_transaction=True)
+    if migrated:
+        print(f'Successfully migrated: {migrated}')
+    else:
+        print('No new migrations to run')
+
+asyncio.run(migrate())
+"
 
 echo "=== Migrations complete, starting server ==="
 exec uvicorn backend.main:app --host 0.0.0.0 --port 8022
