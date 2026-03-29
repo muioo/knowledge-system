@@ -21,8 +21,9 @@ COPY migrations ./migrations
 # 复制 backend 代码到 /app/backend/
 COPY backend ./backend
 
-# 设置 entrypoint 可执行权限
-RUN chmod +x ./backend/entrypoint.sh
+# 修复 entrypoint.sh 换行符（CRLF -> LF）并设置可执行权限
+RUN sed -i 's/\r$//' ./backend/entrypoint.sh && \
+    chmod +x ./backend/entrypoint.sh
 
 EXPOSE 8022
 
