@@ -50,23 +50,42 @@ const OverviewCards: React.FC<OverviewCardsProps> = ({
   totalArticles,
   weeklyDuration
 }) => {
-  const formatHours = (seconds: number): string => {
+  const formatDuration = (seconds: number): { value: string; unit: string } => {
     const hours = Math.floor(seconds / 3600);
-    return hours.toString();
+    const minutes = Math.floor((seconds % 3600) / 60);
+
+    if (hours > 0) {
+      if (minutes > 0) {
+        return { value: `${hours}小时${minutes}分钟`, unit: '' };
+      }
+      return { value: hours.toString(), unit: '小时' };
+    }
+    return { value: minutes.toString(), unit: '分钟' };
   };
 
-  const formatMinutes = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    return minutes.toString();
+  const formatWeeklyDuration = (seconds: number): { value: string; unit: string } => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+
+    if (hours > 0) {
+      if (minutes > 0) {
+        return { value: `${hours}h${minutes}m`, unit: '' };
+      }
+      return { value: `${hours}h`, unit: '' };
+    }
+    return { value: minutes.toString(), unit: '分钟' };
   };
+
+  const totalDurationFormatted = formatDuration(totalDuration);
+  const weeklyDurationFormatted = formatWeeklyDuration(weeklyDuration);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <OverviewCard
         icon={<svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>}
         title="总阅读时长"
-        value={formatHours(totalDuration)}
-        unit="小时"
+        value={totalDurationFormatted.value}
+        unit={totalDurationFormatted.unit}
         color="blue"
       />
       <OverviewCard
@@ -79,8 +98,8 @@ const OverviewCards: React.FC<OverviewCardsProps> = ({
       <OverviewCard
         icon={<svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" /></svg>}
         title="本周阅读"
-        value={formatMinutes(weeklyDuration)}
-        unit="分钟"
+        value={weeklyDurationFormatted.value}
+        unit={weeklyDurationFormatted.unit}
         color="orange"
       />
     </div>
