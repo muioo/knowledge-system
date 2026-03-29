@@ -1,10 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "=== Running database migrations ==="
-
-# 等待 MySQL 就绪（最多等 60 秒）
-echo "Waiting for MySQL to be ready..."
+echo "=== Waiting for MySQL to be ready ==="
 MAX_RETRIES=30
 RETRY=0
 until python -c "
@@ -15,7 +12,7 @@ async def check():
     try:
         await Tortoise.init(config=TORTOISE_ORM)
         await Tortoise.close_connections()
-    except Exception as e:
+    except Exception:
         sys.exit(1)
 asyncio.run(check())
 " 2>/dev/null; do
@@ -29,14 +26,8 @@ asyncio.run(check())
 done
 echo "MySQL is ready."
 
-# 运行 aerich 初始建表迁移
-echo "Running aerich migrations..."
-cd /app
-aerich upgrade || echo "Aerich upgrade skipped (already up to date)"
-
-# 运行手动字段补充迁移
-echo "Running column patch migration..."
-python backend/run_migration.py
+echo "=== Running aerich migrations ==="
+aerich upgrade
 
 echo "=== Migrations complete, starting server ==="
 exec uvicorn backend.main:app --host 0.0.0.0 --port 8022
