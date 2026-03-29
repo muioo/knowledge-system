@@ -1,9 +1,18 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 class ReadingEnd(BaseModel):
     reading_progress: int = Field(default=0, ge=0, le=100)
+
+class ReadingTrendItem(BaseModel):
+    date: str
+    minutes: int
+    articles: int
+
+class ReadingTrendsResponse(BaseModel):
+    items: List[ReadingTrendItem]
+    total: int
 
 class ReadingHistoryResponse(BaseModel):
     id: int
