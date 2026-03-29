@@ -37,6 +37,8 @@ async def create_article_from_file(
     Raises:
         ValueError: 必填字段为空时抛出异常
     """
+    import logging
+
     # 验证必填字段
     if not title:
         raise ValueError("标题为必填项")
@@ -47,6 +49,14 @@ async def create_article_from_file(
 
     content_bytes, filename = file_data
 
+    # 预先验证标签ID
+    if tag_ids:
+        valid_tags = await Tag.filter(id__in=tag_ids)
+        valid_tag_ids = {t.id for t in valid_tags}
+        invalid_tag_ids = set(tag_ids) - valid_tag_ids
+        if invalid_tag_ids:
+            raise ValueError(f"无效的标签ID: {list(invalid_tag_ids)}")
+
     # 创建文章记录（获取ID）
     article = await Article.create(
         title=title,
@@ -56,38 +66,103 @@ async def create_article_from_file(
         original_filename=filename
     )
 
-    # 创建目录并保存原始文件
-    article_dir = os.path.join(settings.upload_dir, "articles", str(article.id))
-    os.makedirs(article_dir, exist_ok=True)
+    logging.info(f"Created article with ID: {article.id}")
 
-    file_path = os.path.join(article_dir, filename)
-    async with aiofiles.open(file_path, "wb") as f:
-        await f.write(content_bytes)
+    try:
+        # 创建目录并保存原始文件
+        article_dir = os.path.join(settings.upload_dir, "articles", str(article.id))
+        os.makedirs(article_dir, exist_ok=True)
 
-    # 关联标签
-    if tag_ids:
-        tags = await Tag.filter(id__in=tag_ids)
-        if tags:
-            await article.tags.add(*tags)
+        file_path = os.path.join(article_dir, filename)
+        async with aiofiles.open(file_path, "wb") as f:
+            await f.write(content_bytes)
 
-    await article.fetch_related("tags")
+        # 关联标签 - 确保文章存在后再关联
+        if tag_ids:
+            logging.info(f"Associating tags {tag_ids} with article {article.id}")
 
-    return ArticleResponse(
-        id=article.id,
-        title=article.title,
-        source_url=article.source_url,
-        summary=article.summary,
-        keywords=article.keywords,
-        author_id=article.author_id,
-        original_filename=article.original_filename,
-        view_count=article.view_count,
-        created_at=article.created_at,
-        updated_at=article.updated_at,
-        tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags],
-        html_path=article.html_path,
-        processing_status=article.processing_status,
-        original_html_url=article.original_html_url
-    )
+            # 刷新文章对象
+            await article.refresh_from_db()
+
+            # 逐个关联标签
+            for tag_id in tag_ids:
+                try:
+                    await article.tags.add(tag_id)
+                    logging.info(f"Associated tag {tag_id} with article {article.id}")
+                except Exception as tag_error:
+                    logging.error(f"Failed to associate tag {tag_id}: {tag_error}")
+
+        await article.fetch_related("tags")
+
+        return ArticleResponse(
+            id=article.id,
+            title=article.title,
+            source_url=article.source_url,
+            summary=article.summary,
+            keywords=article.keywords,
+            author_id=article.author_id,
+            original_filename=article.original_filename,
+            view_count=article.view_count,
+            created_at=article.created_at,
+            updated_at=article.updated_at,
+            tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags],
+            html_path=article.html_path,
+            processing_status=article.processing_status,
+            original_html_url=article.original_html_url
+        )
+
+    except Exception as e:
+        # 出错时删除文章记录和文件
+        logging.error(f"Error during article creation: {str(e)}", exc_info=True)
+        try:
+            await article.delete()
+        except:
+            pass
+        import shutil
+        if os.path.exists(article_dir):
+            shutil.rmtree(article_dir)
+        raise ValueError(f"保存失败: {str(e)}")
+        # 创建文章记录（获取ID）
+        article = await Article.create(
+            title=title,
+            summary=summary,
+            keywords=keywords,
+            author_id=author_id,
+            original_filename=filename
+        )
+
+        # 创建目录并保存原始文件
+        article_dir = os.path.join(settings.upload_dir, "articles", str(article.id))
+        os.makedirs(article_dir, exist_ok=True)
+
+        file_path = os.path.join(article_dir, filename)
+        async with aiofiles.open(file_path, "wb") as f:
+            await f.write(content_bytes)
+
+        # 关联标签
+        if tag_ids:
+            tags = await Tag.filter(id__in=tag_ids)
+            if tags:
+                await article.tags.add(*tags)
+
+        await article.fetch_related("tags")
+
+        return ArticleResponse(
+            id=article.id,
+            title=article.title,
+            source_url=article.source_url,
+            summary=article.summary,
+            keywords=article.keywords,
+            author_id=article.author_id,
+            original_filename=article.original_filename,
+            view_count=article.view_count,
+            created_at=article.created_at,
+            updated_at=article.updated_at,
+            tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags],
+            html_path=article.html_path,
+            processing_status=article.processing_status,
+            original_html_url=article.original_html_url
+        )
 
 async def create_article(
     data: ArticleCreate,
@@ -281,7 +356,13 @@ async def delete_article(article_id: int, user_id: int, is_admin: bool = False) 
     await article.delete()
     return True
 
-async def list_articles(page: int = 1, size: int = 20, tag_id: Optional[int] = None, author_id: Optional[int] = None) -> tuple[List[ArticleResponse], int]:
+async def list_articles(page: int = 1, size: int = 20, tag_id: Optional[int] = None, author_id: Optional[int] = None, user_id: Optional[int] = None) -> tuple[List[ArticleResponse], int]:
+    """
+    获取文章列表
+
+    Args:
+        user_id: 可选的用户ID，用于填充阅读状态信息
+    """
     query = Article.all()
     if tag_id:
         query = query.filter(tags__id=tag_id)
@@ -289,6 +370,20 @@ async def list_articles(page: int = 1, size: int = 20, tag_id: Optional[int] = N
         query = query.filter(author_id=author_id)
     total = await query.count()
     articles = await query.prefetch_related("tags").offset((page - 1) * size).limit(size)
+
+    # 如果提供了 user_id，获取阅读状态信息
+    reading_stats_map = {}
+    if user_id:
+        from backend.models import ReadingStats
+        article_ids = [a.id for a in articles]
+        if article_ids:
+            stats = await ReadingStats.filter(user_id=user_id, article_id__in=article_ids)
+            for stat in stats:
+                reading_stats_map[stat.article_id] = {
+                    'is_read': stat.max_reading_progress >= 100 or stat.completed_reads > 0,
+                    'reading_progress': stat.last_reading_progress
+                }
+
     return (
         [
             ArticleResponse(
@@ -305,13 +400,23 @@ async def list_articles(page: int = 1, size: int = 20, tag_id: Optional[int] = N
                 tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in a.tags],
                 html_path=a.html_path,
                 processing_status=a.processing_status,
-                original_html_url=a.original_html_url
+                original_html_url=a.original_html_url,
+                # 填充阅读状态信息
+                is_read=reading_stats_map.get(a.id, {}).get('is_read'),
+                reading_progress=reading_stats_map.get(a.id, {}).get('reading_progress')
             ) for a in articles
         ],
         total
     )
 
-async def search_articles(query: SearchQuery) -> tuple[List[ArticleResponse], int]:
+async def search_articles(query: SearchQuery, user_id: Optional[int] = None) -> tuple[List[ArticleResponse], int]:
+    """
+    搜索文章
+
+    Args:
+        query: 搜索查询对象
+        user_id: 可选的用户ID，用于填充阅读状态信息
+    """
     articles_query = Article.all()
     if query.q:
         articles_query = articles_query.filter(
@@ -325,6 +430,20 @@ async def search_articles(query: SearchQuery) -> tuple[List[ArticleResponse], in
     articles = await articles_query.prefetch_related("tags").distinct().offset(
         (query.page - 1) * query.size
     ).limit(query.size)
+
+    # 如果提供了 user_id，获取阅读状态信息
+    reading_stats_map = {}
+    if user_id:
+        from backend.models import ReadingStats
+        article_ids = [a.id for a in articles]
+        if article_ids:
+            stats = await ReadingStats.filter(user_id=user_id, article_id__in=article_ids)
+            for stat in stats:
+                reading_stats_map[stat.article_id] = {
+                    'is_read': stat.max_reading_progress >= 100 or stat.completed_reads > 0,
+                    'reading_progress': stat.last_reading_progress
+                }
+
     return (
         [
             ArticleResponse(
@@ -341,7 +460,10 @@ async def search_articles(query: SearchQuery) -> tuple[List[ArticleResponse], in
                 tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in a.tags],
                 html_path=a.html_path,
                 processing_status=a.processing_status,
-                original_html_url=a.original_html_url
+                original_html_url=a.original_html_url,
+                # 填充阅读状态信息
+                is_read=reading_stats_map.get(a.id, {}).get('is_read'),
+                reading_progress=reading_stats_map.get(a.id, {}).get('reading_progress')
             ) for a in articles
         ],
         total
@@ -376,6 +498,16 @@ async def import_article_from_html_url(
     Raises:
         ValueError: 各种导入错误
     """
+    import logging
+
+    # 预先验证标签ID
+    if tag_ids:
+        valid_tags = await Tag.filter(id__in=tag_ids)
+        valid_tag_ids = {t.id for t in valid_tags}
+        invalid_tag_ids = set(tag_ids) - valid_tag_ids
+        if invalid_tag_ids:
+            raise ValueError(f"无效的标签ID: {list(invalid_tag_ids)}")
+
     # 检查 URL 是否已存在
     existing = await Article.filter(original_html_url=url).first()
     if existing:
@@ -406,8 +538,6 @@ async def import_article_from_html_url(
             ai_keywords = ai_result.get("keywords")
             ai_title = ai_result.get("title")
         except Exception as e:
-            # AI 提取失败，使用默认值或手动输入的值
-            import logging
             logging.warning(f"AI 提取失败 (url={url}): {str(e)}")
 
     # 5. 确定最终的标题、摘要和关键词
@@ -424,6 +554,10 @@ async def import_article_from_html_url(
         original_html_url=url,
         processing_status="completed"
     )
+
+    logging.info(f"Created article with ID: {article.id}")
+
+    article_dir = None
 
     try:
         # 7. 创建存储目录
@@ -450,11 +584,23 @@ async def import_article_from_html_url(
         article.html_path = f"articles/{article.id}/index.html"
         await article.save()
 
-        # 12. 关联标签
+        # 12. 关联标签 - 确保文章确实存在后再关联
         if tag_ids:
-            tags = await Tag.filter(id__in=tag_ids)
-            if tags:
-                await article.tags.add(*tags)
+            logging.info(f"Associating tags {tag_ids} with article {article.id}")
+
+            # 刷新文章对象，确保它是最新的
+            await article.refresh_from_db()
+
+            # 使用逐个关联的方式，更安全
+            for tag_id in tag_ids:
+                try:
+                    await article.tags.add(tag_id)
+                    logging.info(f"Associated tag {tag_id} with article {article.id}")
+                except Exception as tag_error:
+                    logging.error(f"Failed to associate tag {tag_id}: {tag_error}")
+                    # 即使标签关联失败，也继续处理其他标签
+
+            logging.info(f"Completed tag association for article {article.id}")
 
         await article.fetch_related("tags")
 
@@ -476,10 +622,14 @@ async def import_article_from_html_url(
         )
 
     except Exception as e:
-        # 回滚：删除文章记录和文件
-        await article.delete()
+        # 出错时删除文章记录和文件
+        logging.error(f"Error during article import: {str(e)}", exc_info=True)
+        try:
+            await article.delete()
+        except:
+            pass
         import shutil
-        if os.path.exists(article_dir):
+        if article_dir and os.path.exists(article_dir):
             shutil.rmtree(article_dir)
         raise ValueError(f"保存失败: {str(e)}")
 
@@ -525,5 +675,10 @@ async def get_article_html_content(article_id: int) -> str:
             # 移除开头的 ./ 或 /
             clean_src = src.lstrip('./').lstrip('/')
             img['src'] = f"/api/v1/media/articles/{article_id}/{clean_src}"
+
+    # 清理可能有问题的 SVG 元素
+    # 策略：移除所有 SVG，因为它们可能导致渲染问题
+    for svg in soup.find_all('svg'):
+        svg.decompose()
 
     return str(soup)

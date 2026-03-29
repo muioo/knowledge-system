@@ -21,7 +21,7 @@ async def search_articles_endpoint(
     from backend.schemas.article import SearchQuery
     query = SearchQuery(q=q, tags=tag_ids, page=page, size=size)
 
-    articles, total = await search_articles(query)
+    articles, total = await search_articles(query, user_id=current_user.id)
     return PaginatedResponse(data=PaginatedData(
         total=total,
         page=page,

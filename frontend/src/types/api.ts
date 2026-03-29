@@ -62,6 +62,9 @@ export interface Article {
   html_path: string | null;
   processing_status: string | null;
   original_html_url: string | null;
+  // 阅读状态
+  is_read?: boolean | null;
+  reading_progress?: number | null;
 }
 
 // 文章创建数据

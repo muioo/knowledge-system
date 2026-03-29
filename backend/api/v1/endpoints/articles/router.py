@@ -31,7 +31,7 @@ async def get_articles(
     tag_id: Optional[int] = None,
     current_user: User = Depends(get_current_user)
 ):
-    articles, total = await list_articles(page, size, tag_id)
+    articles, total = await list_articles(page, size, tag_id, user_id=current_user.id)
     return PaginatedResponse(data=PaginatedData(
         total=total,
         page=page,
