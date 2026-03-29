@@ -7,15 +7,13 @@ import {
   Tooltip,
 } from 'recharts';
 import { readingApi } from '../../api/reading';
-import type { TimeDistribution, TimePeriod, HeatmapData } from '../../types/api';
+import type { TimeDistribution, TimePeriod } from '../../types/api';
 
 interface TimeDistributionSectionProps {
   userId: number;
 }
 
 const COLORS = ['#3b82f6', '#f59e0b', '#8b5cf6', '#6b7280'];
-
-const WEEK_LABELS = ['一', '二', '三', '四', '五', '六', '日'];
 
 // ---------------------------------------------------------------------------
 // Sub-components
@@ -79,71 +77,6 @@ const TimePeriodPieChart: React.FC<{ data: TimePeriod[] }> = ({ data }) => {
 };
 
 // ---------------------------------------------------------------------------
-
-interface HeatmapProps {
-  heatmap: HeatmapData[];
-}
-
-const ReadingHeatmap: React.FC<HeatmapProps> = ({ heatmap }) => (
-  <div>
-    <h3 className="text-sm font-medium text-gray-700 mb-4">阅读热力图</h3>
-    <p className="text-sm text-gray-500 mb-3">一周内各时段的阅读活跃度</p>
-    <div className="overflow-x-auto">
-      <div style={{ minWidth: '200px' }}>
-        {/* Day-of-week header */}
-        <div className="grid grid-cols-7 gap-1 mb-1">
-          {WEEK_LABELS.map(day => (
-            <div key={day} className="text-center text-xs text-gray-500">
-              {day}
-            </div>
-          ))}
-        </div>
-
-        {/* 24 hour rows × 7 day columns */}
-        {Array.from({ length: 24 }).map((_, hour) => (
-          <div key={hour} className="grid grid-cols-7 gap-1 mb-1">
-            {Array.from({ length: 7 }).map((_, day) => {
-              const cell = heatmap.find(h => h.hour === hour && h.day === day);
-              const count = cell?.count ?? 0;
-              const intensity = count > 0 ? Math.min(count * 20, 100) : 0;
-
-              return (
-                <div
-                  key={`${hour}-${day}`}
-                  className="aspect-square rounded-sm"
-                  style={{
-                    backgroundColor:
-                      intensity > 0
-                        ? `rgba(59, 130, 246, ${intensity / 100})`
-                        : '#f3f4f6',
-                  }}
-                  title={`周${WEEK_LABELS[day]} ${hour}:00 - ${count}次`}
-                />
-              );
-            })}
-          </div>
-        ))}
-      </div>
-    </div>
-
-    {/* Intensity legend */}
-    <div className="flex items-center justify-end gap-2 mt-3 text-xs text-gray-500">
-      <span>低</span>
-      <div className="flex gap-1">
-        {[0.1, 0.3, 0.5, 0.7, 1.0].map(opacity => (
-          <div
-            key={opacity}
-            className="w-3 h-3 rounded-sm"
-            style={{ backgroundColor: `rgba(59, 130, 246, ${opacity})` }}
-          />
-        ))}
-      </div>
-      <span>高</span>
-    </div>
-  </div>
-);
-
-// ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
 
@@ -187,9 +120,8 @@ const TimeDistributionSection: React.FC<TimeDistributionSectionProps> = ({
       <h2 className="text-lg font-semibold text-gray-900 mb-6">
         阅读时段分布
       </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="max-w-md mx-auto">
         <TimePeriodPieChart data={data.periods} />
-        <ReadingHeatmap heatmap={data.heatmap} />
       </div>
     </div>
   );
