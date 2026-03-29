@@ -11,6 +11,7 @@ from backend.controllers.reading_controller import (
     get_article_reading_stats
 )
 from backend.controllers.reading_trends_controller import get_reading_trends
+from backend.controllers.reading_time_distribution_controller import get_time_distribution
 
 router = APIRouter(prefix="/reading", tags=["阅读记录"])
 
@@ -97,3 +98,11 @@ async def get_trends(
         items=data,
         total=len(data)
     ))
+
+@router.get("/time-distribution")
+async def get_distribution(
+    current_user: User = Depends(get_current_user)
+):
+    """获取阅读时段分布数据"""
+    data = await get_time_distribution(current_user.id)
+    return data
