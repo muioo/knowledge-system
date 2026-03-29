@@ -1,4 +1,4 @@
-"""Quick migration runner - bypasses confirmation prompt"""
+"""Run ALTER TABLE migrations to patch missing columns in existing tables."""
 import asyncio
 import sys
 from pathlib import Path
@@ -16,7 +16,6 @@ async def migrate():
     print("Migrating reading_history table...")
 
     columns_result = await conn.execute_query("SHOW COLUMNS FROM reading_history")
-    # execute_query returns (sql, rows) tuple
     rows = columns_result[1] if isinstance(columns_result, tuple) else columns_result
     existing_columns = {col["Field"] if isinstance(col, dict) else col[0] for col in rows}
 

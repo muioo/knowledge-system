@@ -1,19 +1,19 @@
 services:
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: knowledge-backend
     restart: unless-stopped
     env_file:
       - ./backend/.env
     volumes:
-      - ./backend/uploads:/app/uploads
+      - ./backend/uploads:/app/backend/uploads
       - ./logs:/app/logs
     networks:
       - knowledge-net
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8022/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8022/health')"]
       interval: 30s
       timeout: 10s
       retries: 3

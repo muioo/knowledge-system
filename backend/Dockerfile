@@ -10,13 +10,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制依赖文件并安装
-COPY requirements-docker.txt .
+# 复制依赖文件并安装（build context 是项目根目录）
+COPY backend/requirements-docker.txt .
 RUN pip install --no-cache-dir -r requirements-docker.txt
 
-# 复制项目代码到 /app/backend/（保持 backend.xxx 包路径）
-COPY . ./backend/
+# 复制 aerich 配置和迁移文件（需要在 /app 根目录，aerich 从这里读取）
+COPY pyproject.toml ./pyproject.toml
+COPY migrations ./migrations
+
+# 复制 backend 代码到 /app/backend/
+COPY backend ./backend
+
+# 设置 entrypoint 可执行权限
+RUN chmod +x ./backend/entrypoint.sh
 
 EXPOSE 8022
 
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8022"]
+ENTRYPOINT ["./backend/entrypoint.sh"]
