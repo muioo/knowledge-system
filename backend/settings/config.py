@@ -71,7 +71,9 @@ class Settings(BaseSettings):
                 }
             },
             "use_tz": False,
-            "timezone": "Asia/Shanghai"
+            "timezone": "Asia/Shanghai",
+            # 启用单例模式以支持事务
+            "single_instance": True,
         }
 
     model_config = {

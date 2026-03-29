@@ -31,7 +31,7 @@ async def get_articles(
     tag_id: Optional[int] = None,
     current_user: User = Depends(get_current_user)
 ):
-    articles, total = await list_articles(page, size, tag_id, user_id=current_user.id)
+    articles, total = await list_articles(page, size, tag_id)
     return PaginatedResponse(data=PaginatedData(
         total=total,
         page=page,
@@ -184,12 +184,12 @@ async def get_article_html(
     article_id: int,
     current_user: User = Depends(get_current_user)
 ):
-    """获取文章的 HTML 内容"""
+    """获取文章的 HTML 内容（不增加浏览次数）"""
     import logging
 
     try:
-        # 获取基本信息
-        result = await get_article_by_id(article_id)
+        # 获取基本信息（不增加浏览次数）
+        result = await get_article_by_id(article_id, increment_view=False)
 
         # 获取 HTML 内容
         html_content = await get_article_html_content(article_id)

@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { Breadcrumb } from './Breadcrumb';
 
 /**
  * MainLayout 组件 - 主布局容器
- * 包含 Sidebar、Header 和内容区域
+ * 包含 Sidebar、Header、Breadcrumb 和内容区域
  */
 export const MainLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -33,6 +34,10 @@ export const MainLayout: React.FC = () => {
 
         {/* Main Content */}
         <div className="p-6">
+          {/* Breadcrumb Navigation */}
+          <Breadcrumb />
+
+          {/* Page Content */}
           <Outlet />
         </div>
       </div>

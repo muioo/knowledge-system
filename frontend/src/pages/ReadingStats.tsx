@@ -67,25 +67,14 @@ const ReadingStats: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">阅读统计</h1>
-          <p className="text-gray-600">查看您的阅读历史和统计数据</p>
-        </div>
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-        </div>
+      <div className="w-full flex justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">阅读统计</h1>
-        <p className="text-gray-600">查看您的阅读历史和统计数据</p>
-      </div>
-
+    <div className="w-full space-y-6">
       {/* 概览卡片 */}
       <OverviewCards
         totalDuration={totalDuration}

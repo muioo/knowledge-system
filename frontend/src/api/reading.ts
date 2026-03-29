@@ -80,11 +80,13 @@ export const readingApi = {
     scroll_position: number;
     total_content_length: number;
     actual_progress: number;
+    reading_duration?: number;
   }): Promise<{
     scroll_position: number;
     total_content_length: number;
     actual_progress: number;
     reading_progress: number;
+    reading_duration: number;
   }> => {
     const response = await apiClient.put<any>(`/reading/articles/${articleId}/progress`, data);
     // SuccessResponse 格式: { code: 200, message: "success", data: {...} }

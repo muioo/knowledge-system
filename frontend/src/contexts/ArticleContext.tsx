@@ -3,6 +3,12 @@ import { articleApi } from '../api/article';
 import { tagApi } from '../api/tag';
 import type { Article, Tag, ArticleCreateData, UrlImportData } from '../types/api';
 
+const getErrorMessage = (err: any, fallback: string): string => {
+  if (err?.response?.data?.detail) return err.response.data.detail;
+  if (err?.response?.data?.message) return err.response.data.message;
+  return err?.message || fallback;
+};
+
 interface ArticleContextType {
   articles: Article[];
   tags: Tag[];
@@ -65,7 +71,7 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
       setArticles(response.items);
       setTotal(response.total);
     } catch (err: any) {
-      setError(err.message || '获取文章列表失败');
+      setError(getErrorMessage(err, '获取文章列表失败'));
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +84,7 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
       await fetchArticles();
       return { success: true };
     } catch (err: any) {
-      return { success: false, error: err.message || '创建文章失败' };
+      return { success: false, error: getErrorMessage(err, '创建文章失败') };
     } finally {
       setIsLoading(false);
     }
@@ -91,7 +97,7 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
       await fetchArticles();
       return { success: true };
     } catch (err: any) {
-      return { success: false, error: err.message || '导入文章失败' };
+      return { success: false, error: getErrorMessage(err, '导入文章失败') };
     } finally {
       setIsLoading(false);
     }
@@ -104,7 +110,7 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
       setTotal(prev => prev - 1);
       return { success: true };
     } catch (err: any) {
-      return { success: false, error: err.message || '删除文章失败' };
+      return { success: false, error: getErrorMessage(err, '删除文章失败') };
     }
   };
 

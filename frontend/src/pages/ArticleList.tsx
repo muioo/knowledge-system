@@ -54,14 +54,9 @@ const ArticleList: React.FC = () => {
   const totalPages = Math.ceil(total / pageSize);
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">文章管理</h1>
-        <p className="text-gray-600">管理和查看您的文章</p>
-      </div>
-
+    <div className="w-full space-y-6">
       {/* Search and Filter */}
-      <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 mb-6">
+      <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
         <form onSubmit={handleSearch} className="flex gap-4">
           <Input
             type="text"
@@ -111,7 +106,7 @@ const ArticleList: React.FC = () => {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {articles.map(article => (
               <ArticleCard key={article.id} article={article} onDelete={handleDelete} />
             ))}

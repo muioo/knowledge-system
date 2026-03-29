@@ -183,7 +183,7 @@ async def get_reading_progress(user_id: int, page: int = 1, size: int = 20) -> t
 
 async def update_reading_progress(user_id: int, article_id: int, data: ReadingProgressUpdate) -> Dict:
     """
-    更新阅读进度（基于滚动位置）
+    更新阅读进度（基于滚动位置）和阅读时长
 
     Args:
         user_id: 用户ID
@@ -208,7 +208,8 @@ async def update_reading_progress(user_id: int, article_id: int, data: ReadingPr
             started_at=get_now(),
             scroll_position=data.scroll_position,
             total_content_length=data.total_content_length,
-            actual_progress=data.actual_progress
+            actual_progress=data.actual_progress,
+            reading_duration=data.reading_duration or 0
         )
     else:
         # 更新现有记录
@@ -216,6 +217,11 @@ async def update_reading_progress(user_id: int, article_id: int, data: ReadingPr
         history.total_content_length = data.total_content_length
         history.actual_progress = data.actual_progress
         history.reading_progress = data.actual_progress  # 同步更新进度
+
+        # 如果提供了阅读时长，更新它（累计时长）
+        if data.reading_duration is not None:
+            history.reading_duration = data.reading_duration
+
         await history.save()
 
     # 更新阅读统计
@@ -224,7 +230,8 @@ async def update_reading_progress(user_id: int, article_id: int, data: ReadingPr
         article_id=article_id,
         defaults={
             "total_views": 1,
-            "total_duration": 0,
+            "total_duration": history.reading_duration,
+            "last_read_at": get_now(),
             "last_reading_progress": data.actual_progress,
             "max_reading_progress": data.actual_progress
         }
@@ -235,11 +242,18 @@ async def update_reading_progress(user_id: int, article_id: int, data: ReadingPr
         if data.actual_progress > stats.max_reading_progress:
             stats.max_reading_progress = data.actual_progress
         stats.last_reading_progress = data.actual_progress
+        stats.last_read_at = get_now()
+
+        # 如果阅读时长增加了，更新总时长
+        if data.reading_duration is not None and data.reading_duration > stats.total_duration:
+            stats.total_duration = data.reading_duration
+
         await stats.save()
 
     return {
         "scroll_position": history.scroll_position,
         "total_content_length": history.total_content_length,
         "actual_progress": history.actual_progress,
-        "reading_progress": history.reading_progress
+        "reading_progress": history.reading_progress,
+        "reading_duration": history.reading_duration
     }

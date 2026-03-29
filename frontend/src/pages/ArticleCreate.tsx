@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useArticles } from '../contexts/ArticleContext';
 import Input from '../components/ui/Input';
 import Card from '../components/ui/Card';
-import type { Tag } from '../types/api';
 
 interface FileData {
   file: File | null;
@@ -17,6 +16,10 @@ interface UrlData {
   url: string;
   tagIds: number[];
   title: string;
+  useAi: boolean;
+  summary: string;
+  keywords: string;
+  apiKey: string;
 }
 
 const ArticleCreate: React.FC = () => {
@@ -25,7 +28,7 @@ const ArticleCreate: React.FC = () => {
 
   const [mode, setMode] = useState<'file' | 'url'>('file');
   const [fileData, setFileData] = useState<FileData>({ file: null, title: '', summary: '', keywords: '', tagIds: [] });
-  const [urlData, setUrlData] = useState<UrlData>({ url: '', tagIds: [], title: '' });
+  const [urlData, setUrlData] = useState<UrlData>({ url: '', tagIds: [], title: '', useAi: false, summary: '', keywords: '', apiKey: '' });
   const [error, setError] = useState('');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,20 +66,27 @@ const ArticleCreate: React.FC = () => {
       else setError(result.error || '创建文章失败');
     } else {
       if (!urlData.url) { setError('请输入文章 URL'); return; }
-      const result = await importFromUrl(urlData);
+      if (!urlData.useAi && (!urlData.summary || !urlData.keywords)) {
+        setError('未开启 AI 提取时，摘要和关键词为必填');
+        return;
+      }
+      const result = await importFromUrl({
+        url: urlData.url,
+        tagIds: urlData.tagIds,
+        title: urlData.title || undefined,
+        use_ai: urlData.useAi,
+        summary: !urlData.useAi ? urlData.summary : undefined,
+        keywords: !urlData.useAi ? urlData.keywords : undefined,
+        api_key: urlData.useAi && urlData.apiKey ? urlData.apiKey : undefined,
+      });
       if (result.success) navigate('/articles');
       else setError(result.error || '导入文章失败');
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">创建文章</h1>
-        <p className="text-gray-600">通过文件上传或 URL 导入创建新文章</p>
-      </div>
-
-      <div className="flex gap-2 mb-6">
+    <div className="w-full space-y-6">
+      <div className="flex gap-2">
         <button onClick={() => setMode('file')} className={`px-4 py-2 rounded-lg transition-colors ${mode === 'file' ? 'bg-blue-500 text-white' : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'}`}>
           文件上传
         </button>
@@ -102,8 +112,46 @@ const ArticleCreate: React.FC = () => {
             </>
           ) : (
             <>
-              <div><label className="block text-sm font-medium text-gray-700 mb-2">文章 URL <span className="text-blue-500">*</span></label><Input type="url" value={urlData.url} onChange={(e) => setUrlData({ ...urlData, url: e.target.value })} placeholder="https://example.com/article" required /><p className="mt-1 text-xs text-gray-500">系统将自动抓取内容并使用 AI 提取标题、摘要和关键词</p></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-2">标题（可选）</label><Input type="text" value={urlData.title} onChange={(e) => setUrlData({ ...urlData, title: e.target.value })} placeholder="留空则自动提取" /></div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">文章 URL <span className="text-blue-500">*</span></label>
+                <Input type="url" value={urlData.url} onChange={(e) => setUrlData({ ...urlData, url: e.target.value })} placeholder="https://example.com/article" required />
+                <p className="mt-1 text-xs text-gray-500">系统将自动抓取网页内容</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">标题（可选）</label>
+                <Input type="text" value={urlData.title} onChange={(e) => setUrlData({ ...urlData, title: e.target.value })} placeholder="留空则使用网页标题" />
+              </div>
+
+              <div className="border-t border-gray-100 pt-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={urlData.useAi}
+                    onChange={(e) => setUrlData({ ...urlData, useAi: e.target.checked })}
+                    className="w-4 h-4 text-blue-500 rounded border-gray-300 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">使用 AI 提取摘要和关键词</span>
+                </label>
+                <p className="mt-1 ml-6 text-xs text-gray-500">需要提供 API Key，AI 将自动生成摘要和关键词</p>
+              </div>
+
+              {urlData.useAi ? (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">API Key</label>
+                  <Input type="password" value={urlData.apiKey} onChange={(e) => setUrlData({ ...urlData, apiKey: e.target.value })} placeholder="输入火山引擎 ARK API Key" />
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">摘要 <span className="text-blue-500">*</span></label>
+                    <textarea value={urlData.summary} onChange={(e) => setUrlData({ ...urlData, summary: e.target.value })} placeholder="请输入文章摘要" rows={3} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">关键词 <span className="text-blue-500">*</span></label>
+                    <Input type="text" value={urlData.keywords} onChange={(e) => setUrlData({ ...urlData, keywords: e.target.value })} placeholder="请输入关键词，用逗号分隔" required />
+                  </div>
+                </>
+              )}
             </>
           )}
 

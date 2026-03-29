@@ -14,4 +14,15 @@ export default defineConfig({
       '@': '/src',
     },
   },
+  server: {
+    proxy: {
+      // 代理所有 /api 请求到后端
+      '/api': {
+        target: 'http://localhost:8022',
+        changeOrigin: true,
+        secure: false,
+        // 不重写路径
+      },
+    },
+  },
 })

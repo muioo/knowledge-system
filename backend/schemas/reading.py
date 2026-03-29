@@ -10,6 +10,7 @@ class ReadingProgressUpdate(BaseModel):
     scroll_position: int = Field(default=0, ge=0, description="滚动位置（像素）")
     total_content_length: int = Field(default=0, ge=0, description="总内容长度（像素）")
     actual_progress: int = Field(default=0, ge=0, le=100, description="实际阅读进度（0-100）")
+    reading_duration: Optional[int] = Field(default=None, ge=0, description="累计阅读时长（秒）")
 
 class ReadingTrendItem(BaseModel):
     date: str

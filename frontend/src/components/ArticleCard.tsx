@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Card from './ui/Card';
-import { FileTextIcon, EyeIcon, CheckIcon } from './ui/Icons';
+import { FileTextIcon, EyeIcon } from './ui/Icons';
 import type { Article } from '../types/api';
 
 interface ArticleCardProps {
@@ -19,16 +19,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete }) => {
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow relative">
-      {/* 已读标记 */}
-      {article.is_read && (
-        <div className="absolute top-4 right-4 bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-          <CheckIcon size={12} />
-          已读
-        </div>
-      )}
-
-      <div className="flex items-start justify-between mb-3 pr-16">
+    <Card className="hover:shadow-lg transition-shadow">
+      <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
           <Link
             to={`/articles/${article.id}`}
@@ -63,12 +55,6 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onDelete }) => {
             {article.view_count || 0}
           </span>
           <span>{formatDate(article.created_at)}</span>
-          {article.reading_progress !== undefined && article.reading_progress !== null && (
-            <span className="flex items-center gap-1">
-              <FileTextIcon size={14} />
-              {article.reading_progress >= 100 ? '已读完' : `${article.reading_progress}%`}
-            </span>
-          )}
         </div>
 
         {article.tags && article.tags.length > 0 && (

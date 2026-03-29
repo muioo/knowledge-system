@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from '../components/ui/Card';
 import { useAuth } from '../contexts/AuthContext';
 import { HomeIcon, FileTextIcon, TagIcon, BarChartIcon } from '../components/ui/Icons';
+import { articleApi } from '../api/article';
+import { tagApi } from '../api/tag';
 
 interface StatItem {
   title: string;
@@ -13,24 +15,38 @@ interface StatItem {
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const [articleCount, setArticleCount] = useState(0);
+  const [tagCount, setTagCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      // 获取文章总数
+      const articlesData = await articleApi.getArticles({ size: 1 });
+      setArticleCount(articlesData.total || 0);
+
+      // 获取标签总数
+      const tagsData = await tagApi.getTags();
+      setTagCount(tagsData.length || 0);
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const stats: StatItem[] = [
-    { title: '总文章数', value: '0', icon: FileTextIcon, color: 'bg-blue-500', path: '/articles' },
-    { title: '标签数量', value: '0', icon: TagIcon, color: 'bg-green-500', path: '/tags' },
+    { title: '总文章数', value: isLoading ? '...' : String(articleCount), icon: FileTextIcon, color: 'bg-blue-500', path: '/articles' },
+    { title: '标签数量', value: isLoading ? '...' : String(tagCount), icon: TagIcon, color: 'bg-green-500', path: '/tags' },
     { title: '阅读统计', value: '查看', icon: BarChartIcon, color: 'bg-purple-500', path: '/reading/stats' },
   ];
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          欢迎回来，{user?.username || '用户'}
-        </h1>
-        <p className="text-gray-600">
-          这是您的知识管理仪表盘
-        </p>
-      </div>
-
+    <div className="w-full space-y-6">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {stats.map((stat, index) => {

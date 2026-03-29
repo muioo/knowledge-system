@@ -43,10 +43,6 @@ class ArticleResponse(ArticleBase):
     updated_at: datetime
     tags: List[TagInfo] = []
 
-    # 阅读状态（仅在有用户上下文时填充）
-    is_read: Optional[bool] = Field(None, description="是否已读（阅读进度>=100%）")
-    reading_progress: Optional[int] = Field(None, description="阅读进度（0-100）")
-
     # 新增字段（html_content 仅在 ArticleHtmlResponse 中包含）
     html_path: Optional[str] = None
     processing_status: Optional[str] = None

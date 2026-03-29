@@ -76,16 +76,11 @@ const TagManage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">标签管理</h1>
-        <p className="text-gray-600">管理和组织您的文章标签</p>
-      </div>
-
-      {message && <div className={`mb-4 p-4 rounded-lg ${message.includes('失败') || message.includes('错误') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>{message}</div>}
+    <div className="w-full space-y-6">
+      {message && <div className={`p-4 rounded-lg ${message.includes('失败') || message.includes('错误') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>{message}</div>}
 
       {(isCreating || editingId) && (
-        <Card className="mb-6">
+        <Card>
           <h2 className="text-lg font-semibold mb-4">{editingId ? '编辑标签' : '创建新标签'}</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div><label className="block text-sm font-medium text-gray-700 mb-2">标签名称</label><Input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="请输入标签名称" required /></div>

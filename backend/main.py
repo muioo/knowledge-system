@@ -23,19 +23,19 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS 中间件必须最先添加，以便正确处理 OPTIONS 预检请求
+# 自定义中间件先添加（内层）
+app.add_middleware(ErrorHandlingMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
+
+# CORS 中间件最后添加（最外层），确保所有响应都携带 CORS 头
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 开发环境允许所有来源
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"],
 )
-
-# 注意：自定义中间件可能会干扰 CORS，需要确保它们正确处理 OPTIONS 请求
-app.add_middleware(RequestLoggingMiddleware)
-app.add_middleware(ErrorHandlingMiddleware)
 
 register_routers(app)
 

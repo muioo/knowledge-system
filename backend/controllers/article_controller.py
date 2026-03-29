@@ -272,7 +272,7 @@ async def create_article(
         original_html_url=article.original_html_url
     )
 
-async def get_article_by_id(article_id: int) -> ArticleResponse:
+async def get_article_by_id(article_id: int, increment_view: bool = True) -> ArticleResponse:
     """获取文章详情，从文件读取内容"""
     article = await Article.get_or_none(id=article_id)
     if not article:
@@ -281,8 +281,10 @@ async def get_article_by_id(article_id: int) -> ArticleResponse:
     # 预加载标签关系
     await article.fetch_related("tags")
 
-    article.view_count += 1
-    await article.save()
+    # 只在需要时增加浏览次数
+    if increment_view:
+        article.view_count += 1
+        await article.save()
 
     return ArticleResponse(
         id=article.id,
@@ -356,13 +358,7 @@ async def delete_article(article_id: int, user_id: int, is_admin: bool = False) 
     await article.delete()
     return True
 
-async def list_articles(page: int = 1, size: int = 20, tag_id: Optional[int] = None, author_id: Optional[int] = None, user_id: Optional[int] = None) -> tuple[List[ArticleResponse], int]:
-    """
-    获取文章列表
-
-    Args:
-        user_id: 可选的用户ID，用于填充阅读状态信息
-    """
+async def list_articles(page: int = 1, size: int = 20, tag_id: Optional[int] = None, author_id: Optional[int] = None) -> tuple[List[ArticleResponse], int]:
     query = Article.all()
     if tag_id:
         query = query.filter(tags__id=tag_id)
@@ -370,20 +366,6 @@ async def list_articles(page: int = 1, size: int = 20, tag_id: Optional[int] = N
         query = query.filter(author_id=author_id)
     total = await query.count()
     articles = await query.prefetch_related("tags").offset((page - 1) * size).limit(size)
-
-    # 如果提供了 user_id，获取阅读状态信息
-    reading_stats_map = {}
-    if user_id:
-        from backend.models import ReadingStats
-        article_ids = [a.id for a in articles]
-        if article_ids:
-            stats = await ReadingStats.filter(user_id=user_id, article_id__in=article_ids)
-            for stat in stats:
-                reading_stats_map[stat.article_id] = {
-                    'is_read': stat.max_reading_progress >= 100 or stat.completed_reads > 0,
-                    'reading_progress': stat.last_reading_progress
-                }
-
     return (
         [
             ArticleResponse(
@@ -400,23 +382,13 @@ async def list_articles(page: int = 1, size: int = 20, tag_id: Optional[int] = N
                 tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in a.tags],
                 html_path=a.html_path,
                 processing_status=a.processing_status,
-                original_html_url=a.original_html_url,
-                # 填充阅读状态信息
-                is_read=reading_stats_map.get(a.id, {}).get('is_read'),
-                reading_progress=reading_stats_map.get(a.id, {}).get('reading_progress')
+                original_html_url=a.original_html_url
             ) for a in articles
         ],
         total
     )
 
-async def search_articles(query: SearchQuery, user_id: Optional[int] = None) -> tuple[List[ArticleResponse], int]:
-    """
-    搜索文章
-
-    Args:
-        query: 搜索查询对象
-        user_id: 可选的用户ID，用于填充阅读状态信息
-    """
+async def search_articles(query: SearchQuery) -> tuple[List[ArticleResponse], int]:
     articles_query = Article.all()
     if query.q:
         articles_query = articles_query.filter(
@@ -430,20 +402,6 @@ async def search_articles(query: SearchQuery, user_id: Optional[int] = None) -> 
     articles = await articles_query.prefetch_related("tags").distinct().offset(
         (query.page - 1) * query.size
     ).limit(query.size)
-
-    # 如果提供了 user_id，获取阅读状态信息
-    reading_stats_map = {}
-    if user_id:
-        from backend.models import ReadingStats
-        article_ids = [a.id for a in articles]
-        if article_ids:
-            stats = await ReadingStats.filter(user_id=user_id, article_id__in=article_ids)
-            for stat in stats:
-                reading_stats_map[stat.article_id] = {
-                    'is_read': stat.max_reading_progress >= 100 or stat.completed_reads > 0,
-                    'reading_progress': stat.last_reading_progress
-                }
-
     return (
         [
             ArticleResponse(
@@ -460,10 +418,7 @@ async def search_articles(query: SearchQuery, user_id: Optional[int] = None) -> 
                 tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in a.tags],
                 html_path=a.html_path,
                 processing_status=a.processing_status,
-                original_html_url=a.original_html_url,
-                # 填充阅读状态信息
-                is_read=reading_stats_map.get(a.id, {}).get('is_read'),
-                reading_progress=reading_stats_map.get(a.id, {}).get('reading_progress')
+                original_html_url=a.original_html_url
             ) for a in articles
         ],
         total
