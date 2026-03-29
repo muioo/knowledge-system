@@ -8,6 +8,7 @@ import {
   BarChartIcon,
   UserIcon,
   ChevronDownIcon,
+  PlusIcon,
 } from '../ui/Icons';
 
 /**
@@ -37,6 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     () => [
       { path: '/dashboard', icon: HomeIcon, label: '仪表盘' },
       { path: '/articles', icon: FileTextIcon, label: '文章管理' },
+      { path: '/articles/create', icon: PlusIcon, label: '添加文章' },
       { path: '/tags', icon: TagIcon, label: '标签管理' },
       { path: '/reading/stats', icon: BarChartIcon, label: '阅读统计' },
     ],
