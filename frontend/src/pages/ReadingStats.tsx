@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { readingApi } from '../api/reading';
 import OverviewCards from '../components/reading/OverviewCards';
-import ReadingTrendsChart from '../components/reading/ReadingTrendsChart';
-import TimeDistributionSection from '../components/reading/TimeDistributionSection';
-import ArticleProgressList from '../components/reading/ArticleProgressList';
+import ReadingHistoryList from '../components/reading/ReadingHistoryList';
 import { useAuth } from '../contexts/AuthContext';
 
 const ReadingStats: React.FC = () => {
   const { user } = useAuth();
   const [totalDuration, setTotalDuration] = useState(0);
   const [totalArticles, setTotalArticles] = useState(0);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [weeklyDuration, setWeeklyDuration] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -20,39 +19,44 @@ const ReadingStats: React.FC = () => {
   const fetchOverviewData = async () => {
     setIsLoading(true);
     try {
-      // 获取阅读进度统计（分页获取所有数据以计算总数）
-      let allItems: any[] = [];
-      let page = 1;
-      const pageSize = 100;
+      // 获取阅读历史记录总数和总时长
+      let historyItems: any[] = [];
+      let historyPage = 1;
+      const historyPageSize = 100;
 
       while (true) {
-        const progressData = await readingApi.getProgress(page, pageSize);
-        allItems = allItems.concat(progressData.items);
-        if (allItems.length >= progressData.total) break;
-        page++;
+        const historyData = await readingApi.getHistory(historyPage, historyPageSize);
+        historyItems = historyItems.concat(historyData.items);
+        if (historyItems.length >= historyData.total) break;
+        historyPage++;
       }
 
-      // 计算总时长和文章数
-      const totalDur = allItems.reduce((sum, item) => sum + item.total_duration, 0);
-      const totalArts = allItems.length;
+      // 计算总时长（从历史记录）
+      const totalDur = historyItems.reduce((sum, item) => sum + (item.reading_duration || 0), 0);
+      const totalRecs = historyItems.length;
 
-      // 获取本周阅读时长（通过阅读统计计算）
-      let allStats: any[] = [];
-      page = 1;
+      // 获取阅读统计（用于获取阅读过的文章数）
+      let statsItems: any[] = [];
+      let statsPage = 1;
+
       while (true) {
-        const statsData = await readingApi.getStats(page, pageSize);
-        allStats = allStats.concat(statsData.items);
-        if (allStats.length >= statsData.total) break;
-        page++;
+        const statsData = await readingApi.getStats(statsPage, historyPageSize);
+        statsItems = statsItems.concat(statsData.items);
+        if (statsItems.length >= statsData.total) break;
+        statsPage++;
       }
 
+      const totalArts = statsItems.length;
+
+      // 计算本周阅读时长
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      const weeklyDur = allStats
-        .filter(item => item.last_read_at && new Date(item.last_read_at) >= weekAgo)
-        .reduce((sum, item) => sum + item.total_duration, 0);
+      const weeklyDur = historyItems
+        .filter(item => item.started_at && new Date(item.started_at) >= weekAgo)
+        .reduce((sum, item) => sum + (item.reading_duration || 0), 0);
 
       setTotalDuration(totalDur);
       setTotalArticles(totalArts);
+      setTotalRecords(totalRecs);
       setWeeklyDuration(weeklyDur);
     } catch (error) {
       console.error('Failed to fetch overview data:', error);
@@ -86,17 +90,12 @@ const ReadingStats: React.FC = () => {
       <OverviewCards
         totalDuration={totalDuration}
         totalArticles={totalArticles}
+        totalRecords={totalRecords}
         weeklyDuration={weeklyDuration}
       />
 
-      {/* 阅读趋势图表 */}
-      {user && <ReadingTrendsChart userId={user.id} />}
-
-      {/* 阅读时段分布 */}
-      {user && <TimeDistributionSection userId={user.id} />}
-
-      {/* 文章阅读进度 */}
-      {user && <ArticleProgressList userId={user.id} />}
+      {/* 阅读历史记录列表 */}
+      {user && <ReadingHistoryList userId={user.id} />}
     </div>
   );
 };
