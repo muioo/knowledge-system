@@ -115,10 +115,13 @@ async def get_progress_endpoint(
     current_user: User = Depends(get_current_user)
 ):
     """获取阅读进度详情"""
-    items, total = await get_reading_progress(current_user.id, page, size)
-    return {
-        "items": items,
-        "total": total,
-        "page": page,
-        "size": size
-    }
+    try:
+        items, total = await get_reading_progress(current_user.id, page, size)
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "size": size
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

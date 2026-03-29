@@ -134,6 +134,9 @@ async def get_reading_progress(user_id: int, page: int = 1, size: int = 20) -> t
             last_read_at: "2026-03-29T10:00:00Z"
         }], total)
     """
+    if page < 1 or size < 1 or size > 100:
+        raise ValueError("page must be >= 1 and size must be between 1 and 100")
+
     total = await ReadingStats.filter(user_id=user_id).count()
 
     # 获取阅读统计，按最后阅读时间排序
@@ -141,15 +144,26 @@ async def get_reading_progress(user_id: int, page: int = 1, size: int = 20) -> t
         user_id=user_id
     ).order_by("-last_read_at").prefetch_related("article").offset((page - 1) * size).limit(size)
 
-    # 获取最新的阅读进度（从阅读历史中获取最后一次的进度）
+    # 批量获取所有相关文章的最新阅读记录，避免N+1查询
+    article_ids = [s.article_id for s in stats]
+
+    # 获取每个文章的最新阅读记录（使用单次查询）
+    latest_histories = {}
+    if article_ids:
+        histories = await ReadingHistory.filter(
+            user_id=user_id,
+            article_id__in=article_ids
+        ).order_by("-started_at")
+
+        # 按文章ID分组，取每个文章的最新记录
+        for history in histories:
+            if history.article_id not in latest_histories:
+                latest_histories[history.article_id] = history
+
+    # 构建结果
     result = []
     for s in stats:
-        # 获取该文章最新的阅读记录
-        latest_history = await ReadingHistory.filter(
-            user_id=user_id,
-            article_id=s.article_id
-        ).order_by("-started_at").first()
-
+        latest_history = latest_histories.get(s.article_id)
         progress = latest_history.reading_progress if latest_history else 0
 
         result.append({
