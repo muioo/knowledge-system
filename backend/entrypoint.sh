@@ -27,7 +27,7 @@ done
 echo "MySQL is ready."
 
 echo "=== Running aerich migrations ==="
-# 使用 aerich CLI 逐个迁移文件执行，解决 MySQL 5.7 多语句问题
+# 使用 aerich Command API 执行迁移
 python -c "
 import asyncio
 from aerich import Command
@@ -36,7 +36,7 @@ from backend.settings.config import TORTOISE_ORM
 async def migrate():
     command = Command(tortoise_config=TORTOISE_ORM, location='migrations')
     await command.init()
-    migrated = await command.upgrade(run_in_transaction=True)
+    migrated = await command.upgrade()
     if migrated:
         print(f'Successfully migrated: {migrated}')
     else:
