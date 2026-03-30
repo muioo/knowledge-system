@@ -18,7 +18,7 @@ interface ArticleContextType {
   isLoading: boolean;
   error: string | null;
   fetchArticles: (params?: any) => Promise<void>;
-  createArticle: (data: { file: File; title?: string; summary?: string; keywords?: string; tagIds?: number[] }) => Promise<{ success: boolean; error?: string }>;
+  createArticle: (data: { file: File; title?: string; summary?: string; keywords?: string; tagIds?: number[]; images?: File[] }) => Promise<{ success: boolean; error?: string }>;
   importFromUrl: (data: UrlImportData) => Promise<{ success: boolean; error?: string }>;
   deleteArticle: (id: number) => Promise<{ success: boolean; error?: string }>;
   setCurrentPage: (page: number) => void;
@@ -77,7 +77,7 @@ export const ArticleProvider: React.FC<ArticleProviderProps> = ({ children }) =>
     }
   };
 
-  const createArticle = async (data: { file: File; title?: string; summary?: string; keywords?: string; tagIds?: number[] }): Promise<{ success: boolean; error?: string }> => {
+  const createArticle = async (data: { file: File; title?: string; summary?: string; keywords?: string; tagIds?: number[]; images?: File[] }): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     try {
       await articleApi.uploadArticle(data.file, data);

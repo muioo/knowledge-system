@@ -18,7 +18,8 @@ async def create_article_from_file(
     summary: str,
     keywords: str,
     author_id: int,
-    tag_ids: Optional[List[int]] = None
+    tag_ids: Optional[List[int]] = None,
+    image_files: Optional[List[Tuple[bytes, str]]] = None
 ) -> ArticleResponse:
     """
     通过上传文件创建文章
@@ -94,18 +95,28 @@ async def create_article_from_file(
             main_html, extracted_title = clean_html(cleaned_html)
             logging.info(f"Extracted main content, title: {extracted_title}")
 
-            # 4. 提取并下载图片
-            image_urls = extract_images(main_html, base_url=None)  # 本地文件无 base_url
+            # 4. 提取图片（区分网络图片和本地路径）
+            network_urls, local_paths = extract_images(main_html, base_url=None, include_local_paths=True)
             url_mapping = {}
 
-            if image_urls:
-                logging.info(f"Found {len(image_urls)} images, starting download...")
-                url_mapping = await download_images_batch(image_urls, article_dir)
+            # 处理网络图片
+            if network_urls:
+                logging.info(f"Found {len(network_urls)} network images, starting download...")
+                url_mapping = await download_images_batch(network_urls, article_dir)
             else:
-                logging.info(f"No images found in HTML")
+                logging.info(f"No network images found in HTML")
 
-            # 5. 重写图片链接
-            final_html = rewrite_image_links(main_html, url_mapping)
+            # 处理本地图片文件
+            local_path_mapping = {}
+            if local_paths and image_files:
+                logging.info(f"Found {len(local_paths)} local path images, {len(image_files)} uploaded image files")
+                local_path_mapping = await _process_local_image_files(local_paths, image_files, article_dir)
+
+            # 合并映射：网络图片映射 + 本地图片映射
+            url_mapping.update(local_path_mapping)
+
+            # 5. 重写图片链接（网络图片和已上传的本地图片替换，未上传的本地图片移除）
+            final_html = rewrite_image_links(main_html, url_mapping, remove_local_images=True)
             logging.info(f"Rewrote image links")
 
             # 6. 保存处理后的 HTML
@@ -534,14 +545,14 @@ async def import_article_from_html_url(
         os.makedirs(images_dir, exist_ok=True)
 
         # 8. 提取并下载图片（传入base_url处理相对路径）
-        image_urls = extract_images(full_html, base_url=url)
+        network_urls, local_paths = extract_images(full_html, base_url=url, include_local_paths=False)
         url_mapping = {}
 
-        if image_urls:
-            url_mapping = await download_images_batch(image_urls, article_dir)
+        if network_urls:
+            url_mapping = await download_images_batch(network_urls, article_dir)
 
         # 9. 重写图片链接
-        final_html = rewrite_image_links(full_html, url_mapping)
+        final_html = rewrite_image_links(full_html, url_mapping, local_paths=[])
 
         # 10. 保存 HTML 文件
         html_path = os.path.join(article_dir, "index.html")
@@ -650,3 +661,80 @@ async def get_article_html_content(article_id: int) -> str:
         svg.decompose()
 
     return str(soup)
+
+
+async def _process_local_image_files(
+    local_paths: List[str],
+    image_files: List[Tuple[bytes, str]],
+    article_dir: str
+) -> dict:
+    """
+    处理本地图片文件，匹配并保存到服务器
+
+    Args:
+        local_paths: HTML 中引用的本地图片路径列表
+        image_files: 上传的图片文件列表 (文件内容, 文件名)
+        article_dir: 文章存储目录
+
+    Returns:
+        {原始路径: 新路径} 映射字典
+    """
+    import logging
+    import os
+    from urllib.parse import unquote
+
+    # 创建图片保存目录
+    images_dir = os.path.join(article_dir, 'images')
+    os.makedirs(images_dir, exist_ok=True)
+
+    # 构建上传文件的映射：文件名 -> (文件内容, 原始文件名)
+    uploaded_files_map = {}
+    for content, filename in image_files:
+        # 解码 URL 编码的文件名（浏览器保存的文件可能包含 URL 编码）
+        decoded_filename = unquote(filename)
+        # 提取基础文件名（去除路径前缀）
+        base_filename = os.path.basename(decoded_filename)
+        uploaded_files_map[base_filename.lower()] = (content, decoded_filename)
+
+    logging.info(f"Uploaded files: {list(uploaded_files_map.keys())}")
+
+    # 构建路径映射
+    path_mapping = {}
+    matched_count = 0
+
+    for local_path in local_paths:
+        # 提取文件名
+        # 处理各种可能的路径格式：
+        # - "images/photo.jpg"
+        # - "page_files/photo.jpg"
+        # - "../page_files/photo.jpg"
+        # - "CSDN博客_files/d364e43514e8469e371fbb26e1f3468e.png"
+
+        # 先 URL 解码
+        decoded_path = unquote(local_path)
+        filename = os.path.basename(decoded_path)
+
+        # 尝试匹配上传的文件（不区分大小写）
+        if filename.lower() in uploaded_files_map:
+            file_content, original_filename = uploaded_files_map[filename.lower()]
+
+            # 生成新的文件名
+            file_ext = os.path.splitext(filename)[1] or '.jpg'
+            new_filename = f"img_local_{matched_count + 1:04d}{file_ext}"
+            save_path = os.path.join(images_dir, new_filename)
+
+            # 保存文件
+            async with aiofiles.open(save_path, 'wb') as f:
+                await f.write(file_content)
+
+            # 记录映射：原始路径 -> 新的相对路径
+            relative_path = f"images/{new_filename}"
+            path_mapping[local_path] = relative_path
+            matched_count += 1
+
+            logging.info(f"Matched and saved: {local_path} -> {relative_path}")
+        else:
+            logging.debug(f"No match found for: {local_path}")
+
+    logging.info(f"Processed local images: {matched_count} matched, {len(local_paths) - matched_count} not found")
+    return path_mapping

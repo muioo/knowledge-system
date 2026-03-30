@@ -10,7 +10,7 @@ class ArticleBase(BaseModel):
     keywords: Optional[str] = None
 
 class ArticleCreate(ArticleBase):
-    tag_ids: Optional[List[int]] = []
+    tag_ids: Optional[List[int]] = Field(default=None, description="标签ID列表")
 
     # Import type: "direct" (直接创建), "file" (文件上传), "html" (URL 导入)
     import_type: Literal["direct", "file", "html"] = "direct"
@@ -24,7 +24,7 @@ class ArticleUpdate(BaseModel):
     source_url: Optional[str] = None
     summary: Optional[str] = None
     keywords: Optional[str] = None
-    tag_ids: Optional[List[int]] = None
+    tag_ids: Optional[List[int]] = Field(default=None, description="标签ID列表")
 
 class TagInfo(BaseModel):
     id: int
@@ -60,12 +60,12 @@ class SearchQuery(BaseModel):
 class ArticleFromHtmlUrlRequest(BaseModel):
     """从 HTML URL 导入文章请求"""
     url: str = Field(..., min_length=1, max_length=1000)
-    tag_ids: Optional[List[int]] = []
+    tag_ids: Optional[List[int]] = Field(default=None, description="标签ID列表")
     title: Optional[str] = Field(None, min_length=1, max_length=255, description="可选的自定义标题")
     use_ai: bool = Field(True, description="是否使用AI提取关键词和摘要，默认为True")
     summary: Optional[str] = Field(None, description="手动输入的摘要（不使用AI时）")
     keywords: Optional[str] = Field(None, description="手动输入的关键词（不使用AI时）")
-    api_key: Optional[str] = Field(None, description="火山引擎 ARK API Key（使用AI时需要）")
+    api_key: Optional[str] = Field(None, description="火山引擎 ARK ARK API Key（使用AI时需要）")
 
 class ArticleFromHtmlUrlResponse(BaseModel):
     """从 HTML URL 导入文章响应"""

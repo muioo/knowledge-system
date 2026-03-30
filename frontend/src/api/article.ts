@@ -28,8 +28,10 @@ export const articleApi = {
 
   /**
    * 上传文件创建文章
+   * @param file HTML 文件
+   * @param data 文章数据（可包含图片文件数组）
    */
-  uploadArticle: async (file: File, data: ArticleCreateData): Promise<Article> => {
+  uploadArticle: async (file: File, data: ArticleCreateData & { images?: File[] }): Promise<Article> => {
     const formData = new FormData();
     formData.append('file', file);
     if (data.title) formData.append('title', data.title);
@@ -37,6 +39,13 @@ export const articleApi = {
     if (data.keywords) formData.append('keywords', data.keywords);
     if (data.tagIds && data.tagIds.length > 0) {
       formData.append('tag_ids', data.tagIds.join(','));
+    }
+
+    // 添加图片文件
+    if (data.images && data.images.length > 0) {
+      data.images.forEach(imageFile => {
+        formData.append('images', imageFile);
+      });
     }
 
     const response = await apiClient.post<any>('/articles/upload', formData, {

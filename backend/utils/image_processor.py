@@ -25,22 +25,25 @@ DOWNLOAD_TIMEOUT = 30
 MAX_RETRIES = 3
 
 
-def extract_images(html: str, base_url: Optional[str] = None) -> List[str]:
+def extract_images(html: str, base_url: Optional[str] = None, include_local_paths: bool = False) -> tuple[List[str], List[str]]:
     """
     提取 HTML 中所有图片 URL（去重），支持处理相对路径
 
     Args:
         html: HTML 内容
         base_url: 基础URL，用于处理相对路径
+        include_local_paths: 是否包含本地路径图片（非 http/https URL）
 
     Returns:
-        去重后的图片 URL 列表
+        (网络图片URL列表, 本地路径图片列表) 元组
     """
     soup = BeautifulSoup(html, 'html.parser')
     img_tags = soup.find_all('img')
 
-    urls = []
-    seen = set()
+    network_urls = []
+    local_paths = []
+    seen_network = set()
+    seen_local = set()
 
     for img in img_tags:
         # 尝试从多个属性获取图片URL
@@ -53,20 +56,22 @@ def extract_images(html: str, base_url: Optional[str] = None) -> List[str]:
         if src.startswith('data:'):
             continue
 
-        # 处理相对路径
-        if base_url and not src.startswith(('http://', 'https://', '//')):
-            try:
-                src = urljoin(base_url, src)
-            except Exception:
-                continue
+        # 判断是否为网络 URL
+        is_network = src.startswith(('http://', 'https://'))
 
-        # 验证URL有效性
-        if is_valid_url(src) and src not in seen:
-            urls.append(src)
-            seen.add(src)
+        if is_network:
+            # 网络图片：去重后添加
+            if src not in seen_network:
+                network_urls.append(src)
+                seen_network.add(src)
+        elif include_local_paths:
+            # 本地路径图片：去重后添加
+            if src not in seen_local:
+                local_paths.append(src)
+                seen_local.add(src)
 
-    logger.info(f"[Image Processor] 提取到 {len(urls)} 个唯一图片URL")
-    return urls
+    logger.info(f"[Image Processor] 提取到 {len(network_urls)} 个网络图片, {len(local_paths)} 个本地路径图片")
+    return network_urls, local_paths
 
 
 async def download_image(url: str, save_path: str) -> bool:
@@ -227,22 +232,30 @@ async def download_images_batch(urls: List[str], base_dir: str) -> Dict[str, str
     return mapping
 
 
-def rewrite_image_links(html: str, url_mapping: Dict[str, str]) -> str:
+def rewrite_image_links(html: str, url_mapping: Dict[str, str], local_paths: Optional[List[str]] = None, remove_local_images: bool = False) -> str:
     """
     重写 HTML 中的图片链接
 
     Args:
         html: HTML 内容
-        url_mapping: {原始 URL: 本地路径/原始 URL} 映射
+        url_mapping: {原始 URL/路径: 本地路径} 映射（包含网络图片和已上传的本地图片）
+        local_paths: 本地路径图片列表（用于识别哪些是本地路径）
+        remove_local_images: 是否移除未映射的本地路径图片标签
 
     Returns:
         重写后的 HTML 内容
-        下载失败的图片会添加 data-download-failed="true" 属性
+        - 在映射中的图片（网络或本地）：替换为新的本地路径
+        - 未映射的网络图片：添加 data-download-failed="true" 属性
+        - 未映射的本地路径图片：
+            - remove_local_images=True: 移除图片标签
+            - remove_local_images=False: 添加 data-local-path="true" 属性
     """
     soup = BeautifulSoup(html, 'html.parser')
     img_tags = soup.find_all('img')
 
     rewritten_count = 0
+    removed_local_count = 0
+    marked_local_count = 0
 
     for img in img_tags:
         # 尝试从多个属性获取原始URL
@@ -257,12 +270,12 @@ def rewrite_image_links(html: str, url_mapping: Dict[str, str]) -> str:
         if original_src.startswith('data:'):
             continue
 
-        # 检查是否在映射中
+        # 检查是否在映射中（无论网络还是本地路径）
         if original_src in url_mapping:
             new_src = url_mapping[original_src]
 
-            # 只更新成功下载的图片
-            if new_src != original_src and not new_src.startswith('http'):
+            # 替换为新的本地路径
+            if new_src != original_src:
                 img['src'] = new_src
                 rewritten_count += 1
 
@@ -271,11 +284,32 @@ def rewrite_image_links(html: str, url_mapping: Dict[str, str]) -> str:
                     del img['data-src']
                 if img.get('data-original'):
                     del img['data-original']
+            continue
+
+        # 判断是否为网络 URL
+        is_network_url = original_src.startswith(('http://', 'https://'))
+
+        if is_network_url:
+            # 网络图片但未在映射中（下载失败）
+            img['data-download-failed'] = 'true'
+        else:
+            # 本地路径图片且未在映射中（没有上传对应的文件）
+            if remove_local_images:
+                # 移除图片标签
+                img.decompose()
+                removed_local_count += 1
             else:
-                # 下载失败
-                img['data-download-failed'] = 'true'
+                # 标记但保持原样
+                if not img.get('data-local-path'):
+                    img['data-local-path'] = 'true'
+                    img['alt'] = img.get('alt', '本地图片（未上传）')
+                    marked_local_count += 1
 
     if rewritten_count > 0:
         logger.info(f"[Image Processor] 重写了 {rewritten_count} 个图片链接")
+    if removed_local_count > 0:
+        logger.info(f"[Image Processor] 移除了 {removed_local_count} 个本地路径图片标签（未上传）")
+    if marked_local_count > 0:
+        logger.info(f"[Image Processor] 标记了 {marked_local_count} 个本地路径图片（未上传）")
 
     return str(soup)

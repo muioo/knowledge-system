@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
-from typing import Optional
+from typing import Optional, List
 from backend.core.security import get_current_user, get_current_admin
 from backend.models import User
 from backend.schemas.article import (
@@ -97,18 +97,33 @@ async def upload_file_to_create_article(
     summary: str = Form(...),
     keywords: str = Form(...),
     tag_ids: Optional[str] = Form(None),
+    images: Optional[List[UploadFile]] = File(None),
     current_user: User = Depends(get_current_user)
 ):
     """
     上传本地文件创建文章
-    - 直接保存文件，不转换
+
+    支持两种模式：
+    1. 单文件上传：仅上传 HTML 文件（网络图片会自动下载，本地图片会被移除）
+    2. 多文件上传：同时上传 HTML 文件和相关图片文件（本地图片会正确显示）
+
     - title, summary, keywords 为必填项
+    - images 参数可选，用于上传 HTML 中引用的本地图片文件
     """
     try:
-        # 验证文件大小
+        # 验证主文件大小
         content = await file.read()
         if len(content) > settings.max_file_size:
             raise HTTPException(status_code=413, detail="文件过大")
+
+        # 处理图片文件
+        image_files = []
+        if images:
+            for img in images:
+                img_content = await img.read()
+                if len(img_content) > settings.max_file_size:
+                    raise HTTPException(status_code=413, detail=f"图片文件 {img.filename} 过大")
+                image_files.append((img_content, img.filename))
 
         # 解析标签
         tag_id_list = [int(t) for t in tag_ids.split(",")] if tag_ids else []
@@ -119,7 +134,8 @@ async def upload_file_to_create_article(
             summary=summary,
             keywords=keywords,
             author_id=current_user.id,
-            tag_ids=tag_id_list
+            tag_ids=tag_id_list,
+            image_files=image_files if image_files else None
         )
         return SuccessResponse(data=result)
 

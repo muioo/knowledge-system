@@ -6,6 +6,7 @@ import Card from '../components/ui/Card';
 
 interface FileData {
   file: File | null;
+  images: File[];
   title: string;
   summary: string;
   keywords: string;
@@ -27,13 +28,20 @@ const ArticleCreate: React.FC = () => {
   const { tags, createArticle, importFromUrl, isLoading } = useArticles();
 
   const [mode, setMode] = useState<'file' | 'url'>('file');
-  const [fileData, setFileData] = useState<FileData>({ file: null, title: '', summary: '', keywords: '', tagIds: [] });
+  const [fileData, setFileData] = useState<FileData>({ file: null, images: [], title: '', summary: '', keywords: '', tagIds: [] });
   const [urlData, setUrlData] = useState<UrlData>({ url: '', tagIds: [], title: '', useAi: false, summary: '', keywords: '', apiKey: '' });
   const [error, setError] = useState('');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFileData({ ...fileData, file: e.target.files[0] });
+    }
+  };
+
+  const handleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      setFileData({ ...fileData, images: filesArray });
     }
   };
 
@@ -57,6 +65,7 @@ const ArticleCreate: React.FC = () => {
       }
       const result = await createArticle({
         file: fileData.file,
+        images: fileData.images,
         title: fileData.title,
         summary: fileData.summary,
         keywords: fileData.keywords,
@@ -105,6 +114,24 @@ const ArticleCreate: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">HTML 文件 <span className="text-blue-500">*</span></label>
                 <input type="file" accept=".html,.htm" onChange={handleFileChange} className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100" />
                 {fileData.file && <p className="mt-2 text-sm text-gray-600">已选择: {fileData.file.name}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">图片文件（可选）</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImagesChange}
+                  className="w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-50 file:text-green-600 hover:file:bg-green-100"
+                />
+                {fileData.images.length > 0 && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    已选择 {fileData.images.length} 个图片文件
+                  </p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  如果 HTML 文件包含本地图片（如从浏览器保存的网页），请同时选择对应的图片文件
+                </p>
               </div>
               <div><label className="block text-sm font-medium text-gray-700 mb-2">标题 <span className="text-blue-500">*</span></label><Input type="text" value={fileData.title} onChange={(e) => setFileData({ ...fileData, title: e.target.value })} placeholder="请输入文章标题" required /></div>
               <div><label className="block text-sm font-medium text-gray-700 mb-2">摘要 <span className="text-blue-500">*</span></label><textarea value={fileData.summary} onChange={(e) => setFileData({ ...fileData, summary: e.target.value })} placeholder="请输入文章摘要" rows={3} className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500" required /></div>
