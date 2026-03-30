@@ -252,10 +252,14 @@ const ArticleDetail: React.FC = () => {
       ]);
       setArticle(articleData);
       let htmlContent = htmlData.html_content || '';
-      // 根据环境决定是否使用完整路径
-      const isDev = import.meta.env.DEV;
+
+      // 根据访问地址判断环境
+      // 开发环境：localhost 或 127.0.0.1 访问
+      // 生产环境：通过 IP 或域名访问
+      const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
       if (isDev) {
-        // 开发环境：使用 localhost:8022
+        // 开发环境：使用 localhost:8022 直接访问后端
         htmlContent = htmlContent.replace(/src="\/api\/v1\/media\//g, 'src="http://localhost:8022/api/v1/media/');
       }
       // 生产环境：保持相对路径，通过 Nginx 代理
