@@ -88,6 +88,33 @@ def clean_html(html: str) -> Tuple[str, str]:
     return doc.summary(), doc.title()
 
 
+def remove_scripts(html: str) -> str:
+    """
+    移除 HTML 中的所有脚本和可能导致跳转的元素
+
+    Args:
+        html: 原始 HTML 内容
+
+    Returns:
+        str: 移除脚本后的 HTML 内容
+    """
+    soup = BeautifulSoup(html, 'html.parser')
+
+    # 移除所有 script 标签
+    for script in soup.find_all('script'):
+        script.decompose()
+
+    # 移除 meta refresh 跳转
+    for meta in soup.find_all('meta', attrs={'http-equiv': lambda x: x and 'refresh' in x.lower()}):
+        meta.decompose()
+
+    # 移除 iframe（可能包含跳转）
+    for iframe in soup.find_all('iframe'):
+        iframe.decompose()
+
+    return str(soup)
+
+
 async def rewrite_base_urls(html: str, base_url: str) -> str:
     """
     将相对路径转换为绝对路径（只处理 img 标签）

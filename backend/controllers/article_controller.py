@@ -6,7 +6,7 @@ from tortoise.queryset import Q
 import aiofiles
 from backend.models import Article, Tag
 from backend.schemas.article import ArticleCreate, ArticleUpdate, ArticleResponse, SearchQuery, TagInfo
-from backend.utils.html_fetcher import fetch_html, clean_html, rewrite_base_urls
+from backend.utils.html_fetcher import fetch_html, clean_html, rewrite_base_urls, remove_scripts
 from backend.utils.image_processor import extract_images, download_images_batch, rewrite_image_links
 from backend.utils.ai_extractor import extract_article_from_url
 from backend.settings.config import settings
@@ -38,6 +38,7 @@ async def create_article_from_file(
         ValueError: 必填字段为空时抛出异常
     """
     import logging
+    import shutil
 
     # 验证必填字段
     if not title:
@@ -57,25 +58,79 @@ async def create_article_from_file(
         if invalid_tag_ids:
             raise ValueError(f"无效的标签ID: {list(invalid_tag_ids)}")
 
+    # 检测是否为 HTML 文件
+    is_html_file = filename.lower().endswith(('.html', '.htm'))
+
     # 创建文章记录（获取ID）
     article = await Article.create(
         title=title,
         summary=summary,
         keywords=keywords,
         author_id=author_id,
-        original_filename=filename
+        original_filename=filename,
+        processing_status="processing" if is_html_file else "pending"
     )
 
-    logging.info(f"Created article with ID: {article.id}")
+    logging.info(f"Created article with ID: {article.id}, is_html: {is_html_file}")
+
+    article_dir = None
 
     try:
-        # 创建目录并保存原始文件
+        # 创建目录
         article_dir = os.path.join(settings.upload_dir, "articles", str(article.id))
         os.makedirs(article_dir, exist_ok=True)
 
-        file_path = os.path.join(article_dir, filename)
-        async with aiofiles.open(file_path, "wb") as f:
-            await f.write(content_bytes)
+        # 如果是 HTML 文件，进行处理
+        if is_html_file:
+            # 1. 解码 HTML 内容
+            raw_html = content_bytes.decode('utf-8', errors='ignore')
+            logging.info(f"HTML file size: {len(raw_html)} characters")
+
+            # 2. 移除脚本和跳转标签
+            cleaned_html = remove_scripts(raw_html)
+            logging.info(f"Removed scripts from HTML")
+
+            # 3. 使用 readability 提取正文
+            main_html, extracted_title = clean_html(cleaned_html)
+            logging.info(f"Extracted main content, title: {extracted_title}")
+
+            # 4. 提取并下载图片
+            image_urls = extract_images(main_html, base_url=None)  # 本地文件无 base_url
+            url_mapping = {}
+
+            if image_urls:
+                logging.info(f"Found {len(image_urls)} images, starting download...")
+                url_mapping = await download_images_batch(image_urls, article_dir)
+            else:
+                logging.info(f"No images found in HTML")
+
+            # 5. 重写图片链接
+            final_html = rewrite_image_links(main_html, url_mapping)
+            logging.info(f"Rewrote image links")
+
+            # 6. 保存处理后的 HTML
+            html_path = os.path.join(article_dir, "index.html")
+            async with aiofiles.open(html_path, 'w', encoding='utf-8') as f:
+                await f.write(final_html)
+            logging.info(f"Saved processed HTML to {html_path}")
+
+            # 7. 保存原始文件（备份）
+            file_path = os.path.join(article_dir, filename)
+            async with aiofiles.open(file_path, "wb") as f:
+                await f.write(content_bytes)
+            logging.info(f"Saved original file to {file_path}")
+
+            # 8. 更新文章记录
+            article.html_path = f"articles/{article.id}/index.html"
+            article.processing_status = "completed"
+            await article.save()
+            logging.info(f"Updated article record with html_path")
+        else:
+            # 非 HTML 文件，直接保存
+            file_path = os.path.join(article_dir, filename)
+            async with aiofiles.open(file_path, "wb") as f:
+                await f.write(content_bytes)
+            logging.info(f"Saved non-HTML file to {file_path}")
 
         # 关联标签 - 确保文章存在后再关联
         if tag_ids:
@@ -118,51 +173,9 @@ async def create_article_from_file(
             await article.delete()
         except:
             pass
-        import shutil
-        if os.path.exists(article_dir):
+        if article_dir and os.path.exists(article_dir):
             shutil.rmtree(article_dir)
         raise ValueError(f"保存失败: {str(e)}")
-        # 创建文章记录（获取ID）
-        article = await Article.create(
-            title=title,
-            summary=summary,
-            keywords=keywords,
-            author_id=author_id,
-            original_filename=filename
-        )
-
-        # 创建目录并保存原始文件
-        article_dir = os.path.join(settings.upload_dir, "articles", str(article.id))
-        os.makedirs(article_dir, exist_ok=True)
-
-        file_path = os.path.join(article_dir, filename)
-        async with aiofiles.open(file_path, "wb") as f:
-            await f.write(content_bytes)
-
-        # 关联标签
-        if tag_ids:
-            tags = await Tag.filter(id__in=tag_ids)
-            if tags:
-                await article.tags.add(*tags)
-
-        await article.fetch_related("tags")
-
-        return ArticleResponse(
-            id=article.id,
-            title=article.title,
-            source_url=article.source_url,
-            summary=article.summary,
-            keywords=article.keywords,
-            author_id=article.author_id,
-            original_filename=article.original_filename,
-            view_count=article.view_count,
-            created_at=article.created_at,
-            updated_at=article.updated_at,
-            tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags],
-            html_path=article.html_path,
-            processing_status=article.processing_status,
-            original_html_url=article.original_html_url
-        )
 
 async def create_article(
     data: ArticleCreate,
