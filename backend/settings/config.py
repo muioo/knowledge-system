@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     # CORS 配置 服务器前端地址
     cors_origins: str = '["http://localhost:3001", "http://localhost:5173","http://localhost:3000"]'
 
+    # 服务器外部访问地址（用于生成图片链接等）
+    # 例如：http://123.45.67.89:8022 或 http://yourdomain.com
+    # 留空则自动从请求头获取
+    base_url: str = ""
+
     # 火山引擎 AI 配置
     ark_api_key: str
     # 是否验证SSL证书（某些网络环境下需要禁用）

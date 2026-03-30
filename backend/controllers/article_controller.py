@@ -630,6 +630,7 @@ async def get_article_html_content(article_id: int) -> str:
         ValueError: 文章不存在或没有文件
     """
     from backend.utils.article_storage import get_article_file_content
+    from backend.settings.config import settings
     from bs4 import BeautifulSoup
 
     article = await Article.get(id=article_id)
@@ -644,6 +645,10 @@ async def get_article_html_content(article_id: int) -> str:
         original_filename=article.original_filename
     )
 
+    # 获取基础 URL（用于生成图片链接）
+    # 优先使用配置的 base_url，否则使用默认的 localhost:8022
+    base_url = settings.base_url if settings.base_url else "http://localhost:8022"
+
     # 替换相对路径的图片链接为 API URL
     soup = BeautifulSoup(html_content, 'html.parser')
 
@@ -653,7 +658,7 @@ async def get_article_html_content(article_id: int) -> str:
             # 相对路径，替换为 API URL
             # 移除开头的 ./ 或 /
             clean_src = src.lstrip('./').lstrip('/')
-            img['src'] = f"/api/v1/media/articles/{article_id}/{clean_src}"
+            img['src'] = f"{base_url}/api/v1/media/articles/{article_id}/{clean_src}"
 
     # 清理可能有问题的 SVG 元素
     # 策略：移除所有 SVG，因为它们可能导致渲染问题
