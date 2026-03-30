@@ -111,32 +111,23 @@ try:
                 upgrade_sql = await module.upgrade(conn)
 
                 # 分割 SQL 语句
-                # 支持多种分隔符：;; 或单独的 CREATE/ALTER 语句
+                # 简单方法：按分号分割，然后过滤空语句
                 statements = []
 
-                # 首先尝试按 ;; 分割（旧格式）
-                if ';;' in upgrade_sql:
-                    statements = [s.strip() for s in upgrade_sql.split(';;') if s.strip()]
-                else:
-                    # 新格式：按语句分割
-                    # 移除多行注释和空白行
-                    sql_lines = []
-                    for line in upgrade_sql.split('\n'):
-                        stripped = line.strip()
-                        if stripped and not stripped.startswith('--'):
-                            sql_lines.append(stripped)
-                    clean_sql = '\n'.join(sql_lines)
+                # 移除多行注释 /* ... */
+                import re
+                upgrade_sql = re.sub(r'/\*.*?\*/', '', upgrade_sql, flags=re.DOTALL)
 
-                    # 使用正则表达式分割完整的 SQL 语句
-                    # 匹配 CREATE TABLE, ALTER TABLE, DROP 等语句
-                    pattern = r'(CREATE TABLE[^;]*;|ALTER TABLE[^;]*;|DROP TABLE[^;]*;|CREATE INDEX[^;]*;|ALTER TABLE[^;]*ADD INDEX[^;]*;)'
-                    matches = re.findall(pattern, clean_sql, re.IGNORECASE | re.DOTALL)
+                # 移除单行注释 --
+                upgrade_sql = re.sub(r'--.*?$', '', upgrade_sql, flags=re.MULTILINE)
 
-                    if matches:
-                        statements = matches
-                    else:
-                        # 如果没有匹配到，将整个 SQL 作为一条语句
-                        statements = [clean_sql]
+                # 按分号分割并清理
+                raw_statements = upgrade_sql.split(';')
+                for stmt in raw_statements:
+                    # 移除前后空白和空行
+                    cleaned = '\n'.join(line.strip() for line in stmt.split('\n') if line.strip())
+                    if cleaned:
+                        statements.append(cleaned)
 
                 print(f"    Found {len(statements)} SQL statements to execute")
 
