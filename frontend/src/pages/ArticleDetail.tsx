@@ -252,7 +252,13 @@ const ArticleDetail: React.FC = () => {
       ]);
       setArticle(articleData);
       let htmlContent = htmlData.html_content || '';
-      htmlContent = htmlContent.replace(/src="\/api\/v1\/media\//g, 'src="http://localhost:8022/api/v1/media/');
+      // 根据环境决定是否使用完整路径
+      const isDev = import.meta.env.DEV;
+      if (isDev) {
+        // 开发环境：使用 localhost:8022
+        htmlContent = htmlContent.replace(/src="\/api\/v1\/media\//g, 'src="http://localhost:8022/api/v1/media/');
+      }
+      // 生产环境：保持相对路径，通过 Nginx 代理
       setHtmlContent(htmlContent);
     } catch (err: any) {
       setError(err.message || '获取文章详情失败');
