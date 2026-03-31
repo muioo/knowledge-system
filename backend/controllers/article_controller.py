@@ -645,15 +645,36 @@ async def get_article_html_content(article_id: int) -> str:
         original_filename=article.original_filename
     )
 
-    # 替换相对路径的图片链接为 API URL
-    # 使用相对路径，让浏览器自动解析为当前域名
+    # 替换图片链接为 API URL（相对路径）
+    # 支持两种格式：
+    # 1. 相对路径（新版）：images/xxx.jpg → /api/v1/media/articles/{id}/images/xxx.jpg
+    # 2. 绝对路径（旧版）：http://localhost:8022/api/v1/media/articles/{id}/images/xxx.jpg → /api/v1/media/articles/{id}/images/xxx.jpg
     soup = BeautifulSoup(html_content, 'html.parser')
 
     for img in soup.find_all('img'):
         src = img.get('src')
-        if src and not src.startswith('http') and not src.startswith('//'):
-            # 相对路径，替换为 API URL（相对路径）
-            # 移除开头的 ./ 或 /
+        if not src:
+            continue
+
+        # 跳过 data URL 和外部绝对 URL（保留原始网络图片）
+        if src.startswith('data:') or (src.startswith('http') and '/api/v1/media/' not in src):
+            continue
+
+        if src.startswith('/api/v1/media/') or src.startswith('http://localhost') or src.startswith('https://localhost'):
+            # 提取路径部分，统一转换为相对路径格式
+            if '/api/v1/media/articles/' in src:
+                # 从 URL 中提取 /api/v1/media/articles/{id}/xxx 部分
+                parts = src.split('/api/v1/media/articles/')
+                if len(parts) >= 2:
+                    path_part = parts[1]
+                    img['src'] = f"/api/v1/media/articles/{path_part}"
+            elif src.startswith('/api/v1/media/'):
+                # 已经是相对路径，检查是否缺少 article_id
+                path = src.replace('/api/v1/media/', '')
+                if not path.startswith(str(article_id)):
+                    img['src'] = f"/api/v1/media/articles/{article_id}/{path}"
+        elif not src.startswith('http') and not src.startswith('//'):
+            # 相对路径（如 images/xxx.jpg），替换为 API URL（相对路径）
             clean_src = src.lstrip('./').lstrip('/')
             img['src'] = f"/api/v1/media/articles/{article_id}/{clean_src}"
 

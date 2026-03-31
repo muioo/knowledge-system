@@ -17,7 +17,8 @@
       "Bash(mysql:*)",
       "Bash(git fetch:*)",
       "Bash(npm create:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(npm run:*)"
     ]
   }
 }
