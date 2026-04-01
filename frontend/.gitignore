@@ -8,7 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+# dist - production 分支需要上传构建产物
 dist-ssr
 *.local
 
