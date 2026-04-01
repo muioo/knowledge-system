@@ -33,6 +33,9 @@ services:
     restart: unless-stopped
     ports:
       - "5173:80"
+    volumes:
+      # 挂载本地构建好的 dist 目录（本地构建后直接生效，无需重新构建镜像）
+      - ./frontend/dist:/usr/share/nginx/html:ro
     depends_on:
       - backend
     networks:
