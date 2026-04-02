@@ -42,3 +42,9 @@ fix_*.sql
 
 # Uploads (if not tracking)
 # backend/uploads/
+
+# 服务器端迁移文件（在服务器上执行）
+migrations/
+
+# Python 项目配置（服务器上使用）
+pyproject.toml
