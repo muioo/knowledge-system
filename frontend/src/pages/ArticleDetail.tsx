@@ -253,14 +253,18 @@ const ArticleDetail: React.FC = () => {
       setArticle(articleData);
       let htmlContent = htmlData.html_content || '';
 
-      // 根据访问地址判断环境
-      // 开发环境：localhost 或 127.0.0.1 访问
-      // 生产环境：通过 IP 或域名访问
-      const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      // 根据环境变量判断是否为开发环境
+      // 开发环境：使用 VITE_API_BASE_URL（包含完整地址，如 http://localhost:8022/api/v1）
+      // 生产环境：使用相对路径，通过 Nginx 代理
+      const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || '/api/v1';
+
+      // 判断是否为开发环境（API URL 以 http 开头）
+      const isDev = apiBaseUrl.startsWith('http');
 
       if (isDev) {
-        // 开发环境：使用 localhost:8022 直接访问后端
-        htmlContent = htmlContent.replace(/src="\/api\/v1\/media\//g, 'src="http://localhost:8022/api/v1/media/');
+        // 开发环境：使用完整 API 地址访问后端（支持 Docker 服务名）
+        const mediaBaseUrl = apiBaseUrl.replace(/\/api\/v1$/, '') + '/api/v1/media';
+        htmlContent = htmlContent.replace(/src="\/api\/v1\/media\//g, `src="${mediaBaseUrl}/`);
       }
       // 生产环境：保持相对路径，通过 Nginx 代理
       setHtmlContent(htmlContent);
