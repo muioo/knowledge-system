@@ -1,1 +1,0 @@
-import{a4 as e}from"./index-BN4ncRMu.js";const g={getAll(){return e.get("/tags/")},getList(){return this.getAll()},getDetail(t){return e.get(`/tags/${t}`)},create(t){return e.post("/tags/",t)},update(t,r){return e.put(`/tags/${t}`,r)},delete(t){return e.delete(`/tags/${t}`)},getArticles(t,r){return e.get(`/tags/${t}/articles`,{params:r})}};export{g as t};

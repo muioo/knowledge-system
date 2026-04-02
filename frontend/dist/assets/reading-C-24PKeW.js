@@ -1,1 +1,0 @@
-import{a4 as a}from"./index-BN4ncRMu.js";const i=t=>a.post(`/reading/articles/${t}/start`),n=(t,s)=>a.post(`/reading/articles/${t}/end`,s),g=t=>a.get("/reading/history",{params:t}),r=t=>a.get("/reading/stats",{params:t});export{g as a,n as e,r as g,i as s};
