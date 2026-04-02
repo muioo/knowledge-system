@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir -r requirements-docker.txt
 
 # 复制 aerich 配置和迁移文件（需要在 /app 根目录，aerich 从这里读取）
 COPY pyproject.toml ./pyproject.toml
-COPY migrations ./migrations
+COPY backend/migrations ./migrations
 
 # 复制 backend 代码到 /app/backend/
 COPY backend ./backend
