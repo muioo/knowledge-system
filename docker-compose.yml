@@ -15,8 +15,6 @@ services:
       DB_NAME: knowledge_system
     volumes:
       - ./backend/uploads:/app/backend/uploads
-      - ./backend/migrations:/app/migrations
-      - ./backend/pyproject.toml:/app/pyproject.toml
       - ./logs:/app/logs
     networks:
       - knowledge-net

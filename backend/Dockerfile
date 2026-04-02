@@ -14,8 +14,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY backend/requirements-docker.txt .
 RUN pip install --no-cache-dir -r requirements-docker.txt
 
-# migrations 和 pyproject.toml 通过 volumes 挂载（在 docker-compose.yml 中配置）
-# 不需要在构建时复制
+# 复制 aerich 配置和迁移文件（需要在 /app 根目录，aerich 从这里读取）
+COPY pyproject.toml ./pyproject.toml
+COPY migrations ./migrations
 
 # 复制 backend 代码到 /app/backend/
 COPY backend ./backend
