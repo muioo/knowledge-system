@@ -1,7 +1,7 @@
 # 数据库迁移使用指南
 
 本项目使用 [Aerich](https://github.com/tortoise/aerich) 作为 TortoiseORM 的数据库迁移工具。
-
+每次修改数据库必须执行数据库迁移，并且将迁移文件添加到[migrations](../migrations)中
 ## 配置文件
 
 - **配置文件**: `pyproject.toml`
