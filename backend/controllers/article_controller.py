@@ -6,7 +6,7 @@ from tortoise.queryset import Q
 import aiofiles
 from backend.models import Article, Tag
 from backend.schemas.article import ArticleCreate, ArticleUpdate, ArticleResponse, SearchQuery, TagInfo
-from backend.utils.html_fetcher import fetch_html, clean_html, rewrite_base_urls
+from backend.utils.html_fetcher import fetch_html, clean_html, rewrite_base_urls, remove_scripts
 from backend.utils.image_processor import extract_images, download_images_batch, rewrite_image_links
 from backend.utils.ai_extractor import extract_article_from_url
 from backend.settings.config import settings
@@ -18,7 +18,8 @@ async def create_article_from_file(
     summary: str,
     keywords: str,
     author_id: int,
-    tag_ids: Optional[List[int]] = None
+    tag_ids: Optional[List[int]] = None,
+    image_files: Optional[List[Tuple[bytes, str]]] = None
 ) -> ArticleResponse:
     """
     通过上传文件创建文章
@@ -37,6 +38,9 @@ async def create_article_from_file(
     Raises:
         ValueError: 必填字段为空时抛出异常
     """
+    import logging
+    import shutil
+
     # 验证必填字段
     if not title:
         raise ValueError("标题为必填项")
@@ -47,47 +51,142 @@ async def create_article_from_file(
 
     content_bytes, filename = file_data
 
+    # 预先验证标签ID
+    if tag_ids:
+        valid_tags = await Tag.filter(id__in=tag_ids)
+        valid_tag_ids = {t.id for t in valid_tags}
+        invalid_tag_ids = set(tag_ids) - valid_tag_ids
+        if invalid_tag_ids:
+            raise ValueError(f"无效的标签ID: {list(invalid_tag_ids)}")
+
+    # 检测是否为 HTML 文件
+    is_html_file = filename.lower().endswith(('.html', '.htm'))
+
     # 创建文章记录（获取ID）
     article = await Article.create(
         title=title,
         summary=summary,
         keywords=keywords,
         author_id=author_id,
-        original_filename=filename
+        original_filename=filename,
+        processing_status="processing" if is_html_file else "pending"
     )
 
-    # 创建目录并保存原始文件
-    article_dir = os.path.join(settings.upload_dir, "articles", str(article.id))
-    os.makedirs(article_dir, exist_ok=True)
+    logging.info(f"Created article with ID: {article.id}, is_html: {is_html_file}")
 
-    file_path = os.path.join(article_dir, filename)
-    async with aiofiles.open(file_path, "wb") as f:
-        await f.write(content_bytes)
+    article_dir = None
 
-    # 关联标签
-    if tag_ids:
-        tags = await Tag.filter(id__in=tag_ids)
-        if tags:
-            await article.tags.add(*tags)
+    try:
+        # 创建目录
+        article_dir = os.path.join(settings.upload_dir, "articles", str(article.id))
+        os.makedirs(article_dir, exist_ok=True)
 
-    await article.fetch_related("tags")
+        # 如果是 HTML 文件，进行处理
+        if is_html_file:
+            # 1. 解码 HTML 内容
+            raw_html = content_bytes.decode('utf-8', errors='ignore')
+            logging.info(f"HTML file size: {len(raw_html)} characters")
 
-    return ArticleResponse(
-        id=article.id,
-        title=article.title,
-        source_url=article.source_url,
-        summary=article.summary,
-        keywords=article.keywords,
-        author_id=article.author_id,
-        original_filename=article.original_filename,
-        view_count=article.view_count,
-        created_at=article.created_at,
-        updated_at=article.updated_at,
-        tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags],
-        html_path=article.html_path,
-        processing_status=article.processing_status,
-        original_html_url=article.original_html_url
-    )
+            # 2. 移除脚本和跳转标签
+            cleaned_html = remove_scripts(raw_html)
+            logging.info(f"Removed scripts from HTML")
+
+            # 3. 使用 readability 提取正文
+            main_html, extracted_title = clean_html(cleaned_html)
+            logging.info(f"Extracted main content, title: {extracted_title}")
+
+            # 4. 提取图片（区分网络图片和本地路径）
+            network_urls, local_paths = extract_images(main_html, base_url=None, include_local_paths=True)
+            url_mapping = {}
+
+            # 处理网络图片
+            if network_urls:
+                logging.info(f"Found {len(network_urls)} network images, starting download...")
+                url_mapping = await download_images_batch(network_urls, article_dir)
+            else:
+                logging.info(f"No network images found in HTML")
+
+            # 处理本地图片文件
+            local_path_mapping = {}
+            if local_paths and image_files:
+                logging.info(f"Found {len(local_paths)} local path images, {len(image_files)} uploaded image files")
+                local_path_mapping = await _process_local_image_files(local_paths, image_files, article_dir)
+
+            # 合并映射：网络图片映射 + 本地图片映射
+            url_mapping.update(local_path_mapping)
+
+            # 5. 重写图片链接（网络图片和已上传的本地图片替换，未上传的本地图片移除）
+            final_html = rewrite_image_links(main_html, url_mapping, remove_local_images=True)
+            logging.info(f"Rewrote image links")
+
+            # 6. 保存处理后的 HTML
+            html_path = os.path.join(article_dir, "index.html")
+            async with aiofiles.open(html_path, 'w', encoding='utf-8') as f:
+                await f.write(final_html)
+            logging.info(f"Saved processed HTML to {html_path}")
+
+            # 7. 保存原始文件（备份）
+            file_path = os.path.join(article_dir, filename)
+            async with aiofiles.open(file_path, "wb") as f:
+                await f.write(content_bytes)
+            logging.info(f"Saved original file to {file_path}")
+
+            # 8. 更新文章记录
+            article.html_path = f"articles/{article.id}/index.html"
+            article.processing_status = "completed"
+            await article.save()
+            logging.info(f"Updated article record with html_path")
+        else:
+            # 非 HTML 文件，直接保存
+            file_path = os.path.join(article_dir, filename)
+            async with aiofiles.open(file_path, "wb") as f:
+                await f.write(content_bytes)
+            logging.info(f"Saved non-HTML file to {file_path}")
+
+        # 关联标签 - 确保文章存在后再关联
+        if tag_ids:
+            logging.info(f"Associating tags {tag_ids} with article {article.id}")
+
+            # 刷新文章对象
+            await article.refresh_from_db()
+
+            # 逐个关联标签
+            for tag_id in tag_ids:
+                try:
+                    await article.tags.add(tag_id)
+                    logging.info(f"Associated tag {tag_id} with article {article.id}")
+                except Exception as tag_error:
+                    logging.error(f"Failed to associate tag {tag_id}: {tag_error}")
+
+        await article.fetch_related("tags")
+
+        return ArticleResponse(
+            id=article.id,
+            title=article.title,
+            source_url=article.source_url,
+            summary=article.summary,
+            keywords=article.keywords,
+            author_id=article.author_id,
+            original_filename=article.original_filename,
+            view_count=article.view_count,
+            created_at=article.created_at,
+            updated_at=article.updated_at,
+            tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in article.tags],
+            html_path=article.html_path,
+            processing_status=article.processing_status,
+            original_html_url=article.original_html_url
+        )
+
+    except Exception as e:
+        # 出错时删除文章记录和文件
+        logging.error(f"Error during article creation: {str(e)}", exc_info=True)
+        try:
+            await article.delete()
+        except:
+            pass
+        if article_dir and os.path.exists(article_dir):
+            shutil.rmtree(article_dir)
+        raise ValueError(f"保存失败: {str(e)}")
 
 async def create_article(
     data: ArticleCreate,
@@ -197,7 +296,7 @@ async def create_article(
         original_html_url=article.original_html_url
     )
 
-async def get_article_by_id(article_id: int) -> ArticleResponse:
+async def get_article_by_id(article_id: int, increment_view: bool = True) -> ArticleResponse:
     """获取文章详情，从文件读取内容"""
     article = await Article.get_or_none(id=article_id)
     if not article:
@@ -206,8 +305,10 @@ async def get_article_by_id(article_id: int) -> ArticleResponse:
     # 预加载标签关系
     await article.fetch_related("tags")
 
-    article.view_count += 1
-    await article.save()
+    # 只在需要时增加浏览次数
+    if increment_view:
+        article.view_count += 1
+        await article.save()
 
     return ArticleResponse(
         id=article.id,
@@ -356,7 +457,8 @@ async def import_article_from_html_url(
     use_ai: bool = True,
     summary: Optional[str] = None,
     keywords: Optional[str] = None,
-    api_key: Optional[str] = None
+    api_key: Optional[str] = None,
+    model: Optional[str] = "glm-4-flash"
 ) -> ArticleResponse:
     """
     从 URL 导入 HTML 文章
@@ -369,6 +471,8 @@ async def import_article_from_html_url(
         use_ai: 是否使用AI提取关键词和摘要，默认为True
         summary: 手动输入的摘要（use_ai=False时使用）
         keywords: 手动输入的关键词（use_ai=False时使用）
+        api_key: 前端临时提供的智谱 API Key
+        model: 前端选择的智谱模型
 
     Returns:
         创建的文章响应
@@ -376,6 +480,16 @@ async def import_article_from_html_url(
     Raises:
         ValueError: 各种导入错误
     """
+    import logging
+
+    # 预先验证标签ID
+    if tag_ids:
+        valid_tags = await Tag.filter(id__in=tag_ids)
+        valid_tag_ids = {t.id for t in valid_tags}
+        invalid_tag_ids = set(tag_ids) - valid_tag_ids
+        if invalid_tag_ids:
+            raise ValueError(f"无效的标签ID: {list(invalid_tag_ids)}")
+
     # 检查 URL 是否已存在
     existing = await Article.filter(original_html_url=url).first()
     if existing:
@@ -385,7 +499,7 @@ async def import_article_from_html_url(
     raw_html = await fetch_html(url)
 
     # 2. 清洗 HTML
-    cleaned_html, extracted_title = clean_html(raw_html)
+    cleaned_html, extracted_title = clean_html(raw_html, url)
 
     # 3. 重写相对路径为绝对路径
     full_html = await rewrite_base_urls(cleaned_html, url)
@@ -400,15 +514,15 @@ async def import_article_from_html_url(
             ai_result = await extract_article_from_url(
                 url=url,
                 html_content=cleaned_html,
-                api_key=api_key
+                api_key=api_key,
+                model=model or "glm-4-flash"
             )
             ai_summary = ai_result.get("summary")
             ai_keywords = ai_result.get("keywords")
             ai_title = ai_result.get("title")
         except Exception as e:
-            # AI 提取失败，使用默认值或手动输入的值
-            import logging
-            logging.warning(f"AI 提取失败 (url={url}): {str(e)}")
+            logging.error(f"智谱 AI 提取失败 (url={url}): {str(e)}", exc_info=True)
+            raise ValueError(str(e))
 
     # 5. 确定最终的标题、摘要和关键词
     final_title = title or ai_title or extracted_title
@@ -425,6 +539,10 @@ async def import_article_from_html_url(
         processing_status="completed"
     )
 
+    logging.info(f"Created article with ID: {article.id}")
+
+    article_dir = None
+
     try:
         # 7. 创建存储目录
         article_dir = os.path.join(settings.upload_dir, "articles", str(article.id))
@@ -432,14 +550,14 @@ async def import_article_from_html_url(
         os.makedirs(images_dir, exist_ok=True)
 
         # 8. 提取并下载图片（传入base_url处理相对路径）
-        image_urls = extract_images(full_html, base_url=url)
+        network_urls, local_paths = extract_images(full_html, base_url=url, include_local_paths=False)
         url_mapping = {}
 
-        if image_urls:
-            url_mapping = await download_images_batch(image_urls, article_dir)
+        if network_urls:
+            url_mapping = await download_images_batch(network_urls, article_dir)
 
         # 9. 重写图片链接
-        final_html = rewrite_image_links(full_html, url_mapping)
+        final_html = rewrite_image_links(full_html, url_mapping, local_paths=[])
 
         # 10. 保存 HTML 文件
         html_path = os.path.join(article_dir, "index.html")
@@ -450,11 +568,23 @@ async def import_article_from_html_url(
         article.html_path = f"articles/{article.id}/index.html"
         await article.save()
 
-        # 12. 关联标签
+        # 12. 关联标签 - 确保文章确实存在后再关联
         if tag_ids:
-            tags = await Tag.filter(id__in=tag_ids)
-            if tags:
-                await article.tags.add(*tags)
+            logging.info(f"Associating tags {tag_ids} with article {article.id}")
+
+            # 刷新文章对象，确保它是最新的
+            await article.refresh_from_db()
+
+            # 使用逐个关联的方式，更安全
+            for tag_id in tag_ids:
+                try:
+                    await article.tags.add(tag_id)
+                    logging.info(f"Associated tag {tag_id} with article {article.id}")
+                except Exception as tag_error:
+                    logging.error(f"Failed to associate tag {tag_id}: {tag_error}")
+                    # 即使标签关联失败，也继续处理其他标签
+
+            logging.info(f"Completed tag association for article {article.id}")
 
         await article.fetch_related("tags")
 
@@ -476,10 +606,14 @@ async def import_article_from_html_url(
         )
 
     except Exception as e:
-        # 回滚：删除文章记录和文件
-        await article.delete()
+        # 出错时删除文章记录和文件
+        logging.error(f"Error during article import: {str(e)}", exc_info=True)
+        try:
+            await article.delete()
+        except:
+            pass
         import shutil
-        if os.path.exists(article_dir):
+        if article_dir and os.path.exists(article_dir):
             shutil.rmtree(article_dir)
         raise ValueError(f"保存失败: {str(e)}")
 
@@ -501,6 +635,7 @@ async def get_article_html_content(article_id: int) -> str:
         ValueError: 文章不存在或没有文件
     """
     from backend.utils.article_storage import get_article_file_content
+    from backend.settings.config import settings
     from bs4 import BeautifulSoup
 
     article = await Article.get(id=article_id)
@@ -515,15 +650,119 @@ async def get_article_html_content(article_id: int) -> str:
         original_filename=article.original_filename
     )
 
-    # 替换相对路径的图片链接为 API URL
+    # 替换图片链接为 API URL（相对路径）
+    # 支持两种格式：
+    # 1. 相对路径（新版）：images/xxx.jpg → /api/v1/media/articles/{id}/images/xxx.jpg
+    # 2. 绝对路径（旧版）：http://localhost:8022/api/v1/media/articles/{id}/images/xxx.jpg → /api/v1/media/articles/{id}/images/xxx.jpg
     soup = BeautifulSoup(html_content, 'html.parser')
 
     for img in soup.find_all('img'):
         src = img.get('src')
-        if src and not src.startswith('http') and not src.startswith('//'):
-            # 相对路径，替换为 API URL
-            # 移除开头的 ./ 或 /
+        if not src:
+            continue
+
+        # 跳过 data URL 和外部绝对 URL（保留原始网络图片）
+        if src.startswith('data:') or (src.startswith('http') and '/api/v1/media/' not in src):
+            continue
+
+        if src.startswith('/api/v1/media/') or src.startswith('http://localhost') or src.startswith('https://localhost'):
+            # 提取路径部分，统一转换为相对路径格式
+            if '/api/v1/media/articles/' in src:
+                # 从 URL 中提取 /api/v1/media/articles/{id}/xxx 部分
+                parts = src.split('/api/v1/media/articles/')
+                if len(parts) >= 2:
+                    path_part = parts[1]
+                    img['src'] = f"/api/v1/media/articles/{path_part}"
+            elif src.startswith('/api/v1/media/'):
+                # 已经是相对路径，检查是否缺少 article_id
+                path = src.replace('/api/v1/media/', '')
+                if not path.startswith(str(article_id)):
+                    img['src'] = f"/api/v1/media/articles/{article_id}/{path}"
+        elif not src.startswith('http') and not src.startswith('//'):
+            # 相对路径（如 images/xxx.jpg），替换为 API URL（相对路径）
             clean_src = src.lstrip('./').lstrip('/')
             img['src'] = f"/api/v1/media/articles/{article_id}/{clean_src}"
 
+    # 清理可能有问题的 SVG 元素
+    # 策略：移除所有 SVG，因为它们可能导致渲染问题
+    for svg in soup.find_all('svg'):
+        svg.decompose()
+
     return str(soup)
+
+
+async def _process_local_image_files(
+    local_paths: List[str],
+    image_files: List[Tuple[bytes, str]],
+    article_dir: str
+) -> dict:
+    """
+    处理本地图片文件，匹配并保存到服务器
+
+    Args:
+        local_paths: HTML 中引用的本地图片路径列表
+        image_files: 上传的图片文件列表 (文件内容, 文件名)
+        article_dir: 文章存储目录
+
+    Returns:
+        {原始路径: 新路径} 映射字典
+    """
+    import logging
+    import os
+    from urllib.parse import unquote
+
+    # 创建图片保存目录
+    images_dir = os.path.join(article_dir, 'images')
+    os.makedirs(images_dir, exist_ok=True)
+
+    # 构建上传文件的映射：文件名 -> (文件内容, 原始文件名)
+    uploaded_files_map = {}
+    for content, filename in image_files:
+        # 解码 URL 编码的文件名（浏览器保存的文件可能包含 URL 编码）
+        decoded_filename = unquote(filename)
+        # 提取基础文件名（去除路径前缀）
+        base_filename = os.path.basename(decoded_filename)
+        uploaded_files_map[base_filename.lower()] = (content, decoded_filename)
+
+    logging.info(f"Uploaded files: {list(uploaded_files_map.keys())}")
+
+    # 构建路径映射
+    path_mapping = {}
+    matched_count = 0
+
+    for local_path in local_paths:
+        # 提取文件名
+        # 处理各种可能的路径格式：
+        # - "images/photo.jpg"
+        # - "page_files/photo.jpg"
+        # - "../page_files/photo.jpg"
+        # - "CSDN博客_files/d364e43514e8469e371fbb26e1f3468e.png"
+
+        # 先 URL 解码
+        decoded_path = unquote(local_path)
+        filename = os.path.basename(decoded_path)
+
+        # 尝试匹配上传的文件（不区分大小写）
+        if filename.lower() in uploaded_files_map:
+            file_content, original_filename = uploaded_files_map[filename.lower()]
+
+            # 生成新的文件名
+            file_ext = os.path.splitext(filename)[1] or '.jpg'
+            new_filename = f"img_local_{matched_count + 1:04d}{file_ext}"
+            save_path = os.path.join(images_dir, new_filename)
+
+            # 保存文件
+            async with aiofiles.open(save_path, 'wb') as f:
+                await f.write(file_content)
+
+            # 记录映射：原始路径 -> 新的相对路径
+            relative_path = f"images/{new_filename}"
+            path_mapping[local_path] = relative_path
+            matched_count += 1
+
+            logging.info(f"Matched and saved: {local_path} -> {relative_path}")
+        else:
+            logging.debug(f"No match found for: {local_path}")
+
+    logging.info(f"Processed local images: {matched_count} matched, {len(local_paths) - matched_count} not found")
+    return path_mapping

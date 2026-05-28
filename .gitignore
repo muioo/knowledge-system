@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # IDE
 .claude/
 
@@ -37,3 +38,49 @@ migrations/
 
 # Python project config (local development)
 pyproject.toml
+=======
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist-python/
+build/
+*.egg
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.sql
+fix_*.sql
+
+# Uploads (if not tracking)
+# backend/uploads/
+>>>>>>> d00c5f1e62fbececc7e9b8e88bfcf89eddc0f08a

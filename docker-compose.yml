@@ -1,0 +1,47 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: knowledge-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: knowledge_user
+      DB_PASSWORD: Knowledge@123
+      DB_NAME: knowledge_system
+    volumes:
+      - ./backend/uploads:/app/backend/uploads
+      - ./logs:/app/logs
+    networks:
+      - knowledge-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8022/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: knowledge-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    volumes:
+      # 挂载本地构建好的 dist 目录（本地构建后直接生效，无需重新构建镜像）
+      - ./frontend/dist:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+    networks:
+      - knowledge-net
+
+networks:
+  knowledge-net:
+    driver: bridge
+    external: false

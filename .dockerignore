@@ -1,0 +1,20 @@
+# 后端忽略
+backend/__pycache__
+backend/**/__pycache__
+backend/**/*.pyc
+backend/**/*.pyo
+backend/.env
+backend/.venv
+backend/venv
+backend/logs/
+backend/uploads/
+
+# 前端忽略（前端有自己的 build context，这里可忽略）
+frontend/node_modules
+frontend/dist
+
+# 通用
+.git
+.gitignore
+*.md
+logs/

@@ -1,49 +1,53 @@
-import apiClient from './request'
-import type {
-  ApiResponse,
-  Tag,
-  CreateTagRequest,
-  UpdateTagRequest,
-  Article,
-  ApiPaginatedResponse,
-} from '@/types'
+import apiClient from './client';
+import type { ApiResponse, Tag, PaginatedResponse } from '../types/api';
 
 export const tagApi = {
-  // 获取所有标签
-  getAll(): Promise<ApiResponse<Tag[]>> {
-    return apiClient.get('/tags/')
+  /**
+   * 获取所有标签
+   */
+  getTags: async (): Promise<Tag[]> => {
+    const response = await apiClient.get<any>('/tags/');
+    return response.data;
   },
 
-  // 别名方法，保持一致性
-  getList(): Promise<ApiResponse<Tag[]>> {
-    return this.getAll()
+  /**
+   * 获取标签详情
+   */
+  getTag: async (id: number): Promise<Tag> => {
+    const response = await apiClient.get<any>(`/tags/${id}`);
+    return response.data;
   },
 
-  // 获取标签详情
-  getDetail(tagId: number): Promise<ApiResponse<Tag>> {
-    return apiClient.get(`/tags/${tagId}`)
+  /**
+   * 创建标签
+   */
+  createTag: async (data: { name: string; color?: string }): Promise<Tag> => {
+    const response = await apiClient.post<any>('/tags/', data);
+    return response.data;
   },
 
-  // 创建标签
-  create(data: CreateTagRequest): Promise<ApiResponse<Tag>> {
-    return apiClient.post('/tags/', data)
+  /**
+   * 更新标签
+   */
+  updateTag: async (id: number, data: { name?: string; color?: string }): Promise<Tag> => {
+    const response = await apiClient.put<any>(`/tags/${id}`, data);
+    return response.data;
   },
 
-  // 更新标签
-  update(tagId: number, data: UpdateTagRequest): Promise<ApiResponse<Tag>> {
-    return apiClient.put(`/tags/${tagId}`, data)
+  /**
+   * 删除标签
+   */
+  deleteTag: async (id: number): Promise<void> => {
+    await apiClient.delete(`/tags/${id}`);
   },
 
-  // 删除标签
-  delete(tagId: number): Promise<void> {
-    return apiClient.delete(`/tags/${tagId}`)
+  /**
+   * 获取标签下的文章
+   */
+  getTagArticles: async (id: number, page = 1, size = 20): Promise<PaginatedResponse<any>> => {
+    const response = await apiClient.get<any>(`/tags/${id}/articles`, {
+      params: { page, size },
+    });
+    return response.data;
   },
-
-  // 获取标签下的文章
-  getArticles(
-    tagId: number,
-    params?: { page?: number; size?: number }
-  ): Promise<ApiPaginatedResponse<Article>> {
-    return apiClient.get(`/tags/${tagId}/articles`, { params })
-  },
-}
+};

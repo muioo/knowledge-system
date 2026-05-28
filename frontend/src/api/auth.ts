@@ -1,19 +1,25 @@
-import apiClient from './request'
-import type { ApiResponse, LoginRequest, RegisterRequest, AuthResponse } from '@/types'
+import apiClient from './client';
+import type { ApiResponse, LoginResponse, User } from '../types/api';
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
 
 export const authApi = {
-  // 用户登录
-  login(data: LoginRequest): Promise<ApiResponse<AuthResponse>> {
-    return apiClient.post('/auth/login', data)
+  /**
+   * 用户登录
+   */
+  login: async (data: LoginRequest): Promise<LoginResponse> => {
+    const response = await apiClient.post<any>('/auth/login', data);
+    return response.data;
   },
 
-  // 用户注册
-  register(data: RegisterRequest): Promise<ApiResponse<AuthResponse>> {
-    return apiClient.post('/auth/register', data)
+  /**
+   * 获取当前用户信息
+   */
+  getCurrentUser: async (): Promise<User> => {
+    const response = await apiClient.get<any>('/users/me');
+    return response.data;
   },
-
-  // 刷新 Token
-  refreshToken(refreshToken: string): Promise<ApiResponse<AuthResponse>> {
-    return apiClient.post('/auth/refresh', { refresh_token: refreshToken })
-  },
-}
+};
