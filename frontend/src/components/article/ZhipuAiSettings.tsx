@@ -9,19 +9,15 @@ export const ZHIPU_MODEL_OPTIONS = [
 ];
 
 interface ZhipuAiSettingsProps {
-  apiKey: string;
   model: string;
   customModel: string;
-  onChange: (data: { apiKey?: string; model?: string; customModel?: string }) => void;
+  onChange: (data: { model?: string; customModel?: string }) => void;
 }
 
-const ZhipuAiSettings: React.FC<ZhipuAiSettingsProps> = ({ apiKey, model, customModel, onChange }) => {
+/** 配置服务端智谱 AI 提取所使用的模型。 */
+const ZhipuAiSettings: React.FC<ZhipuAiSettingsProps> = ({ model, customModel, onChange }) => {
   return (
     <>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">智谱 API Key <span className="text-blue-500">*</span></label>
-        <Input type="password" value={apiKey} onChange={(e) => onChange({ apiKey: e.target.value })} placeholder="输入智谱 API Key" required />
-      </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">智谱模型 <span className="text-blue-500">*</span></label>
         <select

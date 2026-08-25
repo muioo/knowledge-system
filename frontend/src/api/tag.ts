@@ -21,7 +21,7 @@ export const tagApi = {
   /**
    * 创建标签
    */
-  createTag: async (data: { name: string; color?: string }): Promise<Tag> => {
+  createTag: async (data: { name: string; color?: string; parent_id?: number | null }): Promise<Tag> => {
     const response = await apiClient.post<any>('/tags/', data);
     return response.data;
   },
@@ -29,7 +29,7 @@ export const tagApi = {
   /**
    * 更新标签
    */
-  updateTag: async (id: number, data: { name?: string; color?: string }): Promise<Tag> => {
+  updateTag: async (id: number, data: { name?: string; color?: string; parent_id?: number | null }): Promise<Tag> => {
     const response = await apiClient.put<any>(`/tags/${id}`, data);
     return response.data;
   },

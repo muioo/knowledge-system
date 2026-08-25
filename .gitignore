@@ -1,86 +1,67 @@
-<<<<<<< HEAD
-# IDE
+# ===== IDE =====
 .claude/
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-.venv/
-venv/
-ENV/
-env/
-*.log
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Database
-*.db
-*.sqlite3
-
-# Environment
-.env
-.env.*
-
-# Project specific
-uploads/
-dist/
-build/
-*.egg-info/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Migration files (local development)
-migrations/
-
-# Python project config (local development)
-pyproject.toml
-=======
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-*.egg-info/
-dist-python/
-build/
-*.egg
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Environment
-.env
-.env.local
-.env.*.local
-
-# Logs
-logs/
-*.log
-
-# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# OS
-.DS_Store
-Thumbs.db
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+build/
+*.egg
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+dist-python/
 
-# Temporary files
+# ===== Node / 前端 =====
+node_modules/
+dist/
+dist-server/
+
+# ===== 数据库 =====
+*.db
+*.sqlite
+*.sqlite3
+
+# ===== 环境变量与敏感信息 =====
+.env
+.env.local
+.env.*.local
+.env.production
+
+# ===== 日志 =====
+logs/
+*.log
+
+# ===== 运行时数据 =====
+uploads/
+backend/uploads/
+
+# ===== 迁移文件（默认忽略，后端视为受控文件单独放行）=====
+migrations/
+
+# ===== 临时文件 =====
 *.tmp
 *.bak
 *.sql
 fix_*.sql
 
-# Uploads (if not tracking)
-# backend/uploads/
->>>>>>> d00c5f1e62fbececc7e9b8e88bfcf89eddc0f08a
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# 放行后端已受控的层级标签迁移文件
+!backend/migrations/
+!backend/migrations/models/
+!backend/migrations/models/2_20260803214235_add_tag_parent.py

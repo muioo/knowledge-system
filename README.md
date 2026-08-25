@@ -1,459 +1,190 @@
-# knowledge-system
+# knowledge-system 知识管理系统
 
-<<<<<<< HEAD
-## 1. 初始化项目
-### backend
+基于 **FastAPI + React** 的个人知识管理系统。支持用户认证、多级标签管理、文章上传、URL 导入、HTML 内容存储、阅读记录与阅读统计。
 
-- 创建数据库（mysql）
+## 功能特性
 
-- 添加.env文件到backend
+- 用户认证与鉴权（JWT，支持 Token 自动刷新）
+- 多级标签（`parent_id` 建立任意深度层级，按父标签筛选自动包含全部后代）
+- 文章 CRUD、多格式文档上传自动转 Markdown、URL 导入
+- URL 导入可选用**智谱大模型**（`glm-4-flash`）提取标题、正文、摘要与关键词
+- 公众号 / 知乎等站点级抓取适配
+- 阅读历史、阅读统计、阅读趋势与时间分布
+- Swagger API 文档
 
-```
-# 应用配置
-APP_NAME=知识系统后端
-APP_VERSION=1.0.0
-DEBUG=True
-# JWT令牌签名和严重 需生成
-SECRET_KEY=随机生成
+## 技术栈
 
-# 数据库配置
-DB_HOST=localhost
-DB_PORT=端口
-DB_USER=数据库用户名
-DB_PASSWORD=数据库密码
-DB_NAME=数据库名称
-=======
-## 开发环境部署
+| 层 | 技术 |
+| --- | --- |
+| 后端 | FastAPI · TortoiseORM · Pydantic v2 · Aerich |
+| 数据库 | MySQL 8.0+ |
+| 前端 | React 19 · Vite · TypeScript · TailwindCSS · Recharts |
+| 部署 | Docker Compose（MySQL + 后端 + 前端一键启动） |
 
-- 添加.env文件到backend
-
-```bash
-# 应用配置
-SECRET_KEY=your-secret-key-here
-DEBUG=false
-
-# 数据库配置（连接已有的 MySQL 容器）
-DB_HOST=your-mysql-container-name-or-ip
-DB_PORT=数据库端口
-DB_USER=数据库用户名
-DB_PASSWORD=your-mysql-password
-DB_NAME=knowledge-system
->>>>>>> d00c5f1e62fbececc7e9b8e88bfcf89eddc0f08a
-
-# JWT 配置
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-REFRESH_TOKEN_EXPIRE_DAYS=7
-ALGORITHM=HS256
-
-<<<<<<< HEAD
-=======
-# CORS 配置（填写你的服务器 IP 和前端端口）
-CORS_ORIGINS=["http://your-server-ip:port"]
->>>>>>> d00c5f1e62fbececc7e9b8e88bfcf89eddc0f08a
-# 文件上传配置
-MAX_FILE_SIZE=10485760
-# UPLOAD_DIR 由代码自动设置为绝对路径
-
-<<<<<<< HEAD
-# CORS 配置
-CORS_ORIGINS=["http://localhost:5173", "http://localhost:3000","http://localhost:3001"]
-
-# 火山引擎 AI 配置
-ARK_API_KEY=your-api-key
-# SSL验证（某些网络环境下需要禁用）
-VERIFY_SSL=False
-```
-
-- 数据库映射
-
-```bash
-# 初始化Aerich配置
-aerich init -t backend.settings.config.TORTOISE_ORM
-
-# 初始化数据库（创建所有表）
-=======
-# 服务器外部访问地址（用于生成图片链接）
-# 部署时需要修改为实际的服务器地址，例如：http://123.45.67.89:8022
-BASE_URL=http://123.45.67.89:8022
-
-# 火山引擎 AI 配置
-ARK_API_KEY=
-# 前端端口（docker compose 使用）
-FRONTEND_PORT=3000
-```
-- 初始化Aerich配置
-
-```bash
-aerich init -t backend.settings.config.TORTOISE_ORM
-```
-
-- 初始化数据库（创建所有表）
-
-```bash
->>>>>>> d00c5f1e62fbececc7e9b8e88bfcf89eddc0f08a
-aerich init-db
-
-# 创建迁移文件(初始化或者更新schemas)
-aerich migrate
-
-aerich update
-<<<<<<< HEAD
-```
-
-### frontend
-
-- 创建.env文件
+## 项目结构
 
 ```
-VITE_API_BASE_URL=http://ip:port/api/v1
+.
+├── backend/                 # FastAPI 后端
+│   ├── api/v1/endpoints/    # API 路由层
+│   ├── controllers/         # 业务编排层
+│   ├── models/              # TortoiseORM 数据模型
+│   ├── schemas/             # Pydantic 请求/响应模型
+│   ├── migrations/          # Aerich 迁移文件
+│   ├── utils/               # HTML 抓取、文档转换、AI 提取等工具
+│   └── main.py              # 应用入口（端口 8022）
+├── frontend/                # React + Vite 前端（端口 5173）
+├── docker-compose.yml       # 一键部署编排
+└── docs/                    # 项目文档
 ```
 
-- 初始化前端
+---
 
-```bash
-# 开发环境
-npm run dev
-```
+## 一、Docker 一键部署（推荐）
 
-## 2.服务器部署
-=======
+需要本机已安装 **Docker** 与 **Docker Compose** 插件（`docker compose version` 可用）。
 
-```
-- 进入frontend
+### 1. 准备环境变量（可选）
 
-```bash
-npm install 
+内置了可直接运行的开发默认值，默认情况下**无需任何配置**即可启动。如需自定义数据库密码等，在项目根目录新建 `.env`：
 
-npm run dev
-```
-
-## 生成环境部署
-
-- 代码仓库https://github.com/muioo/knowledge-system.git
-- 数据库迁移脚本. /backend/entrypoint.sh
-
-```bash
-#!/bin/sh
-# 不使用 set -e，以便显示错误信息
-
-echo "=== Waiting for MySQL to be ready ==="
-MAX_RETRIES=30
-RETRY=0
-while true; do
-    if python -c "
-import asyncio, sys
-from tortoise import Tortoise
-from backend.settings.config import TORTOISE_ORM
-async def check():
-    try:
-        await Tortoise.init(config=TORTOISE_ORM)
-        await Tortoise.close_connections()
-        print('OK')
-    except Exception as e:
-        print(f'ERROR: {e}', file=sys.stderr)
-        sys.exit(1)
-asyncio.run(check())
-" 2>&1; then
-        break
-    fi
-
-    RETRY=$((RETRY + 1))
-    if [ $RETRY -ge $MAX_RETRIES ]; then
-        echo "MySQL not ready after ${MAX_RETRIES} retries, exiting."
-        exit 1
-    fi
-    echo "  MySQL not ready yet, retrying in 2s... ($RETRY/$MAX_RETRIES)"
-    sleep 2
-done
-echo "MySQL is ready."
-
-echo "=== Running aerich migrations ==="
-# 使用 aerich CLI 但先读取迁移文件，分割后逐条执行
-python << 'PYTHON_SCRIPT'
-import asyncio
-import sys
-import traceback
-import os
-import re
-from pathlib import Path
-
-async def init_db_with_tortoise():
-    """使用 TortoiseORM 直接初始化数据库表（无 migrations 时）"""
-    from tortoise import Tortoise
-    from backend.settings.config import TORTOISE_ORM
-
-    print("No migrations directory found, using TortoiseORM to initialize database...")
-    await Tortoise.init(config=TORTOISE_ORM)
-    await Tortoise.generate_schemas()
-    print(f"Database tables created successfully!")
-    await Tortoise.close_connections()
-
-async def migrate():
-    try:
-        from aerich import Command
-        from aerich.models import Aerich
-        from backend.settings.config import TORTOISE_ORM
-        from tortoise import Tortoise, connections
-
-        print("Initializing aerich...")
-        # 初始化 Tortoise 和 aerich
-        await Tortoise.init(config=TORTOISE_ORM)
-        command = Command(tortoise_config=TORTOISE_ORM, location='migrations')
-        await command.init()
-
-        print("Checking for pending migrations...")
-        # 检查是否有待执行的迁移
-        migrations_path = Path('migrations/models')
-        if not migrations_path.exists():
-            print('No migrations directory found')
-            # 使用 TortoiseORM 直接初始化数据库表
-            await init_db_with_tortoise()
-            return
-
-        # 获取所有迁移文件
-        migration_files = sorted(migrations_path.glob('*.py'))
-        if not migration_files:
-            print('No migration files found')
-            # 使用 TortoiseORM 直接初始化数据库表
-            await init_db_with_tortoise()
-            return
-
-        # 获取已应用的迁移
-        applied_versions = []
-        try:
-            applied = await Aerich.all().values('version')
-            applied_versions = [a['version'] for a in applied]
-            print(f"Already applied migrations: {applied_versions}")
-        except Exception as e:
-            print(f"No aerich table yet (first run): {e}")
-            pass  # 首次运行，aerich 表还不存在
-
-        # 找出待执行的迁移
-        pending = []
-        for f in migration_files:
-            if f.name.startswith('0_'):
-                # 初始迁移特殊处理
-                if not applied_versions:
-                    pending.append(f)
-            else:
-                # 检查完整文件名是否在已应用列表中
-                if f.name not in applied_versions:
-                    pending.append(f)
-
-        if not pending:
-            print('No new migrations to run')
-            await Tortoise.close_connections()
-            return
-
-        print(f"Found {len(pending)} pending migrations: {[f.name for f in pending]}")
-
-        # 逐个执行迁移
-        for i, migration_file in enumerate(pending, 1):
-            print(f"  [{i}/{len(pending)}] Applying {migration_file.name}...")
-
-            # 动态导入迁移模块
-            module_name = f"migrations.models.{migration_file.stem}"
-            module = __import__(module_name, fromlist=['upgrade'])
-
-            # 获取升级 SQL
-            conn = connections.get('default')
-            upgrade_sql = await module.upgrade(conn)
-
-            # 分割 SQL 语句
-            # 简单方法：按分号分割，然后过滤空语句
-            statements = []
-
-            # 移除多行注释 /* ... */
-            import re
-            upgrade_sql = re.sub(r'/\*.*?\*/', '', upgrade_sql, flags=re.DOTALL)
-
-            # 移除单行注释 --
-            upgrade_sql = re.sub(r'--.*?$', '', upgrade_sql, flags=re.MULTILINE)
-
-            # 按分号分割并清理
-            raw_statements = upgrade_sql.split(';')
-            for stmt in raw_statements:
-                # 移除前后空白和空行
-                cleaned = '\n'.join(line.strip() for line in stmt.split('\n') if line.strip())
-                if cleaned:
-                    statements.append(cleaned)
-
-            print(f"    Found {len(statements)} SQL statements to execute")
-
-            # 逐条执行 SQL
-            for j, stmt in enumerate(statements, 1):
-                try:
-                    # 清理语句
-                    stmt_clean = stmt.strip().rstrip(';')
-                    if not stmt_clean:
-                        continue
-
-                    await conn.execute_script(stmt_clean)
-                    print(f"    [{j}/{len(statements)}] Executed successfully")
-                except Exception as e:
-                    error_str = str(e)
-                    # 跳过已存在的错误
-                    if 'already exists' in error_str or 'Duplicate column' in error_str or 'Duplicate key' in error_str:
-                        print(f"    [{j}/{len(statements)}] Skipped (already exists)")
-                        continue
-                    print(f"    [{j}/{len(statements)}] ERROR: {e}")
-                    print(f"    SQL: {stmt_clean[:200]}...")
-                    # 不抛出异常，继续执行下一条语句
-
-            # 记录迁移
-            try:
-                # 使用完整文件名作为版本
-                version = migration_file.name
-                await Aerich.create(
-                    version=version,
-                    app='models',
-                    content=upgrade_sql
-                )
-                print(f"  [{i}/{len(pending)}] Recorded migration: {migration_file.name}")
-            except Exception as e:
-                if 'Duplicate entry' in str(e):
-                    print(f"  [{i}/{len(pending)}] Migration already recorded")
-                else:
-                    raise
-
-        print('All migrations completed successfully')
-
-    except Exception as e:
-        print(f"Migration error: {e}")
-        traceback.print_exc()
-        sys.exit(1)
-
-asyncio.run(migrate())
-PYTHON_SCRIPT
-
-echo "=== Migrations complete, starting server ==="
-exec uvicorn backend.main:app --host 0.0.0.0 --port 8022
-```
-
-- 数据库连接脚本./init-db.sh
-
-```bash
-#!/bin/bash
-# 在服务器上运行此脚本初始化数据库
-
-echo "=== 初始化 MySQL 数据库 ==="
-
-# 连接到 MySQL 容器并创建数据库和用户(docker创建的mysql容器名)
-docker exec -i mysql mysql -uroot -proot123456 <<EOF
--- 创建数据库
-CREATE DATABASE IF NOT EXISTS knowledge_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- 创建用户（如果不存在）
-CREATE USER IF NOT EXISTS 'knowledge_user'@'%' IDENTIFIED BY 'Knowledge@123';
-
--- 授予权限
-GRANT ALL PRIVILEGES ON knowledge_system.* TO 'knowledge_user'@'%';
-FLUSH PRIVILEGES;
-
--- 显示结果
-SHOW DATABASES;
-SELECT User, Host FROM mysql.user WHERE User='knowledge_user';
-EOF
-
-echo "=== 数据库初始化完成 ==="
-
-```
-
-- 拉取代码
-
-```bash
-git clone -b production https://github.com/muioo/knowledge-system.git
-```
-
-- 配置.env文件
-
-```bash
-# 应用配置
-SECRET_KEY=...
-DEBUG=false
-
-# 数据库配置（连接已有的 MySQL 容器）
-DB_HOST=mysql
-DB_PORT=3306
+```env
+# 以下均为可选，不填则使用默认值
+SECRET_KEY=change-me-in-production
+MYSQL_ROOT_PASSWORD=root
+DB_NAME=knowledge_system
 DB_USER=knowledge_user
 DB_PASSWORD=Knowledge@123
-DB_NAME=knowledge_system
-
-# CORS 配置（填写你的服务器 IP 和前端端口）
-CORS_ORIGINS=["ip:port"]
-
-# 火山引擎 AI 配置
-ARK_API_KEY=
-
-# 前端端口（docker-compose 使用）
+# 前端对外端口（默认 5173）
 FRONTEND_PORT=5173
+# 智谱 AI 密钥（文章 URL 导入时的智能提取，可选）
+ZHIPU_API_KEY=
 ```
 
-- 构建项目
+> 变量模板见仓库根目录 [.env.example](.env.example)。密钥类信息请勿提交到 Git。
+
+### 2. 一键构建并启动
 
 ```bash
-docker compose -d build
+docker compose up -d --build
 ```
 
-- 后续更新代码
+首次构建需拉取基础镜像并编译前端，耗时较长，请耐心等待。
+
+### 3. 验证与访问
+
+- 查看各容器运行状态：
+
+  ```bash
+  docker compose ps
+  ```
+
+- 浏览器访问：**http://localhost:5173**（前端）
+- 后端 API 文档：**http://localhost:8022/docs**（Swagger）
+- 健康检查：**http://localhost:8022/health** → 返回 `{"status":"ok"}`
+
+登录账号可二选一：
+
+- 打开前端页面后，通过“注册”接口创建新账号；
+- 或进入后端容器创建管理员：`docker exec -it knowledge-backend python backend/create_admin.py`（管理员 `wbl / wbl@123456`）。
+
+### 4. 停止 / 清理
 
 ```bash
-git pull origin production
-docker compose up -d --build backend # 构建镜像 启动容器
-docker compose up -d frontend # 启动容器 docker-compose.yml中的frontend
-docker compose up -d backend
+docker compose down                # 停止并移除容器
+docker compose down -v             # 连数据库数据卷一并删除
 ```
 
+> 后端会自动执行 Aerich 数据库迁移并等待 MySQL 就绪，无需手动建库。
 
+---
 
+## 二、本地开发启动
 
+### 1. 后端
 
+要求：Python 3.11、本机 MySQL 8.0+、conda（可选）。
 
+```bash
+# 创建并激活虚拟环境
+conda create -n knowledge-system python=3.11
+conda activate knowledge-system
+pip install -r backend/requirements.txt
+```
 
+配置环境变量，将 `.env.example` 复制为后台配置文件：
 
+```bash
+cp .env.example backend/.env
+# 编辑 backend/.env，按需修改 SECRET_KEY、DB_* 项
+```
 
+在 MySQL 中创建数据库（库名需与 `.env` 的 `DB_NAME` 一致）：
 
+```sql
+CREATE DATABASE IF NOT EXISTS knowledge_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
 
+执行数据库迁移并创建管理员：
 
+```bash
+# 首次从空库启动，若已有迁移记录则用 aerich upgrade
+aerich upgrade
+# 创建管理员 wbl / wbl@123456
+python backend/create_admin.py
+```
 
+启动后端服务（端口 8022）：
 
+```bash
+uvicorn backend.main:app --reload --host 0.0.0.0 --port 8022
+```
 
+### 2. 前端
 
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
+打开 **http://localhost:5173** 即可。开发模式下 `/api` 请求会由 Vite 代理到后端 `http://localhost:8022`。
 
+---
 
+## 三、配置项说明
 
+| 变量 | 说明 | 默认 |
+| --- | --- | --- |
+| `SECRET_KEY` | JWT 签名密钥（生产环境务必修改） | — |
+| `DB_HOST / DB_PORT / DB_USER / DB_PASSWORD / DB_NAME` | 数据库连接 | localhost / 3306 / root / — / knowledge_system |
+| `CORS_ORIGINS` | 允许的前端站点（JSON 数组） | `["http://localhost:5173"]` |
+| `BASE_URL` | 服务器外部访问地址（用于生成图片链接），部署时改为实际地址 | `http://localhost:5173` |
+| `MAX_FILE_SIZE` | 上传大小上限（字节） | `10485760`（10MB） |
+| `ZHIPU_API_KEY` | 智谱 AI 密钥（可选，仅后端读取） | 空 |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` / `REFRESH_TOKEN_EXPIRE_DAYS` | Token 有效期 | 30 / 7 |
 
+> `ZHIPU_API_KEY` 只从后端环境变量读取，前端不会采集或发送该密钥。默认模型为 `glm-4-flash`，前端可选择固定模型或填写自定义模型。
 
+---
 
+## 四、测试
 
+```bash
+# 后端测试
+cd backend && pytest
 
+# 前端测试与构建检查
+cd frontend && npm run test && npm run build
+```
 
+## 五、文档
 
+- [API 文档](docs/API_DOCUMENTATION.md)
+- [数据库迁移指南](docs/DATABASE_MIGRATION_GUIDE.md)
+- [智谱 AI 接入说明](docs/ZHIPU_API.md)
+- [部署说明](docs/DEPLOY.md)
 
+## License
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
->>>>>>> d00c5f1e62fbececc7e9b8e88bfcf89eddc0f08a
+MIT License

@@ -2,6 +2,7 @@ import React, { useEffect, useState, FormEvent } from 'react';
 import { useArticles } from '../contexts/ArticleContext';
 import ArticleCard from '../components/ArticleCard';
 import Input from '../components/ui/Input';
+import { buildArticleListParams } from './articleFilter';
 
 const ArticleList: React.FC = () => {
   const {
@@ -18,28 +19,24 @@ const ArticleList: React.FC = () => {
   } = useArticles();
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [appliedSearchQuery, setAppliedSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchArticles();
-  }, [currentPage]);
+    fetchArticles(buildArticleListParams(appliedSearchQuery, selectedTag));
+  }, [currentPage, appliedSearchQuery, selectedTag]);
 
+  /** Submit the search query and reset pagination to the first page. */
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
+    setAppliedSearchQuery(searchQuery);
     setCurrentPage(1);
-    fetchArticles({
-      ...(searchQuery && { q: searchQuery }),
-      ...(selectedTag && { tag_id: selectedTag }),
-    });
   };
 
+  /** Toggle the selected tag while preserving the submitted search query. */
   const handleTagFilter = (tagId: number) => {
     setSelectedTag(tagId === selectedTag ? null : tagId);
     setCurrentPage(1);
-    fetchArticles({
-      q: searchQuery,
-      ...(tagId !== selectedTag && { tag_id: tagId }),
-    });
   };
 
   const handleDelete = async (id: number) => {

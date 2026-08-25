@@ -1,21 +1,61 @@
+# knowledge-system 一键部署编排
+# 使用说明见 README.md「Docker 一键部署」章节。
+# 凭据可覆盖：在同目录创建 .env（或用系统环境变量）即可覆盖下方 ${VAR:-默认值}。
+name: knowledge-system
+
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: knowledge-mysql
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      # MySQL root 与业务库/用户，均可通过项目根目录 .env 覆盖（内置开发默认值）
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-knowledge_system}
+      MYSQL_USER: ${DB_USER:-knowledge_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-Knowledge@123}
+      TZ: Asia/Shanghai
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - knowledge-net
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
     container_name: knowledge-backend
     restart: unless-stopped
-    env_file:
-      - ./backend/.env
+    depends_on:
+      mysql:
+        condition: service_healthy
     environment:
+      # 内置开发默认值，可被项目根目录 .env 覆盖
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      DEBUG: ${DEBUG:-false}
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_USER: knowledge_user
-      DB_PASSWORD: Knowledge@123
-      DB_NAME: knowledge_system
+      DB_USER: ${DB_USER:-knowledge_user}
+      DB_PASSWORD: ${DB_PASSWORD:-Knowledge@123}
+      DB_NAME: ${DB_NAME:-knowledge_system}
+      CORS_ORIGINS: ${CORS_ORIGINS:-["http://localhost:5173"]}
+      BASE_URL: ${BASE_URL:-http://localhost:5173}
+      # 智谱 AI 密钥，仅在此传参（可选），不要提交到 Git
+      ZHIPU_API_KEY: ${ZHIPU_API_KEY:-}
     volumes:
       - ./backend/uploads:/app/backend/uploads
       - ./logs:/app/logs
+    ports:
+      - "8022:8022"
     networks:
       - knowledge-net
     healthcheck:
@@ -29,17 +69,20 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        # 构建期注入同源 API 路径，经 nginx 反向代理到 backend
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api/v1}
     container_name: knowledge-frontend
     restart: unless-stopped
-    ports:
-      - "5173:80"
-    volumes:
-      # 挂载本地构建好的 dist 目录（本地构建后直接生效，无需重新构建镜像）
-      - ./frontend/dist:/usr/share/nginx/html:ro
     depends_on:
       - backend
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
     networks:
       - knowledge-net
+
+volumes:
+  mysql-data:
 
 networks:
   knowledge-net:

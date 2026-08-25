@@ -29,9 +29,11 @@ async def get_articles(
     page: int = 1,
     size: int = 20,
     tag_id: Optional[int] = None,
+    q: Optional[str] = None,
     current_user: User = Depends(get_current_user)
 ):
-    articles, total = await list_articles(page, size, tag_id)
+    """依据搜索词和标签层级获取分页文章列表。"""
+    articles, total = await list_articles(page=page, size=size, tag_id=tag_id, q=q)
     return PaginatedResponse(data=PaginatedData(
         total=total,
         page=page,
@@ -186,7 +188,6 @@ async def import_html_article_from_url(
             use_ai=request.use_ai,
             summary=request.summary,
             keywords=request.keywords,
-            api_key=request.api_key,
             model=request.model
         )
         return SuccessResponse(data=result)

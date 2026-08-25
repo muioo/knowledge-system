@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from typing import Optional, List, Literal
 
@@ -58,14 +58,15 @@ class SearchQuery(BaseModel):
     size: int = Field(default=20, ge=1, le=100)
 
 class ArticleFromHtmlUrlRequest(BaseModel):
-    """从 HTML URL 导入文章请求"""
+    """从 HTML URL 导入文章请求，不接受客户端提供密钥。"""
+
+    model_config = ConfigDict(extra="forbid")
     url: str = Field(..., min_length=1, max_length=1000)
     tag_ids: Optional[List[int]] = Field(default=None, description="标签ID列表")
     title: Optional[str] = Field(None, min_length=1, max_length=255, description="可选的自定义标题")
     use_ai: bool = Field(True, description="是否使用AI提取关键词和摘要，默认为True")
     summary: Optional[str] = Field(None, description="手动输入的摘要（不使用AI时）")
     keywords: Optional[str] = Field(None, description="手动输入的关键词（不使用AI时）")
-    api_key: Optional[str] = Field(None, description="智谱 API Key（使用AI时需要，由前端临时提供）")
     model: Optional[str] = Field("glm-4-flash", description="智谱模型名称，默认 glm-4-flash")
 
 class ArticleFromHtmlUrlResponse(BaseModel):

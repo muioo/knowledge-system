@@ -66,7 +66,6 @@ export const articleApi = {
     if (data.title) payload.title = data.title;
     if (data.summary) payload.summary = data.summary;
     if (data.keywords) payload.keywords = data.keywords;
-    if (data.api_key) payload.api_key = data.api_key;
     if (data.model) payload.model = data.model;
 
     const response = await apiClient.post<any>('/articles/from-url-html', payload, {

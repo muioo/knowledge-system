@@ -42,6 +42,8 @@ export interface Tag {
   id: number;
   name: string;
   color: string;
+  parent_id?: number | null;
+  article_count?: number;
   created_at?: string;
 }
 
@@ -80,7 +82,6 @@ export interface UrlImportData {
   use_ai?: boolean;
   summary?: string;
   keywords?: string;
-  api_key?: string;
   model?: string;
 }
 

@@ -19,7 +19,6 @@ interface UrlData {
   useAi: boolean;
   summary: string;
   keywords: string;
-  apiKey: string;
   model: string;
   customModel: string;
 }
@@ -35,7 +34,6 @@ const ArticleCreate: React.FC = () => {
     useAi: false,
     summary: '',
     keywords: '',
-    apiKey: '',
     model: 'glm-4-flash',
     customModel: ''
   });
@@ -82,10 +80,6 @@ const ArticleCreate: React.FC = () => {
       else setError(result.error || '创建文章失败');
     } else {
       if (!urlData.url) { setError('请输入文章 URL'); return; }
-      if (urlData.useAi && !urlData.apiKey.trim()) {
-        setError('使用智谱 AI 提取时，请输入 API Key');
-        return;
-      }
       if (urlData.useAi && urlData.model === 'custom' && !urlData.customModel.trim()) {
         setError('使用自定义模型时，请输入模型名称');
         return;
@@ -102,7 +96,6 @@ const ArticleCreate: React.FC = () => {
         use_ai: urlData.useAi,
         summary: !urlData.useAi ? urlData.summary : undefined,
         keywords: !urlData.useAi ? urlData.keywords : undefined,
-        api_key: urlData.useAi && urlData.apiKey ? urlData.apiKey : undefined,
         model: urlData.useAi ? selectedModel : undefined,
       });
       if (result.success) navigate('/articles');

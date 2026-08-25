@@ -1,5 +1,7 @@
-import pytest
+﻿import pytest
+from pydantic import ValidationError
 
+from backend.schemas.article import ArticleFromHtmlUrlRequest
 from backend.utils import ai_extractor
 
 
@@ -36,46 +38,53 @@ class FakeZhipuAiClient:
 
 
 @pytest.mark.asyncio
-async def test_extract_article_requires_frontend_api_key():
-    """启用智谱提取时必须由前端传入 API Key。"""
-    with pytest.raises(ValueError, match="API Key"):
+async def test_extract_article_requires_environment_api_key(monkeypatch):
+    """启用智谱提取时必须配置后端环境变量中的 API Key。"""
+    monkeypatch.setattr(ai_extractor.settings, "zhipu_api_key", "", raising=False)
+
+    with pytest.raises(ValueError, match="ZHIPU_API_KEY"):
         await ai_extractor.extract_article_from_url(
             url="https://example.com/article",
             html_content="<article>正文</article>",
-            api_key=None,
         )
 
 
 @pytest.mark.asyncio
-async def test_extract_article_uses_default_zhipu_model(monkeypatch):
-    """未指定模型时默认使用 glm-4-flash。"""
+async def test_extract_article_uses_environment_api_key_and_default_model(monkeypatch):
+    """智谱客户端必须使用环境变量密钥，默认模型为 glm-4-flash。"""
     FakeZhipuAiClient.instances = []
     monkeypatch.setattr(ai_extractor, "ZhipuAiClient", FakeZhipuAiClient)
+    monkeypatch.setattr(ai_extractor.settings, "zhipu_api_key", "environment-key", raising=False)
 
     result = await ai_extractor.extract_article_from_url(
         url="https://example.com/article",
         html_content="<article>正文</article>",
-        api_key="frontend-key",
     )
 
     client = FakeZhipuAiClient.instances[0]
-    assert client.api_key == "frontend-key"
+    assert client.api_key == "environment-key"
     assert client.calls[0]["model"] == "glm-4-flash"
     assert result["title"] == "标题"
 
 
 @pytest.mark.asyncio
 async def test_extract_article_passes_selected_zhipu_model(monkeypatch):
-    """前端选择的智谱模型会透传到 SDK 调用。"""
+    """模型选择仍会透传到 SDK，但 API Key 不再来自请求。"""
     FakeZhipuAiClient.instances = []
     monkeypatch.setattr(ai_extractor, "ZhipuAiClient", FakeZhipuAiClient)
+    monkeypatch.setattr(ai_extractor.settings, "zhipu_api_key", "environment-key", raising=False)
 
     await ai_extractor.extract_article_from_url(
         url="https://example.com/article",
         html_content="<article>正文</article>",
-        api_key="frontend-key",
         model="glm-4-plus",
     )
 
     client = FakeZhipuAiClient.instances[0]
     assert client.calls[0]["model"] == "glm-4-plus"
+
+
+def test_url_import_request_rejects_removed_api_key_field():
+    """已删除的 api_key 请求字段必须明确拒绝，避免客户端误以为仍生效。"""
+    with pytest.raises(ValidationError, match="api_key"):
+        ArticleFromHtmlUrlRequest(url="https://example.com", api_key="frontend-key")

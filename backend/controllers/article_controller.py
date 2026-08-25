@@ -9,6 +9,7 @@ from backend.schemas.article import ArticleCreate, ArticleUpdate, ArticleRespons
 from backend.utils.html_fetcher import fetch_html, clean_html, rewrite_base_urls, remove_scripts
 from backend.utils.image_processor import extract_images, download_images_batch, rewrite_image_links
 from backend.utils.ai_extractor import extract_article_from_url
+from backend.utils.tag_hierarchy import collect_descendant_tag_ids
 from backend.settings.config import settings
 
 
@@ -382,12 +383,28 @@ async def delete_article(article_id: int, user_id: int, is_admin: bool = False) 
     await article.delete()
     return True
 
-async def list_articles(page: int = 1, size: int = 20, tag_id: Optional[int] = None, author_id: Optional[int] = None) -> tuple[List[ArticleResponse], int]:
+async def list_articles(
+    page: int = 1,
+    size: int = 20,
+    tag_id: Optional[int] = None,
+    author_id: Optional[int] = None,
+    q: Optional[str] = None,
+) -> tuple[List[ArticleResponse], int]:
+    """按搜索词、作者和标签（包含后代）获取分页文章。"""
     query = Article.all()
-    if tag_id:
-        query = query.filter(tags__id=tag_id)
-    if author_id:
+    if tag_id is not None:
+        tag_pairs = await Tag.all().values_list("id", "parent_id")
+        tag_ids = collect_descendant_tag_ids(tag_id, tag_pairs)
+        query = query.filter(tags__id__in=tag_ids).distinct()
+    if author_id is not None:
         query = query.filter(author_id=author_id)
+    if q and q.strip():
+        keyword = q.strip()
+        query = query.filter(
+            Q(title__icontains=keyword)
+            | Q(summary__icontains=keyword)
+            | Q(keywords__icontains=keyword)
+        )
     total = await query.count()
     articles = await query.prefetch_related("tags").offset((page - 1) * size).limit(size)
     return (
@@ -406,10 +423,11 @@ async def list_articles(page: int = 1, size: int = 20, tag_id: Optional[int] = N
                 tags=[TagInfo(id=t.id, name=t.name, color=t.color) for t in a.tags],
                 html_path=a.html_path,
                 processing_status=a.processing_status,
-                original_html_url=a.original_html_url
-            ) for a in articles
+                original_html_url=a.original_html_url,
+            )
+            for a in articles
         ],
-        total
+        total,
     )
 
 async def search_articles(query: SearchQuery) -> tuple[List[ArticleResponse], int]:
@@ -457,7 +475,6 @@ async def import_article_from_html_url(
     use_ai: bool = True,
     summary: Optional[str] = None,
     keywords: Optional[str] = None,
-    api_key: Optional[str] = None,
     model: Optional[str] = "glm-4-flash"
 ) -> ArticleResponse:
     """
@@ -471,7 +488,6 @@ async def import_article_from_html_url(
         use_ai: 是否使用AI提取关键词和摘要，默认为True
         summary: 手动输入的摘要（use_ai=False时使用）
         keywords: 手动输入的关键词（use_ai=False时使用）
-        api_key: 前端临时提供的智谱 API Key
         model: 前端选择的智谱模型
 
     Returns:
@@ -514,7 +530,6 @@ async def import_article_from_html_url(
             ai_result = await extract_article_from_url(
                 url=url,
                 html_content=cleaned_html,
-                api_key=api_key,
                 model=model or "glm-4-flash"
             )
             ai_summary = ai_result.get("summary")

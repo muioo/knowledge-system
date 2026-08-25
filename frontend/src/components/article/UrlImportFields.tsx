@@ -7,7 +7,6 @@ export interface UrlImportFormData {
   useAi: boolean;
   summary: string;
   keywords: string;
-  apiKey: string;
   model: string;
   customModel: string;
 }
@@ -40,12 +39,11 @@ const UrlImportFields: React.FC<UrlImportFieldsProps> = ({ data, onChange }) => 
           />
           <span className="text-sm font-medium text-gray-700">使用智谱 AI 提取摘要和关键词</span>
         </label>
-        <p className="mt-1 ml-6 text-xs text-gray-500">API Key 只会随本次导入请求发送，不会保存在后端配置中</p>
+        <p className="mt-1 ml-6 text-xs text-gray-500">服务端将使用其环境变量中配置的智谱 API Key</p>
       </div>
 
       {data.useAi ? (
         <ZhipuAiSettings
-          apiKey={data.apiKey}
           model={data.model}
           customModel={data.customModel}
           onChange={onChange}

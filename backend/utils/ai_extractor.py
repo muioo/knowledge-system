@@ -1,11 +1,11 @@
-"""AI 提取工具：使用前端传入的智谱 API Key 提取文章信息。"""
+"""AI 提取工具：使用后端环境变量中的智谱 API Key 提取文章信息。"""
 import asyncio
 import json
 import logging
 import os
 import re
 from concurrent.futures import ThreadPoolExecutor
-from typing import Dict, Optional
+from typing import Dict
 
 import aiofiles
 from bs4 import BeautifulSoup
@@ -18,10 +18,12 @@ _executor = ThreadPoolExecutor(max_workers=2)
 DEFAULT_ZHIPU_MODEL = "glm-4-flash"
 
 
-async def _call_ai_api(prompt: str, api_key: Optional[str], model: str = DEFAULT_ZHIPU_MODEL) -> Dict:
-    """调用智谱 Chat Completions，并返回模型文本内容。"""
+async def _call_ai_api(prompt: str, model: str = DEFAULT_ZHIPU_MODEL) -> Dict:
+    """使用后端配置的密钥调用智谱 Chat Completions。"""
+    api_key = settings.zhipu_api_key.strip()
     if not api_key:
-        raise ValueError("使用智谱 AI 提取时必须在前端提供 API Key")
+        logger.error("[AI Extractor] 未配置 ZHIPU_API_KEY")
+        raise ValueError("使用智谱 AI 提取时必须配置后端环境变量 ZHIPU_API_KEY")
 
     selected_model = (model or DEFAULT_ZHIPU_MODEL).strip()
     try:
@@ -87,7 +89,6 @@ def _parse_json_response(result_text: str) -> Dict:
 async def extract_article_from_url(
     url: str,
     html_content: str,
-    api_key: Optional[str] = None,
     model: str = DEFAULT_ZHIPU_MODEL,
 ) -> Dict:
     """从网页 URL 和 HTML 内容中提取标题、正文、摘要和关键词。"""
@@ -106,13 +107,12 @@ async def extract_article_from_url(
   "keywords": "关键词,关键词,关键词"
 }}"""
 
-    result = await _call_ai_api(prompt=prompt, api_key=api_key, model=model)
+    result = await _call_ai_api(prompt=prompt, model=model)
     return _parse_json_response(result["content"].strip())
 
 
 def _extract_article_summary_sync(
     content: str,
-    api_key: Optional[str] = None,
     model: str = DEFAULT_ZHIPU_MODEL,
 ) -> Dict:
     """在线程池中同步提取摘要和关键词。"""
@@ -124,7 +124,7 @@ def _extract_article_summary_sync(
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
-        result = loop.run_until_complete(_call_ai_api(prompt, api_key, model))
+        result = loop.run_until_complete(_call_ai_api(prompt, model))
         return _parse_json_response(result["content"].strip())
     finally:
         loop.close()
@@ -132,16 +132,15 @@ def _extract_article_summary_sync(
 
 async def extract_article_summary(
     content: str,
-    api_key: Optional[str] = None,
     model: str = DEFAULT_ZHIPU_MODEL,
 ) -> Dict:
     """从已有文章内容中提取摘要和关键词。"""
     loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(_executor, _extract_article_summary_sync, content, api_key, model)
+    return await loop.run_in_executor(_executor, _extract_article_summary_sync, content, model)
 
 
 async def extract_article_async(article_id: int) -> bool:
-    """异步提取文章摘要和关键词；没有用户 API Key 时只记录失败状态。"""
+    """使用后端密钥异步提取文章摘要和关键词，并记录失败状态。"""
     from backend.models import Article
 
     try:

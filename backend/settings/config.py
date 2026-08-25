@@ -45,6 +45,9 @@ class Settings(BaseSettings):
     # 是否验证SSL证书（某些网络环境下需要禁用）
     verify_ssl: bool = True
 
+    # 智谱 API Key 仅从后端环境变量读取，不接受前端请求传入。
+    zhipu_api_key: str = ""
+
     @property
     def cors_origins_list(self) -> List[str]:
         return json.loads(self.cors_origins)
