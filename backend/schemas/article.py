@@ -67,7 +67,8 @@ class ArticleFromHtmlUrlRequest(BaseModel):
     use_ai: bool = Field(True, description="是否使用AI提取关键词和摘要，默认为True")
     summary: Optional[str] = Field(None, description="手动输入的摘要（不使用AI时）")
     keywords: Optional[str] = Field(None, description="手动输入的关键词（不使用AI时）")
-    model: Optional[str] = Field("glm-4-flash", description="智谱模型名称，默认 glm-4-flash")
+    provider: Optional[str] = Field(None, description="AI 供应商标识（zhipu/dashscope/custom），缺省取用户绑定的供应商")
+    model: Optional[str] = Field(None, description="AI 模型名称，缺省取用户绑定模型")
 
 class ArticleFromHtmlUrlResponse(BaseModel):
     """从 HTML URL 导入文章响应"""

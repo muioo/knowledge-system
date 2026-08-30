@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 from pydantic import ValidationError
 
 from backend.schemas.article import ArticleFromHtmlUrlRequest
@@ -37,6 +37,20 @@ class FakeZhipuAiClient:
         self.instances.append(self)
 
 
+class FakeOpenAI:
+    """模拟 OpenAI 兼容客户端，记录初始化参数与调用参数。"""
+
+    instances = []
+
+    def __init__(self, api_key, base_url):
+        self.api_key = api_key
+        self.base_url = base_url
+        self.calls = []
+        FakeOpenAI.instances.append(self)
+        # 复用智谱测试中的假响应结构
+        self.chat = FakeChat(self.calls)
+
+
 @pytest.mark.asyncio
 async def test_extract_article_requires_environment_api_key(monkeypatch):
     """启用智谱提取时必须配置后端环境变量中的 API Key。"""
@@ -46,6 +60,58 @@ async def test_extract_article_requires_environment_api_key(monkeypatch):
         await ai_extractor.extract_article_from_url(
             url="https://example.com/article",
             html_content="<article>正文</article>",
+        )
+
+
+@pytest.mark.asyncio
+async def test_extract_article_rejects_unknown_provider(monkeypatch):
+    """不支持的供应商标识必须直接拒绝。"""
+    monkeypatch.setattr(ai_extractor.settings, "zhipu_api_key", "environment-key", raising=False)
+
+    with pytest.raises(ValueError, match="不支持的 AI 供应商"):
+        await ai_extractor.extract_article_from_url(
+            url="https://example.com/article",
+            html_content="<article>正文</article>",
+            provider="unknown",
+        )
+
+
+@pytest.mark.asyncio
+async def test_extract_article_dashscope_uses_openai_compatible_client(monkeypatch):
+    """千问（百炼）必须走 OpenAI 兼容协议并按 workspace_id 拼接 base_url。"""
+    FakeOpenAI.instances = []
+    monkeypatch.setattr(ai_extractor, "OpenAI", FakeOpenAI)
+    monkeypatch.setattr(ai_extractor.settings, "dashscope_api_key", "dash-key", raising=False)
+    monkeypatch.setattr(ai_extractor.settings, "dashscope_workspace_id", "ws-123", raising=False)
+    monkeypatch.setattr(ai_extractor.settings, "dashscope_default_model", "", raising=False)
+
+    result = await ai_extractor.extract_article_from_url(
+        url="https://example.com/article",
+        html_content="<article>正文</article>",
+        provider="dashscope",
+        model="deepseek-v4-flash-0731",
+    )
+
+    client = FakeOpenAI.instances[0]
+    assert client.api_key == "dash-key"
+    assert client.base_url == "https://ws-123.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
+    assert client.calls[0]["model"] == "deepseek-v4-flash-0731"
+    assert result["title"] == "标题"
+
+
+@pytest.mark.asyncio
+async def test_extract_article_dashscope_requires_workspace(monkeypatch):
+    """使用千问但未配置 workspace_id 时必须明确报错。"""
+    monkeypatch.setattr(ai_extractor, "OpenAI", FakeOpenAI)
+    monkeypatch.setattr(ai_extractor.settings, "dashscope_api_key", "dash-key", raising=False)
+    monkeypatch.setattr(ai_extractor.settings, "dashscope_workspace_id", "", raising=False)
+
+    with pytest.raises(ValueError, match="DASHSCOPE_WORKSPACE_ID"):
+        await ai_extractor.extract_article_from_url(
+            url="https://example.com/article",
+            html_content="<article>正文</article>",
+            provider="dashscope",
+            model="deepseek-v4-flash-0731",
         )
 
 

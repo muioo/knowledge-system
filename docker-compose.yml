@@ -49,8 +49,15 @@ services:
       DB_NAME: ${DB_NAME:-knowledge_system}
       CORS_ORIGINS: ${CORS_ORIGINS:-["http://localhost:5173"]}
       BASE_URL: ${BASE_URL:-http://localhost:5173}
-      # 智谱 AI 密钥，仅在此传参（可选），不要提交到 Git
+      # AI 供应商密钥（可选，仅后端持有），页面不采集
       ZHIPU_API_KEY: ${ZHIPU_API_KEY:-}
+      ZHIPU_DEFAULT_MODEL: ${ZHIPU_DEFAULT_MODEL:-glm-4-flash}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      DASHSCOPE_WORKSPACE_ID: ${DASHSCOPE_WORKSPACE_ID:-}
+      DASHSCOPE_DEFAULT_MODEL: ${DASHSCOPE_DEFAULT_MODEL:-}
+      CUSTOM_API_KEY: ${CUSTOM_API_KEY:-}
+      CUSTOM_BASE_URL: ${CUSTOM_BASE_URL:-}
+      CUSTOM_DEFAULT_MODEL: ${CUSTOM_DEFAULT_MODEL:-}
     volumes:
       - ./backend/uploads:/app/backend/uploads
       - ./logs:/app/logs

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useArticles } from '../contexts/ArticleContext';
 import Input from '../components/ui/Input';
@@ -19,8 +19,8 @@ interface UrlData {
   useAi: boolean;
   summary: string;
   keywords: string;
+  provider: string;
   model: string;
-  customModel: string;
 }
 const ArticleCreate: React.FC = () => {
   const navigate = useNavigate();
@@ -34,8 +34,8 @@ const ArticleCreate: React.FC = () => {
     useAi: false,
     summary: '',
     keywords: '',
-    model: 'glm-4-flash',
-    customModel: ''
+    provider: '',
+    model: ''
   });
   const [error, setError] = useState('');
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,15 +80,14 @@ const ArticleCreate: React.FC = () => {
       else setError(result.error || '创建文章失败');
     } else {
       if (!urlData.url) { setError('请输入文章 URL'); return; }
-      if (urlData.useAi && urlData.model === 'custom' && !urlData.customModel.trim()) {
-        setError('使用自定义模型时，请输入模型名称');
+      if (urlData.useAi && (!urlData.provider || !urlData.model.trim())) {
+        setError('请选择 AI 供应商并填写模型名称');
         return;
       }
       if (!urlData.useAi && (!urlData.summary || !urlData.keywords)) {
         setError('未开启 AI 提取时，摘要和关键词为必填');
         return;
       }
-      const selectedModel = urlData.model === 'custom' ? urlData.customModel.trim() : urlData.model;
       const result = await importFromUrl({
         url: urlData.url,
         tagIds: urlData.tagIds,
@@ -96,7 +95,8 @@ const ArticleCreate: React.FC = () => {
         use_ai: urlData.useAi,
         summary: !urlData.useAi ? urlData.summary : undefined,
         keywords: !urlData.useAi ? urlData.keywords : undefined,
-        model: urlData.useAi ? selectedModel : undefined,
+        provider: urlData.useAi ? urlData.provider : undefined,
+        model: urlData.useAi ? urlData.model.trim() : undefined,
       });
       if (result.success) navigate('/articles');
       else setError(result.error || '导入文章失败');

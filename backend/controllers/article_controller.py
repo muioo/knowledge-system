@@ -475,7 +475,8 @@ async def import_article_from_html_url(
     use_ai: bool = True,
     summary: Optional[str] = None,
     keywords: Optional[str] = None,
-    model: Optional[str] = "glm-4-flash"
+    provider: Optional[str] = None,
+    model: Optional[str] = None
 ) -> ArticleResponse:
     """
     从 URL 导入 HTML 文章
@@ -488,7 +489,8 @@ async def import_article_from_html_url(
         use_ai: 是否使用AI提取关键词和摘要，默认为True
         summary: 手动输入的摘要（use_ai=False时使用）
         keywords: 手动输入的关键词（use_ai=False时使用）
-        model: 前端选择的智谱模型
+        provider: 请求指定的 AI 供应商；缺省时取用户绑定的可用供应商
+        model: 请求指定的模型名；缺省时取用户绑定模型，再退回供应商默认
 
     Returns:
         创建的文章响应
@@ -526,17 +528,27 @@ async def import_article_from_html_url(
     ai_title = None
 
     if use_ai:
+        # 解析供应商与模型：请求显式指定 > 用户绑定的可用供应商
+        from backend.controllers.ai_setting_controller import get_user_provider_model
+        use_provider = provider
+        use_model = model or ""
+        if not use_provider:
+            use_provider, use_model = await get_user_provider_model(author_id)
+        if not use_provider:
+            raise ValueError("服务端未配置任何 AI 供应商密钥，无法使用 AI 提取")
+
         try:
             ai_result = await extract_article_from_url(
                 url=url,
                 html_content=cleaned_html,
-                model=model or "glm-4-flash"
+                provider=use_provider,
+                model=use_model or None
             )
             ai_summary = ai_result.get("summary")
             ai_keywords = ai_result.get("keywords")
             ai_title = ai_result.get("title")
         except Exception as e:
-            logging.error(f"智谱 AI 提取失败 (url={url}): {str(e)}", exc_info=True)
+            logging.error(f"AI 提取失败 (url={url}, provider={use_provider}): {str(e)}", exc_info=True)
             raise ValueError(str(e))
 
     # 5. 确定最终的标题、摘要和关键词

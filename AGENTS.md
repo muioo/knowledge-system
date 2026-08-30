@@ -6,7 +6,7 @@
 
 标签使用 `parent_id` 建立任意深度层级；标签管理页以顶级标签为入口展开子树，按父标签筛选文章时必须包含父标签自身及全部后代标签。
 
-文章 URL 导入可选择使用智谱大模型提取标题、正文、摘要和关键词。智谱 API Key 仅由后端环境变量 `ZHIPU_API_KEY` 提供，前端不得采集或发送 API Key。默认模型为 `glm-4-flash`，前端支持固定模型下拉和自定义模型名称。
+文章 URL 导入可选择使用大模型提取标题、正文、摘要和关键词。AI 供应商支持智谱（SDK 专路）、千问/百炼（OpenAI 兼容）与自定义 OpenAI 兼容服务，密钥仅由后端环境变量提供（`ZHIPU_API_KEY` / `DASHSCOPE_API_KEY`+`DASHSCOPE_WORKSPACE_ID` / `CUSTOM_API_KEY`+`CUSTOM_BASE_URL`），前端不得采集或发送密钥。模型选择为用户级配置：登录用户在导入页选择供应商并录入模型，保存后绑定账号（`user_ai_settings` 表），未绑定时用服务端默认模型。
 
 爬虫模块优先使用通用 HTML 抓取和清洗；遇到微信公众号、知乎等特殊站点时，在 `backend/utils/html_fetcher.py` 中增加站点级适配。知乎可通过环境变量 `ZHIHU_COOKIE` 提供登录 Cookie。
 

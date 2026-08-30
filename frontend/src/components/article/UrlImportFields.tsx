@@ -1,5 +1,5 @@
 import Input from '../ui/Input';
-import ZhipuAiSettings from './ZhipuAiSettings';
+import AiModelSettings from './AiModelSettings';
 
 export interface UrlImportFormData {
   url: string;
@@ -7,8 +7,8 @@ export interface UrlImportFormData {
   useAi: boolean;
   summary: string;
   keywords: string;
+  provider: string;
   model: string;
-  customModel: string;
 }
 
 interface UrlImportFieldsProps {
@@ -37,15 +37,15 @@ const UrlImportFields: React.FC<UrlImportFieldsProps> = ({ data, onChange }) => 
             onChange={(e) => onChange({ useAi: e.target.checked })}
             className="w-4 h-4 text-blue-500 rounded border-gray-300 focus:ring-blue-500"
           />
-          <span className="text-sm font-medium text-gray-700">使用智谱 AI 提取摘要和关键词</span>
+          <span className="text-sm font-medium text-gray-700">使用 AI 提取标题、摘要和关键词</span>
         </label>
-        <p className="mt-1 ml-6 text-xs text-gray-500">服务端将使用其环境变量中配置的智谱 API Key</p>
+        <p className="mt-1 ml-6 text-xs text-gray-500">支持智谱、千问（百炼）等供应商，密钥由服务端统一管理</p>
       </div>
 
       {data.useAi ? (
-        <ZhipuAiSettings
+        <AiModelSettings
+          provider={data.provider}
           model={data.model}
-          customModel={data.customModel}
           onChange={onChange}
         />
       ) : (

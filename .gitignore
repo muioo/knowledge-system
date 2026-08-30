@@ -61,7 +61,8 @@ fix_*.sql
 .DS_Store
 Thumbs.db
 
-# 放行后端已受控的层级标签迁移文件
+# 放行后端已受控的迁移文件
 !backend/migrations/
 !backend/migrations/models/
 !backend/migrations/models/2_20260803214235_add_tag_parent.py
+!backend/migrations/models/3_20260825120000_add_user_ai_settings.py

@@ -1,47 +1,122 @@
-"""AI 提取工具：使用后端环境变量中的智谱 API Key 提取文章信息。"""
+"""AI 提取工具：支持智谱 SDK 专路与千问/自定义 OpenAI 兼容协议。密钥均仅来自后端环境变量。"""
 import asyncio
 import json
 import logging
 import os
 import re
 from concurrent.futures import ThreadPoolExecutor
-from typing import Dict
+from typing import Dict, Optional
 
 import aiofiles
 from bs4 import BeautifulSoup
+from openai import OpenAI
 from zai import ZhipuAiClient
 
 from backend.settings.config import settings
 
 logger = logging.getLogger(__name__)
 _executor = ThreadPoolExecutor(max_workers=2)
-DEFAULT_ZHIPU_MODEL = "glm-4-flash"
+# 支持的供应商：key 为标识，value 为展示名
+SUPPORTED_PROVIDERS = {
+    "zhipu": "智谱",
+    "dashscope": "千问（百炼）",
+    "custom": "自定义 OpenAI 兼容",
+}
+# 各供应商所需的环境变量，用于校验是否已配置密钥
+PROVIDER_KEY_ENV = {
+    "zhipu": "ZHIPU_API_KEY",
+    "dashscope": "DASHSCOPE_API_KEY",
+    "custom": "CUSTOM_API_KEY",
+}
 
 
-async def _call_ai_api(prompt: str, model: str = DEFAULT_ZHIPU_MODEL) -> Dict:
-    """使用后端配置的密钥调用智谱 Chat Completions。"""
-    api_key = settings.zhipu_api_key.strip()
+def provider_available(provider: str) -> bool:
+    """判断某供应商是否已配置服务端密钥（密钥仅存在于后端环境变量）。"""
+    key = _provider_api_key(provider)
+    if provider == "dashscope":
+        return bool(key and settings.dashscope_workspace_id)
+    if provider == "custom":
+        return bool(key and settings.custom_base_url)
+    return bool(key)
+
+
+def provider_default_model(provider: str) -> str:
+    """返回供应商的默认模型名（环境变量可覆盖）。"""
+    defaults = {
+        "zhipu": settings.zhipu_default_model,
+        "dashscope": settings.dashscope_default_model,
+        "custom": settings.custom_default_model,
+    }
+    return defaults.get(provider, "").strip()
+
+
+def _provider_api_key(provider: str) -> str:
+    """读取指定供应商的后端环境变量密钥。"""
+    keys = {
+        "zhipu": settings.zhipu_api_key,
+        "dashscope": settings.dashscope_api_key,
+        "custom": settings.custom_api_key,
+    }
+    return (keys.get(provider) or "").strip()
+
+
+def _resolve_base_url(provider: str) -> str:
+    """解析 OpenAI 兼容供应商的 base_url：千问按 workspace_id 拼接，custom 直接取配置。"""
+    if provider == "dashscope":
+        workspace_id = settings.dashscope_workspace_id.strip()
+        if not workspace_id:
+            raise ValueError("使用千问提取时必须配置后端环境变量 DASHSCOPE_WORKSPACE_ID")
+        return f"https://{workspace_id}.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
+    if provider == "custom":
+        base_url = settings.custom_base_url.strip()
+        if not base_url:
+            raise ValueError("使用自定义供应商时必须配置后端环境变量 CUSTOM_BASE_URL")
+        return base_url
+    raise ValueError(f"供应商 {provider} 不支持 OpenAI 兼容协议")
+
+
+async def _call_ai_api(prompt: str, provider: str = "zhipu", model: str = "") -> Dict:
+    """按供应商分发调用：智谱走 SDK，其余走 OpenAI 兼容协议。"""
+    if provider not in SUPPORTED_PROVIDERS:
+        raise ValueError(f"不支持的 AI 供应商: {provider}")
+
+    api_key = _provider_api_key(provider)
     if not api_key:
-        logger.error("[AI Extractor] 未配置 ZHIPU_API_KEY")
-        raise ValueError("使用智谱 AI 提取时必须配置后端环境变量 ZHIPU_API_KEY")
+        env_name = PROVIDER_KEY_ENV[provider]
+        logger.error("[AI Extractor] 未配置 %s", env_name)
+        raise ValueError(f"使用 {SUPPORTED_PROVIDERS[provider]} 提取时必须配置后端环境变量 {env_name}")
 
-    selected_model = (model or DEFAULT_ZHIPU_MODEL).strip()
+    # 模型优先级：显式传入 > 供应商默认
+    selected_model = (model or "").strip() or provider_default_model(provider)
+    if not selected_model:
+        raise ValueError(f"供应商 {SUPPORTED_PROVIDERS[provider]} 未配置默认模型，请先在页面中录入模型")
+
     try:
-        client = ZhipuAiClient(api_key=api_key)
-        response = client.chat.completions.create(
-            model=selected_model,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.2,
-        )
+        if provider == "zhipu":
+            # 智谱 SDK 专路
+            client = ZhipuAiClient(api_key=api_key)
+            response = client.chat.completions.create(
+                model=selected_model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.2,
+            )
+        else:
+            # 千问 / 自定义供应商：OpenAI 兼容协议
+            client = OpenAI(api_key=api_key, base_url=_resolve_base_url(provider))
+            response = client.chat.completions.create(
+                model=selected_model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.2,
+            )
         content = response.choices[0].message.content
         if not content:
-            raise ValueError("智谱 API 响应内容为空")
+            raise ValueError(f"{SUPPORTED_PROVIDERS[provider]} API 响应内容为空")
         return {"content": content}
     except ValueError:
         raise
     except Exception as exc:
-        logger.error("[AI Extractor] 智谱 API 调用失败: %s", exc, exc_info=True)
-        raise ValueError(f"智谱 AI 调用失败: {exc}")
+        logger.error("[AI Extractor] %s API 调用失败: %s", SUPPORTED_PROVIDERS[provider], exc, exc_info=True)
+        raise ValueError(f"{SUPPORTED_PROVIDERS[provider]} AI 调用失败: {exc}")
 
 
 def _clean_text(text: str) -> str:
@@ -89,7 +164,8 @@ def _parse_json_response(result_text: str) -> Dict:
 async def extract_article_from_url(
     url: str,
     html_content: str,
-    model: str = DEFAULT_ZHIPU_MODEL,
+    provider: str = "zhipu",
+    model: str = "",
 ) -> Dict:
     """从网页 URL 和 HTML 内容中提取标题、正文、摘要和关键词。"""
     html_content = _clean_text(html_content)
@@ -107,13 +183,14 @@ async def extract_article_from_url(
   "keywords": "关键词,关键词,关键词"
 }}"""
 
-    result = await _call_ai_api(prompt=prompt, model=model)
+    result = await _call_ai_api(prompt=prompt, provider=provider, model=model)
     return _parse_json_response(result["content"].strip())
 
 
 def _extract_article_summary_sync(
     content: str,
-    model: str = DEFAULT_ZHIPU_MODEL,
+    provider: str = "zhipu",
+    model: str = "",
 ) -> Dict:
     """在线程池中同步提取摘要和关键词。"""
     prompt = f"""从以下文章内容提取摘要和关键词：
@@ -124,7 +201,7 @@ def _extract_article_summary_sync(
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
-        result = loop.run_until_complete(_call_ai_api(prompt, model))
+        result = loop.run_until_complete(_call_ai_api(prompt, provider, model))
         return _parse_json_response(result["content"].strip())
     finally:
         loop.close()
@@ -132,11 +209,12 @@ def _extract_article_summary_sync(
 
 async def extract_article_summary(
     content: str,
-    model: str = DEFAULT_ZHIPU_MODEL,
+    provider: str = "zhipu",
+    model: str = "",
 ) -> Dict:
     """从已有文章内容中提取摘要和关键词。"""
     loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(_executor, _extract_article_summary_sync, content, model)
+    return await loop.run_in_executor(_executor, _extract_article_summary_sync, content, provider, model)
 
 
 async def extract_article_async(article_id: int) -> bool:

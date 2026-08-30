@@ -188,6 +188,7 @@ async def import_html_article_from_url(
             use_ai=request.use_ai,
             summary=request.summary,
             keywords=request.keywords,
+            provider=request.provider,
             model=request.model
         )
         return SuccessResponse(data=result)

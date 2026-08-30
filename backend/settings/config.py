@@ -45,8 +45,18 @@ class Settings(BaseSettings):
     # 是否验证SSL证书（某些网络环境下需要禁用）
     verify_ssl: bool = True
 
-    # 智谱 API Key 仅从后端环境变量读取，不接受前端请求传入。
+    # ---- AI 提取多供应商配置：密钥仅从后端环境变量读取，前端不采集、不传参 ----
+    # 智谱（保留 SDK 专路）
     zhipu_api_key: str = ""
+    zhipu_default_model: str = "glm-4-flash"
+    # 阿里云百炼/千问（OpenAI 兼容协议，专属实例按 workspace_id 拼接 base_url）
+    dashscope_api_key: str = ""
+    dashscope_workspace_id: str = ""
+    dashscope_default_model: str = ""
+    # 自定义 OpenAI 兼容供应商（DeepSeek 官方、自建 vLLM 等）
+    custom_api_key: str = ""
+    custom_base_url: str = ""
+    custom_default_model: str = ""
 
     @property
     def cors_origins_list(self) -> List[str]:
@@ -65,6 +75,7 @@ class Settings(BaseSettings):
                 "models": {
                     "models": [
                         "backend.models.user",
+                        "backend.models.user_ai_setting",
                         "backend.models.article",
                         "backend.models.tag",
                         "backend.models.reading"

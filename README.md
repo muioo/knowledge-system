@@ -57,8 +57,12 @@ DB_USER=knowledge_user
 DB_PASSWORD=Knowledge@123
 # 前端对外端口（默认 5173）
 FRONTEND_PORT=5173
-# 智谱 AI 密钥（文章 URL 导入时的智能提取，可选）
+# AI 供应商密钥（可选，仅后端持有）：智谱 / 千问（百炼）/ 自定义 OpenAI 兼容
 ZHIPU_API_KEY=
+DASHSCOPE_API_KEY=
+DASHSCOPE_WORKSPACE_ID=
+CUSTOM_API_KEY=
+CUSTOM_BASE_URL=
 ```
 
 > 变量模板见仓库根目录 [.env.example](.env.example)。密钥类信息请勿提交到 Git。
@@ -162,9 +166,12 @@ npm run dev
 | `BASE_URL` | 服务器外部访问地址（用于生成图片链接），部署时改为实际地址 | `http://localhost:5173` |
 | `MAX_FILE_SIZE` | 上传大小上限（字节） | `10485760`（10MB） |
 | `ZHIPU_API_KEY` | 智谱 AI 密钥（可选，仅后端读取） | 空 |
+| `DASHSCOPE_API_KEY` / `DASHSCOPE_WORKSPACE_ID` | 千问（百炼）密钥与业务 ID，base_url 自动拼接 | 空 |
+| `CUSTOM_API_KEY` / `CUSTOM_BASE_URL` | 自定义 OpenAI 兼容供应商（DeepSeek 官方、自建 vLLM 等） | 空 |
+| `*_DEFAULT_MODEL` | 各供应商服务端默认模型，可被用户绑定模型覆盖 | 见 `.env.example` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` / `REFRESH_TOKEN_EXPIRE_DAYS` | Token 有效期 | 30 / 7 |
 
-> `ZHIPU_API_KEY` 只从后端环境变量读取，前端不会采集或发送该密钥。默认模型为 `glm-4-flash`，前端可选择固定模型或填写自定义模型。
+> 所有 AI 供应商密钥只从后端环境变量读取，前端不会采集或发送任何密钥。**URL 导入时的模型选择为用户级配置**：登录用户在导入页选择供应商并录入模型，保存后长期绑定账号（存于 `user_ai_settings` 表），下次自动回填；未绑定时使用服务端默认模型。
 
 ---
 

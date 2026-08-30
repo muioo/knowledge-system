@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from backend.core.security import get_current_user, get_current_admin
 from backend.models import User
 from backend.schemas.user import UserResponse, UserUpdate, UpdateRole, UpdateUserStatus
+from backend.schemas.ai_setting import UserAiSettingsResponse, UserAiSettingUpdate
 from backend.schemas.response import SuccessResponse, PaginatedResponse, PaginatedData
 from backend.controllers.user_controller import (
     get_user_by_id,
@@ -10,6 +11,10 @@ from backend.controllers.user_controller import (
     list_users,
     update_user_role,
     toggle_user_status
+)
+from backend.controllers.ai_setting_controller import (
+    get_user_ai_settings,
+    save_user_ai_setting
 )
 
 router = APIRouter(prefix="/users", tags=["用户"])
@@ -111,5 +116,24 @@ async def update_user_status_by_id(
     try:
         result = await toggle_user_status(user_id, data)
         return SuccessResponse(data=result)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/me/ai-settings", response_model=SuccessResponse[UserAiSettingsResponse])
+async def get_my_ai_settings(current_user: User = Depends(get_current_user)):
+    """查询服务端支持的 AI 供应商及当前用户绑定的模型。"""
+    return SuccessResponse(data=await get_user_ai_settings(current_user.id))
+
+
+@router.put("/me/ai-settings", response_model=SuccessResponse[dict])
+async def save_my_ai_setting(
+    data: UserAiSettingUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    """保存当前用户在指定供应商上的模型绑定。"""
+    try:
+        result = await save_user_ai_setting(current_user.id, data.provider, data.model)
+        return SuccessResponse(data=result.model_dump())
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

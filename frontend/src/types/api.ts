@@ -82,7 +82,17 @@ export interface UrlImportData {
   use_ai?: boolean;
   summary?: string;
   keywords?: string;
+  provider?: string;
   model?: string;
+}
+
+// AI 供应商信息（含当前用户绑定）
+export interface AiProviderInfo {
+  provider: string;
+  name: string;
+  available: boolean;
+  default_model: string;
+  user_model?: string | null;
 }
 
 // 阅读统计类型
