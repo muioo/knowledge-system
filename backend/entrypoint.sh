@@ -55,16 +55,15 @@ async def init_db_with_tortoise():
 
 async def migrate():
     try:
-        from aerich import Command
         from aerich.models import Aerich
         from backend.settings.config import TORTOISE_ORM
         from tortoise import Tortoise, connections
 
-        print("Initializing aerich...")
-        # 初始化 Tortoise 和 aerich
+        print("Initializing Tortoise...")
+        # 仅初始化 Tortoise 以取得数据库连接。不调用 aerich Command.init()，
+        # 因为历史迁移文件为旧格式，aerich 0.9 会在 init 时校验格式并抛
+        # "Old format of migration file detected"，导致后续手工执行不会执行。
         await Tortoise.init(config=TORTOISE_ORM)
-        command = Command(tortoise_config=TORTOISE_ORM, location='migrations')
-        await command.init()
 
         print("Checking for pending migrations...")
         # 检查是否有待执行的迁移

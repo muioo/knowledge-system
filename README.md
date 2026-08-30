@@ -35,6 +35,9 @@
 │   └── main.py              # 应用入口（端口 8022）
 ├── frontend/                # React + Vite 前端（端口 5173）
 ├── docker-compose.yml       # 一键部署编排
+├── scripts/
+│   ├── start.sh / start.bat     # 一键启动（Linux·macOS / Windows）
+│   └── stop.sh  / stop.bat      # 一键停止（--reset 清空数据卷）
 └── docs/                    # 项目文档
 ```
 
@@ -69,11 +72,22 @@ CUSTOM_BASE_URL=
 
 ### 2. 一键构建并启动
 
+方式 A（推荐，带健康检查提示）：
+
+```bash
+./scripts/start.sh        # Linux / macOS
+scripts\start.bat         # Windows
+```
+
+方式 B（等价于 Docker 原始命令）：
+
 ```bash
 docker compose up -d --build
 ```
 
-首次构建需拉取基础镜像并编译前端，耗时较长，请耐心等待。
+首次构建需拉取基础镜像并编译前端，耗时较长，请耐心等待。脚本start（`scripts/start.sh` 或 `scripts/start.bat`）会等待后端健康检查通过后再提示完成。
+
+> **无需导出/导入数据库**：全新机器上首次启动会自动建表（entrypoint 会执行迁移或在空库直接建表），无需任何数据迁移；首次使用直接“注册”账号即可。
 
 ### 3. 验证与访问
 
@@ -93,6 +107,19 @@ docker compose up -d --build
 - 或进入后端容器创建管理员：`docker exec -it knowledge-backend python backend/create_admin.py`（管理员 `wbl / wbl@123456`）。
 
 ### 4. 停止 / 清理
+
+方式 A（推荐）：
+
+```bash
+# Linux / macOS
+./scripts/stop.sh                  # 停止并保留数据
+./scripts/stop.sh --reset          # 停止并清空数据卷，回到全新态（下次启动需重新注册账号）
+# Windows
+scripts\stop.bat                   # 停止并保留数据
+scripts\stop.bat --reset           # 停止并清空数据卷，回到全新态
+```
+
+方式 B（等价于 Docker 原始命令）：
 
 ```bash
 docker compose down                # 停止并移除容器

@@ -9,14 +9,9 @@
 
 ### 1. 初始化数据库
 
-在服务器上运行：
+`init-db.sh` 已移除。现在无需手动建库建用户：`docker-compose.yml` 通过 MySQL 环境变量（`MYSQL_DATABASE` / `MYSQL_USER` / `MYSQL_PASSWORD`）在容器首次启动时自动创建，`backend/entrypoint.sh` 再自动执行迁移建表。
 
-```bash
-chmod +x init-db.sh
-./init-db.sh
-```
-
-这会创建：
+这会自动创建：
 - 数据库：`knowledge_system`
 - 用户：`knowledge_user` (密码: `Knowledge@123`)
 

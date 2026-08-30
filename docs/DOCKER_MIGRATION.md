@@ -10,8 +10,7 @@
 |------|------|
 | `backend/entrypoint.sh` | 容器启动入口，负责等待 MySQL 就绪并执行迁移 |
 | `backend/Dockerfile` | 包含换行符修复（CRLF → LF） |
-| `docker-compose.yml` | 服务编排配置 |
-| `init-db.sh` | 服务器端数据库初始化脚本（创建数据库和用户） |
+| `docker-compose.yml` | 服务编排配置，通过 `MYSQL_DATABASE`/`MYSQL_USER`/`MYSQL_PASSWORD` 环境变量自动建库建用户 |
 | `migrations/models/*.py` | Aerich 迁移文件 |
 
 ## 架构说明
@@ -174,25 +173,15 @@ services:
 
 ## 部署流程
 
-### 1. 服务器端初始化数据库（首次部署）
+### 1. 初始化数据库（首次部署）
 
-```bash
-# 运行 init-db.sh 创建数据库和用户
-chmod +x init-db.sh
-./init-db.sh
-```
+`init-db.sh` 已移除。建库建用户改由 `docker-compose.yml` 的 MySQL 环境变量在容器首次启动时自动完成：
 
-**init-db.sh 内容:**
+- `MYSQL_DATABASE` → 创建数据库
+- `MYSQL_USER` / `MYSQL_PASSWORD` → 创建用户并授权
+- `backend/entrypoint.sh` → 自动执行迁移建表
 
-```bash
-#!/bin/bash
-docker exec -i mysql mysql -uroot -p<密码> <<EOF
-CREATE DATABASE IF NOT EXISTS knowledge_system CHARACTER SET utf8mb4;
-CREATE USER IF NOT EXISTS 'knowledge_user'@'%' IDENTIFIED BY 'Knowledge@123';
-GRANT ALL PRIVILEGES ON knowledge_system.* TO 'knowledge_user'@'%';
-FLUSH PRIVILEGES;
-EOF
-```
+无需再手动执行建库脚本。
 
 ### 2. 构建并启动容器
 
@@ -269,16 +258,16 @@ RUN sed -i 's/\r$//' ./backend/entrypoint.sh && \
 ENTRYPOINT ["./backend/entrypoint.sh"]
 ```
 
-### 4. 创建 init-db.sh
+### 4. 配置数据库初始化
 
-```bash
-#!/bin/bash
-docker exec -i <mysql容器名> mysql -uroot -p<密码> <<EOF
-CREATE DATABASE IF NOT EXISTS <数据库名> CHARACTER SET utf8mb4;
-CREATE USER IF NOT EXISTS '<用户名>'@'%' IDENTIFIED BY '<密码>';
-GRANT ALL PRIVILEGES ON <数据库名>.* TO '<用户名>'@'%';
-FLUSH PRIVILEGES;
-EOF
+建库建用户无需脚本：在 `docker-compose.yml` 的 MySQL 服务上配置环境变量即可自动完成：
+
+```yaml
+environment:
+  MYSQL_DATABASE: <数据库名>
+  MYSQL_USER: <用户名>
+  MYSQL_PASSWORD: <密码>
+  MYSQL_ROOT_PASSWORD: <root密码>
 ```
 
 ## 故障排查
@@ -316,7 +305,7 @@ EOF
 - [ ] `docker-compose.yml` 中 `DB_HOST` 配置正确
   - 外部 MySQL: `host.docker.internal` + `extra_hosts`
   - 内部 MySQL: 服务名
-- [ ] `init-db.sh` 数据库初始化脚本已执行
+- [ ] `docker-compose.yml` 中 MySQL 已配置 `MYSQL_DATABASE`/`MYSQL_USER`/`MYSQL_PASSWORD`
 - [ ] `.env` 文件数据库配置正确
 
 ## 参考命令

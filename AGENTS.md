@@ -26,6 +26,13 @@
 - `frontend/src/utils/tagTree.js`：将平铺标签组装为顶级入口树。
 - `docs/`：项目文档和外部 API 参考。
 
+## Docker 一键部署
+
+- `docker-compose.yml`：编排 MySQL / backend / frontend，支持他人零配置一键部署。
+- `scripts/start.sh` / `stop.sh`（Linux·macOS）、`scripts/start.bat` / `stop.bat`（Windows）：一键启动（等待健康检查）与停止；`stop.* --reset` 清空数据卷回到全新态。
+- 全新机器首次启动自动建表（`backend/entrypoint.sh` 执行迁移或空库直接建表），无需导出/导入数据库；首次使用注册账号即可。
+- 密钥仅由后端环境变量提供，见 `.env.example`；正式部署务必覆盖 `SECRET_KEY` 与 DB 密码。
+
 ## 代码风格
 
 - 新代码优先简洁实现，不添加未被要求的抽象、配置或兼容逻辑。
