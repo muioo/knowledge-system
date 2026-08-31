@@ -91,11 +91,6 @@ docker compose up -d --build
 - 后端 API 文档：**http://localhost:8022/docs**（Swagger）
 - 健康检查：**http://localhost:8022/health** → 返回 `{"status":"ok"}`
 
-登录账号可二选一：
-
-- 打开前端页面后，通过“注册”接口创建新账号；
-- 或进入后端容器创建管理员：`docker exec -it knowledge-backend python backend/create_admin.py`（管理员 `wbl / wbl@123456`）。
-
 ### 4. 停止 / 清理
 
 ```bash
