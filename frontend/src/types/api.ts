@@ -93,6 +93,7 @@ export interface AiProviderInfo {
   available: boolean;
   default_model: string;
   user_model?: string | null;
+  has_apikey?: boolean; // 当前用户是否为该供应商配置了自配密钥
 }
 
 // 阅读统计类型

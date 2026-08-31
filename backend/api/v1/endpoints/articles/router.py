@@ -10,7 +10,7 @@ from backend.schemas.article import (
     ArticleHtmlResponse
 )
 from backend.schemas.response import SuccessResponse, PaginatedResponse, PaginatedData
-from backend.controllers.article_controller import (
+from backend.services.article_service import (
     create_article_from_file,
     get_article_by_id,
     update_article,

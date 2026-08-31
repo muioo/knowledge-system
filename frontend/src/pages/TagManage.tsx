@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { tagApi } from '../api/tag';
-import TagTree, { type TagTreeNode } from '../components/tag/TagTree';
+import TagTree from '../components/tag/TagTree';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import type { Tag } from '../types/api';
@@ -28,7 +28,7 @@ const TagManage: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<TagFormData>(EMPTY_FORM);
   const [message, setMessage] = useState('');
-  const tagTree = useMemo(() => buildTagTree(tags) as TagTreeNode[], [tags]);
+  const tagTree = useMemo(() => buildTagTree(tags), [tags]);
 
   /** 重新加载完整标签集合，前端再构建顶级标签树。 */
   const fetchTags = async () => {

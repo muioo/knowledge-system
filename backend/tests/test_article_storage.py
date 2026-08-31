@@ -5,7 +5,7 @@ import pytest
 import os
 import shutil
 from pathlib import Path
-from backend.utils.article_storage import (
+from backend.storage.article_storage import (
     get_article_dir,
     get_html_path,
     get_relative_html_path,

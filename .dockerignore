@@ -16,5 +16,8 @@ frontend/dist
 # 通用
 .git
 .gitignore
+# 环境变量含密钥，绝不打入镜像
+.env
+.env.*
 *.md
 logs/

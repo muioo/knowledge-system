@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from backend.core.security import get_current_user
 from backend.models import User
 from backend.schemas.response import SuccessResponse
-from backend.controllers.tag_controller import (
+from backend.services.tag_service import (
     create_tag,
     get_tag_by_id,
     list_tags,

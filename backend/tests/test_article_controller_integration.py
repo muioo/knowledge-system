@@ -6,7 +6,7 @@ import pytest
 from httpx import AsyncClient
 from backend.models import Article, Tag
 from backend.schemas.article import ArticleCreate, ArticleUpdate
-from backend.controllers.article_controller import (
+from backend.services.article_service import (
     create_article,
     get_article_by_id,
     update_article,
@@ -62,7 +62,7 @@ async def test_create_article_with_html(clean_db):
     assert article.html_path == f"articles/{article.id}/index.html"
 
     # 验证文件已创建
-    from backend.utils.article_storage import read_html_content
+    from backend.storage.article_storage import read_html_content
     saved_html = await read_html_content(article.id)
     assert saved_html == html_content
 
@@ -198,7 +198,7 @@ async def test_delete_article(clean_db):
     article_id = created.id
 
     # 验证文件存在
-    from backend.utils.article_storage import read_html_content
+    from backend.storage.article_storage import read_html_content
     content = await read_html_content(article_id)
     assert content == html_content
 
@@ -400,10 +400,10 @@ async def test_create_article_file_rollback_on_error(clean_db):
     """测试创建文章失败时的回滚"""
     # 使用无效的 HTML 内容（可能导致错误）
     # 这个测试验证当保存文件失败时，数据库记录也会被删除
-    original_upload_dir = await __import__('backend.utils.article_storage', fromlist=['settings']).settings.upload_dir
+    original_upload_dir = await __import__('backend.storage.article_storage', fromlist=['settings']).settings.upload_dir
 
     # 设置一个无效的上传目录
-    await __import__('backend.utils.article_storage', fromlist=['settings']).settings.update(
+    await __import__('backend.storage.article_storage', fromlist=['settings']).settings.update(
         upload_dir="/invalid/path/that/does/not/exist"
     )
 
@@ -422,7 +422,7 @@ async def test_create_article_file_rollback_on_error(clean_db):
         assert article is None
     finally:
         # 恢复原始配置
-        await __import__('backend.utils.article_storage', fromlist=['settings']).settings.update(
+        await __import__('backend.storage.article_storage', fromlist=['settings']).settings.update(
             upload_dir=original_upload_dir
         )
 

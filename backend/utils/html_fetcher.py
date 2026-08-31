@@ -21,14 +21,12 @@ DEFAULT_HEADERS = {
     "Upgrade-Insecure-Requests": "1",
 }
 
-
 def is_valid_url(url: str) -> bool:
     """验证 URL 是否为 http/https 地址。"""
     if not url or not isinstance(url, str):
         return False
     url = url.strip()
     return bool(url) and (url.startswith("http://") or url.startswith("https://"))
-
 
 def build_request_headers(url: str) -> dict:
     """按站点生成请求头，知乎可通过 ZHIHU_COOKIE 提供登录 Cookie。"""
@@ -42,7 +40,6 @@ def build_request_headers(url: str) -> dict:
     elif "mp.weixin.qq.com" in hostname:
         headers["Referer"] = "https://mp.weixin.qq.com/"
     return headers
-
 
 async def fetch_html(url: str) -> str:
     """获取网页原始 HTML。"""
@@ -69,7 +66,6 @@ async def fetch_html(url: str) -> str:
             logger.error("[HTML Fetcher] 网络请求失败: %s %s", url, exc)
             raise ValueError(f"网络请求失败: {exc}")
 
-
 def clean_html(html: str, url: str = "") -> Tuple[str, str]:
     """清洗 HTML 并返回正文 HTML 与标题。"""
     hostname = urlparse(url).netloc.lower() if url else ""
@@ -84,7 +80,6 @@ def clean_html(html: str, url: str = "") -> Tuple[str, str]:
     soup = BeautifulSoup(html, "html.parser")
     title = soup.title.get_text(strip=True) if soup.title else "未命名文章"
     return str(soup.body or soup), title
-
 
 def _clean_wechat_article(html: str) -> Tuple[str, str]:
     """提取微信公众号文章结构，并恢复 data-src 图片。"""
@@ -113,7 +108,6 @@ def _clean_wechat_article(html: str) -> Tuple[str, str]:
     wrapper.append(content)
     return str(wrapper), title
 
-
 def _clean_with_readability_or_soup(html: str) -> Tuple[str, str]:
     """优先使用 readability，缺失时降级到 BeautifulSoup。"""
     if Document is not None:
@@ -122,7 +116,6 @@ def _clean_with_readability_or_soup(html: str) -> Tuple[str, str]:
     soup = BeautifulSoup(html, "html.parser")
     title = soup.title.get_text(strip=True) if soup.title else "未命名文章"
     return str(soup.body or soup), title
-
 
 def remove_scripts(html: str) -> str:
     """移除脚本、meta refresh 和 iframe。"""
@@ -134,7 +127,6 @@ def remove_scripts(html: str) -> str:
     for iframe in soup.find_all("iframe"):
         iframe.decompose()
     return str(soup)
-
 
 async def rewrite_base_urls(html: str, base_url: str) -> str:
     """将 HTML 中图片相对路径转为绝对路径。"""

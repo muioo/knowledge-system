@@ -32,7 +32,9 @@ backend/
 │           ├── tags/      # 标签管理接口
 │           ├── search/    # 搜索接口
 │           └── reading/   # 阅读记录接口
-├── controllers/           # 业务逻辑控制器层
+├── services/              # 接口业务层（*_service.py）
+├── ai/                    # AI 集成层（供应商分发/提取）
+├── storage/               # 文章存储层（HTML 持久化）
 ├── core/                  # 核心功能模块
 │   ├── security.py       # JWT认证、用户身份验证
 │   ├── crud.py           # 通用CRUD操作基类

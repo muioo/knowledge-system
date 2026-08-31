@@ -27,17 +27,16 @@
 .
 ├── backend/                 # FastAPI 后端
 │   ├── api/v1/endpoints/    # API 路由层
-│   ├── controllers/         # 业务编排层
+│   ├── services/            # 接口业务层（*_service.py）
+│   ├── ai/                  # AI 集成层（AI 供应商提取）
+│   ├── storage/             # 文章存储层（HTML 持久化）
 │   ├── models/              # TortoiseORM 数据模型
 │   ├── schemas/             # Pydantic 请求/响应模型
 │   ├── migrations/          # Aerich 迁移文件
-│   ├── utils/               # HTML 抓取、文档转换、AI 提取等工具
+│   ├── utils/               # 纯工具类（HTML 抓取、文档转换等）
 │   └── main.py              # 应用入口（端口 8022）
 ├── frontend/                # React + Vite 前端（端口 5173）
 ├── docker-compose.yml       # 一键部署编排
-├── scripts/
-│   ├── start.sh / start.bat     # 一键启动（Linux·macOS / Windows）
-│   └── stop.sh  / stop.bat      # 一键停止（--reset 清空数据卷）
 └── docs/                    # 项目文档
 ```
 
@@ -68,24 +67,15 @@ CUSTOM_API_KEY=
 CUSTOM_BASE_URL=
 ```
 
-> 变量模板见仓库根目录 [.env.example](.env.example)。密钥类信息请勿提交到 Git。
+> 变量模板见 [backend/.env.example](backend/.env.example)。密钥类信息请勿提交到 Git。
 
 ### 2. 一键构建并启动
-
-方式 A（推荐，带健康检查提示）：
-
-```bash
-./scripts/start.sh        # Linux / macOS
-scripts\start.bat         # Windows
-```
-
-方式 B（等价于 Docker 原始命令）：
 
 ```bash
 docker compose up -d --build
 ```
 
-首次构建需拉取基础镜像并编译前端，耗时较长，请耐心等待。脚本start（`scripts/start.sh` 或 `scripts/start.bat`）会等待后端健康检查通过后再提示完成。
+首次构建需拉取基础镜像并编译前端，耗时较长，请耐心等待。可用 `docker compose ps` 与健康检查 `http://localhost:8022/health` 确认后端就绪。
 
 > **无需导出/导入数据库**：全新机器上首次启动会自动建表（entrypoint 会执行迁移或在空库直接建表），无需任何数据迁移；首次使用直接“注册”账号即可。
 
@@ -108,22 +98,9 @@ docker compose up -d --build
 
 ### 4. 停止 / 清理
 
-方式 A（推荐）：
-
 ```bash
-# Linux / macOS
-./scripts/stop.sh                  # 停止并保留数据
-./scripts/stop.sh --reset          # 停止并清空数据卷，回到全新态（下次启动需重新注册账号）
-# Windows
-scripts\stop.bat                   # 停止并保留数据
-scripts\stop.bat --reset           # 停止并清空数据卷，回到全新态
-```
-
-方式 B（等价于 Docker 原始命令）：
-
-```bash
-docker compose down                # 停止并移除容器
-docker compose down -v             # 连数据库数据卷一并删除
+docker compose down                # 停止并移除容器（保留数据）
+docker compose down -v             # 连数据库数据卷一并删除，回到全新态（下次启动需重新注册账号）
 ```
 
 > 后端会自动执行 Aerich 数据库迁移并等待 MySQL 就绪，无需手动建库。
@@ -143,10 +120,10 @@ conda activate knowledge-system
 pip install -r backend/requirements.txt
 ```
 
-配置环境变量，将 `.env.example` 复制为后台配置文件：
+配置环境变量，将 `backend/.env.example` 复制为后端配置文件：
 
 ```bash
-cp .env.example backend/.env
+cp backend/.env.example backend/.env
 # 编辑 backend/.env，按需修改 SECRET_KEY、DB_* 项
 ```
 
@@ -195,7 +172,7 @@ npm run dev
 | `ZHIPU_API_KEY` | 智谱 AI 密钥（可选，仅后端读取） | 空 |
 | `DASHSCOPE_API_KEY` / `DASHSCOPE_WORKSPACE_ID` | 千问（百炼）密钥与业务 ID，base_url 自动拼接 | 空 |
 | `CUSTOM_API_KEY` / `CUSTOM_BASE_URL` | 自定义 OpenAI 兼容供应商（DeepSeek 官方、自建 vLLM 等） | 空 |
-| `*_DEFAULT_MODEL` | 各供应商服务端默认模型，可被用户绑定模型覆盖 | 见 `.env.example` |
+| `*_DEFAULT_MODEL` | 各供应商服务端默认模型，可被用户绑定模型覆盖 | 见 `backend/.env.example` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` / `REFRESH_TOKEN_EXPIRE_DAYS` | Token 有效期 | 30 / 7 |
 
 > 所有 AI 供应商密钥只从后端环境变量读取，前端不会采集或发送任何密钥。**URL 导入时的模型选择为用户级配置**：登录用户在导入页选择供应商并录入模型，保存后长期绑定账号（存于 `user_ai_settings` 表），下次自动回填；未绑定时使用服务端默认模型。

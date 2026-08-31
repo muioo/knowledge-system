@@ -1,7 +1,8 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import type { ApiResponse } from '../types/api';
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8022/api/v1';
+// 统一使用相对路径 /api/v1：开发环境由 vite 代理转发，生产环境由 nginx 反向代理
+const API_BASE_URL = '/api/v1';
 
 // 创建 axios 实例
 export const apiClient: AxiosInstance = axios.create({

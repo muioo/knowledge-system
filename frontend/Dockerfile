@@ -3,18 +3,12 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# 可注入的同源 API 路径（compose 里默认 /api/v1，经 nginx 反代到后端）
-ARG VITE_API_BASE_URL=/api/v1
-
 # 先复制依赖清单再安装，充分利用构建缓存
 COPY package.json package-lock.json ./
 RUN npm ci
 
 # 复制源码
 COPY . .
-
-# 将构建期参数写入 .env.production，确保 Vite 一定能读到 VITE_API_BASE_URL
-RUN echo "VITE_API_BASE_URL=$VITE_API_BASE_URL" > .env.production
 
 RUN npm run build
 

@@ -1,5 +1,11 @@
 # 项目说明
 
+## 规则位置
+
+- 仓库级规则：根目录 `AGENTS.md`（本文件）。
+- 后端规则：`backend/backend-rule.md`（修改/新增后端代码前请先阅读）。
+- 前端规则：`frontend/frontend-rule.md`（修改/新增前端代码前请先阅读）。
+
 ## 项目目标
 
 本项目是一个基于 FastAPI + React 的知识管理系统，支持用户认证、多级标签管理、文章上传、URL 导入、HTML 内容存储、阅读记录和阅读统计。
@@ -14,10 +20,12 @@
 
 - `backend/`：FastAPI 后端。
 - `backend/api/v1/endpoints/`：API 路由层，只负责请求解析、鉴权和响应封装。
-- `backend/controllers/`：业务编排层。
+- `backend/services/`：接口业务层，仅放对接 API 的 `*_service.py`（业务编排）。
+- `backend/ai/`：AI 集成层（`ai_extractor.py`，供应商分发/提取，未来 AI 扩展归此）。
+- `backend/storage/`：文章存储层（`article_storage.py`，HTML 文件持久化）。
 - `backend/models/`：TortoiseORM 数据模型。
 - `backend/schemas/`：Pydantic 请求和响应模型。
-- `backend/utils/`：HTML 抓取、图片处理、文章存储、AI 提取等工具。
+- `backend/utils/`：仅放无业务状态的工具类（jwt、password、crypto、标签层级、HTML 抓取、图片处理、格式转换等）。
 - `backend/tests/`：后端 pytest 测试。
 - `frontend/`：React + Vite 前端。
 - `frontend/src/api/`：前端 API 请求封装。
@@ -28,10 +36,9 @@
 
 ## Docker 一键部署
 
-- `docker-compose.yml`：编排 MySQL / backend / frontend，支持他人零配置一键部署。
-- `scripts/start.sh` / `stop.sh`（Linux·macOS）、`scripts/start.bat` / `stop.bat`（Windows）：一键启动（等待健康检查）与停止；`stop.* --reset` 清空数据卷回到全新态。
+- `docker-compose.yml`：编排 MySQL / backend / frontend，支持他人零配置一键部署（直接 `docker compose up -d --build` 启动、`docker compose down [-v]` 停止/清空数据卷）。
 - 全新机器首次启动自动建表（`backend/entrypoint.sh` 执行迁移或空库直接建表），无需导出/导入数据库；首次使用注册账号即可。
-- 密钥仅由后端环境变量提供，见 `.env.example`；正式部署务必覆盖 `SECRET_KEY` 与 DB 密码。
+- 密钥仅由后端环境变量提供，见 `backend/.env.example`；正式部署务必覆盖 `SECRET_KEY` 与 DB 密码。
 
 ## 代码风格
 
@@ -67,3 +74,5 @@ aerich upgrade
 - 修改 AI 提取链路时，需要覆盖：未配置 `ZHIPU_API_KEY`、默认模型、自定义模型透传、旧 `api_key` 字段被拒绝、AI 失败时明确报错。
 - 前端文章列表的搜索、标签筛选和翻页必须组合保留查询参数；修改后至少执行构建，并手工验证标签切换、取消筛选和翻页。
 - 多级标签变更需要覆盖：顶级树展示、子标签创建、循环父级拒绝、有子标签时拒绝删除，以及父标签文章筛选包含所有后代。
+
+

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -7,6 +7,7 @@ import {
   TagIcon,
   BarChartIcon,
   UserIcon,
+  SettingsIcon,
   ChevronDownIcon,
   PlusIcon,
 } from '../ui/Icons';
@@ -30,10 +31,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // 折叠状态
-  const [extraOptionsOpen, setExtraOptionsOpen] = useState(false);
-  const [moreInfoOpen, setMoreInfoOpen] = useState(false);
-
   const menuItems = useMemo<MenuItem[]>(
     () => [
       { path: '/dashboard', icon: HomeIcon, label: '仪表盘' },
@@ -41,6 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       { path: '/articles/create', icon: PlusIcon, label: '添加文章' },
       { path: '/tags', icon: TagIcon, label: '标签管理' },
       { path: '/reading/stats', icon: BarChartIcon, label: '阅读统计' },
+      { path: '/ai-settings', icon: SettingsIcon, label: 'API Key 设置' },
     ],
     []
   );
@@ -109,49 +107,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               );
             })}
           </ul>
-
-          {/* Collapsible Sections */}
-          <div className="mt-4">
-            {/* Extra Options */}
-            <div className="mb-4">
-              <button
-                onClick={() => setExtraOptionsOpen(!extraOptionsOpen)}
-                className="w-full flex items-center justify-between py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors"
-              >
-                <span className="font-semibold text-sm">Extra Options</span>
-                <ChevronDownIcon
-                  size={16}
-                  className={`transform transition-transform duration-200 ${extraOptionsOpen ? 'rotate-180' : ''}`}
-                />
-              </button>
-              {extraOptionsOpen && (
-                <div className="ml-4 mt-2 space-y-2">
-                  <p className="text-sm text-gray-600 py-1 px-2">选项 1</p>
-                  <p className="text-sm text-gray-600 py-1 px-2">选项 2</p>
-                </div>
-              )}
-            </div>
-
-            {/* More Info */}
-            <div className="mb-4">
-              <button
-                onClick={() => setMoreInfoOpen(!moreInfoOpen)}
-                className="w-full flex items-center justify-between py-2 px-4 rounded-xl hover:bg-gray-100 transition-colors"
-              >
-                <span className="font-semibold text-sm">More Info</span>
-                <ChevronDownIcon
-                  size={16}
-                  className={`transform transition-transform duration-200 ${moreInfoOpen ? 'rotate-180' : ''}`}
-                />
-              </button>
-              {moreInfoOpen && (
-                <div className="ml-4 mt-2 space-y-2">
-                  <p className="text-sm text-gray-600 py-1 px-2">信息 1</p>
-                  <p className="text-sm text-gray-600 py-1 px-2">信息 2</p>
-                </div>
-              )}
-            </div>
-          </div>
         </nav>
 
         {/* Footer */}

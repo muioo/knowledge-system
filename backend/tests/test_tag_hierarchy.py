@@ -125,16 +125,16 @@ class _FakeArticleModel:
 @pytest.mark.asyncio
 async def test_list_articles_filters_with_parent_and_descendant_tags(monkeypatch):
     """文章列表按父标签筛选时必须传入其全部后代 ID。"""
-    from backend.controllers import article_controller
+    from backend.services import article_service
 
     tag_query = _FakeTagQuery([(10, None), (11, 10), (12, 11), (20, None)])
     article_query = _FakeArticleQuery()
     _FakeTagModel.query = tag_query
     _FakeArticleModel.query = article_query
-    monkeypatch.setattr(article_controller, "Tag", _FakeTagModel)
-    monkeypatch.setattr(article_controller, "Article", _FakeArticleModel)
+    monkeypatch.setattr(article_service, "Tag", _FakeTagModel)
+    monkeypatch.setattr(article_service, "Article", _FakeArticleModel)
 
-    articles, total = await article_controller.list_articles(page=2, size=5, tag_id=10)
+    articles, total = await article_service.list_articles(page=2, size=5, tag_id=10)
 
     assert articles == []
     assert total == 0

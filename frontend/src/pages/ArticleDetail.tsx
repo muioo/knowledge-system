@@ -253,20 +253,7 @@ const ArticleDetail: React.FC = () => {
       setArticle(articleData);
       let htmlContent = htmlData.html_content || '';
 
-      // 根据环境变量判断是否为开发环境
-      // 开发环境：使用 VITE_API_BASE_URL（包含完整地址，如 http://localhost:8022/api/v1）
-      // 生产环境：使用相对路径，通过 Nginx 代理
-      const apiBaseUrl = (import.meta as any).env?.VITE_API_BASE_URL || '/api/v1';
-
-      // 判断是否为开发环境（API URL 以 http 开头）
-      const isDev = apiBaseUrl.startsWith('http');
-
-      if (isDev) {
-        // 开发环境：使用完整 API 地址访问后端（支持 Docker 服务名）
-        const mediaBaseUrl = apiBaseUrl.replace(/\/api\/v1$/, '') + '/api/v1/media';
-        htmlContent = htmlContent.replace(/src="\/api\/v1\/media\//g, `src="${mediaBaseUrl}/`);
-      }
-      // 生产环境：保持相对路径，通过 Nginx 代理
+      // 媒体资源统一使用相对路径 /api/v1/media/，开发走 vite 代理、生产走 nginx 反代
       setHtmlContent(htmlContent);
     } catch (err: any) {
       setError(err.message || '获取文章详情失败');

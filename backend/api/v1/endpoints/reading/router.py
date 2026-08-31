@@ -3,7 +3,7 @@ from backend.core.security import get_current_user, get_current_admin
 from backend.models import User
 from backend.schemas.reading import ReadingEnd, ReadingHistoryResponse, ReadingStatsResponse, ReadingTrendsResponse, ReadingProgressUpdate
 from backend.schemas.response import SuccessResponse, PaginatedResponse, PaginatedData
-from backend.controllers.reading_controller import (
+from backend.services.reading_service import (
     start_reading,
     end_reading,
     get_reading_history,
@@ -12,8 +12,8 @@ from backend.controllers.reading_controller import (
     get_reading_progress,
     update_reading_progress
 )
-from backend.controllers.reading_trends_controller import get_reading_trends
-from backend.controllers.reading_time_distribution_controller import get_time_distribution
+from backend.services.reading_trends_service import get_reading_trends
+from backend.services.reading_time_distribution_service import get_time_distribution
 
 router = APIRouter(prefix="/reading", tags=["阅读记录"])
 

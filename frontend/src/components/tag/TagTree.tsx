@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import type { Tag } from '../../types/api';
+import type { TagTreeNode } from '../../utils/tagTree';
 
-export interface TagTreeNode extends Tag {
-  children: TagTreeNode[];
-}
+export type { TagTreeNode };
 
 interface TagTreeProps {
   tags: TagTreeNode[];

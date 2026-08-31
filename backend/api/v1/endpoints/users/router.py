@@ -4,7 +4,7 @@ from backend.models import User
 from backend.schemas.user import UserResponse, UserUpdate, UpdateRole, UpdateUserStatus
 from backend.schemas.ai_setting import UserAiSettingsResponse, UserAiSettingUpdate
 from backend.schemas.response import SuccessResponse, PaginatedResponse, PaginatedData
-from backend.controllers.user_controller import (
+from backend.services.user_service import (
     get_user_by_id,
     update_user,
     delete_user,
@@ -12,7 +12,7 @@ from backend.controllers.user_controller import (
     update_user_role,
     toggle_user_status
 )
-from backend.controllers.ai_setting_controller import (
+from backend.services.ai_setting_service import (
     get_user_ai_settings,
     save_user_ai_setting
 )
@@ -131,9 +131,14 @@ async def save_my_ai_setting(
     data: UserAiSettingUpdate,
     current_user: User = Depends(get_current_user)
 ):
-    """保存当前用户在指定供应商上的模型绑定。"""
+    """保存当前用户在指定供应商上的模型绑定与可选的自配密钥。"""
     try:
-        result = await save_user_ai_setting(current_user.id, data.provider, data.model)
+        result = await save_user_ai_setting(
+            current_user.id,
+            data.provider,
+            data.model,
+            api_key=data.api_key,
+        )
         return SuccessResponse(data=result.model_dump())
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

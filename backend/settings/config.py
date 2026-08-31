@@ -58,6 +58,12 @@ class Settings(BaseSettings):
     custom_base_url: str = ""
     custom_default_model: str = ""
 
+    # 通用 AI 可调参数（均有默认值，可按需用环境变量覆盖）
+    ai_temperature: float = 0.2  # 模型采样温度
+    ai_max_workers: int = 2  # 摘要提取线程池大小
+    ai_max_content_len: int = 15000  # 网页内容送入模型的截断长度
+    ai_max_text_len: int = 5000  # 已有文章正文送入模型的截断长度
+
     @property
     def cors_origins_list(self) -> List[str]:
         return json.loads(self.cors_origins)

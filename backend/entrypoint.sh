@@ -2,22 +2,21 @@
 # 不使用 set -e，以便显示错误信息
 
 echo "=== Waiting for MySQL to be ready ==="
+# 用真实 TCP 连接探测，避免 Tortoise.init 懒连接导致的"假就绪"竞态，
+# 确保 MySQL 真正监听端口后才开始执行迁移。
 MAX_RETRIES=30
 RETRY=0
 while true; do
-    if python -c "
-import asyncio, sys
-from tortoise import Tortoise
-from backend.settings.config import TORTOISE_ORM
-async def check():
-    try:
-        await Tortoise.init(config=TORTOISE_ORM)
-        await Tortoise.close_connections()
-        print('OK')
-    except Exception as e:
-        print(f'ERROR: {e}', file=sys.stderr)
-        sys.exit(1)
-asyncio.run(check())
+    if DB_HOST_DEFAULT=${DB_HOST:-mysql} DB_PORT_DEFAULT=${DB_PORT:-3306} python -c "
+import socket, os, sys
+host = os.environ.get('DB_HOST_DEFAULT', 'mysql')
+port = int(os.environ.get('DB_PORT_DEFAULT', '3306'))
+try:
+    with socket.create_connection((host, port), timeout=3):
+        pass
+    print('OK')
+except Exception:
+    sys.exit(1)
 " 2>&1; then
         break
     fi
@@ -30,6 +29,8 @@ asyncio.run(check())
     echo "  MySQL not ready yet, retrying in 2s... ($RETRY/$MAX_RETRIES)"
     sleep 2
 done
+# MySQL 端口就绪后还需短暂稳定，避免协议握手过早失败
+sleep 3
 echo "MySQL is ready."
 
 echo "=== Running aerich migrations ==="
@@ -168,10 +169,12 @@ async def migrate():
             try:
                 # 使用完整文件名作为版本
                 version = migration_file.name
+                # aerich 的 content 列为 JSON 类型，需传入 JSON 结构记录迁移，
+                # 否则 "invalid json value" 报错会中断后续迁移（2_/3_ 永不执行）。
                 await Aerich.create(
                     version=version,
                     app='models',
-                    content=upgrade_sql
+                    content={"upgrade": upgrade_sql, "downgrade": ""}
                 )
                 print(f"  [{i}/{len(pending)}] Recorded migration: {migration_file.name}")
             except Exception as e:

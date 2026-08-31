@@ -2,7 +2,7 @@ import pytest
 from pydantic import ValidationError
 
 from backend.schemas.article import ArticleFromHtmlUrlRequest
-from backend.utils import ai_extractor
+from backend.ai import ai_extractor
 
 
 class FakeCompletions:
@@ -154,3 +154,37 @@ def test_url_import_request_rejects_removed_api_key_field():
     """已删除的 api_key 请求字段必须明确拒绝，避免客户端误以为仍生效。"""
     with pytest.raises(ValidationError, match="api_key"):
         ArticleFromHtmlUrlRequest(url="https://example.com", api_key="frontend-key")
+
+
+@pytest.mark.asyncio
+async def test_extract_article_prefers_user_provided_api_key(monkeypatch):
+    """显式传入的用户自配密钥必须优先于后端环境变量密钥。"""
+    FakeZhipuAiClient.instances = []
+    monkeypatch.setattr(ai_extractor, "ZhipuAiClient", FakeZhipuAiClient)
+    monkeypatch.setattr(ai_extractor.settings, "zhipu_api_key", "environment-key", raising=False)
+
+    await ai_extractor.extract_article_from_url(
+        url="https://example.com/article",
+        html_content="<article>正文</article>",
+        api_key="user-own-key",
+    )
+
+    client = FakeZhipuAiClient.instances[0]
+    assert client.api_key == "user-own-key"
+
+
+@pytest.mark.asyncio
+async def test_extract_article_falls_back_to_env_when_user_no_key(monkeypatch):
+    """未传用户密钥时应回退到后端环境变量密钥。"""
+    FakeZhipuAiClient.instances = []
+    monkeypatch.setattr(ai_extractor, "ZhipuAiClient", FakeZhipuAiClient)
+    monkeypatch.setattr(ai_extractor.settings, "zhipu_api_key", "environment-key", raising=False)
+
+    await ai_extractor.extract_article_from_url(
+        url="https://example.com/article",
+        html_content="<article>正文</article>",
+        api_key="   ",
+    )
+
+    client = FakeZhipuAiClient.instances[0]
+    assert client.api_key == "environment-key"

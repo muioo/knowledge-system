@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from backend.schemas.user import UserCreate, UserLogin, TokenResponse
-from backend.controllers.auth_controller import register_user, login_user, refresh_token
+from backend.services.auth_service import register_user, login_user, refresh_token
 from backend.schemas.response import SuccessResponse
 
 router = APIRouter(prefix="/auth", tags=["认证"])

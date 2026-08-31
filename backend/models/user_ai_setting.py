@@ -12,6 +12,8 @@ class UserAiSetting(Model):
     provider = fields.CharField(max_length=20)
     # 用户录入的模型名称，例如 deepseek-v4-flash-0731
     model = fields.CharField(max_length=100)
+    # 用户自行录入的 API Key 密文（encrypt_secret 产出）；为空表示未设置，走服务端环境变量
+    api_key = fields.CharField(max_length=512, null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
 

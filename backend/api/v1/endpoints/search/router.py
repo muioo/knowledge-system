@@ -4,7 +4,7 @@ from backend.core.security import get_current_user
 from backend.models import User
 from backend.schemas.article import ArticleResponse
 from backend.schemas.response import PaginatedResponse, PaginatedData
-from backend.controllers.article_controller import search_articles
+from backend.services.article_service import search_articles
 
 router = APIRouter(prefix="/search", tags=["搜索"])
 

@@ -76,9 +76,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        # 构建期注入同源 API 路径，经 nginx 反向代理到 backend
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api/v1}
     container_name: knowledge-frontend
     restart: unless-stopped
     depends_on:

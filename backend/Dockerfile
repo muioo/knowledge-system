@@ -11,8 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # 复制依赖文件并安装（build context 是项目根目录）
-COPY backend/requirements-docker.txt .
-RUN pip install --no-cache-dir -r requirements-docker.txt
+COPY backend/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
 # 复制 aerich 配置和迁移文件（需要在 /app 根目录，aerich 从这里读取）
 COPY pyproject.toml ./pyproject.toml

@@ -28,6 +28,8 @@ dist-python/
 node_modules/
 dist/
 dist-server/
+dist-ssr/
+*.local
 
 # ===== 数据库 =====
 *.db
@@ -48,8 +50,9 @@ logs/
 uploads/
 backend/uploads/
 
-# ===== 迁移文件（默认忽略，后端视为受控文件单独放行）=====
+# ===== 迁移文件（可由本地 aerich migrate 自行生成，不需上传）=====
 migrations/
+backend/migrations/
 
 # ===== 临时文件 =====
 *.tmp
@@ -60,9 +63,3 @@ fix_*.sql
 # ===== OS =====
 .DS_Store
 Thumbs.db
-
-# 放行后端已受控的迁移文件
-!backend/migrations/
-!backend/migrations/models/
-!backend/migrations/models/2_20260803214235_add_tag_parent.py
-!backend/migrations/models/3_20260825120000_add_user_ai_settings.py
